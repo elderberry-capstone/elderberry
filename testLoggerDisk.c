@@ -4,14 +4,33 @@
 *
 */
 
-void init_diskLogger () {
-  // maybe nothing to do?
+#include <stdio.h>
+
+FILE *fp = NULL;
+char * file;
+
+
+// Initializes function by copying filename into private data and 
+// opening file. Error produced if file can't be opened. (NOTE!) Not
+// sure about passing only be reference.
+int init_diskLogger (char *filename) {
+	file = filename;
+	fp = fopen(file, "w");
+	if(!fp){
+		return -1;
+	}
 }
 
-void diskLogger_getMessage(char *buffer, int len) {
-  // some data has been passed into this function for consumption.
-  // take buffer and write it to disk (append).
+// Writes data to file.
+void diskLogger_getMessage(const char *src, char *buffer, int len) {
+	fprintf(fp, "%s: $s\n", src, buffer);
+
 } 
 
+// Closes file stream.
+int finalize_disklogger(){
+	fclose(fp);
+	return 0;
+}
 
 // Other private functions to do stuff.
