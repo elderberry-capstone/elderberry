@@ -14,6 +14,10 @@ char * file;
 // opening file. Error produced if file can't be opened. (NOTE!) Not
 // sure about passing only be reference.
 int init_diskLogger (char *filename) {
+	// Need to check filename!!!
+	if(!filename){
+		return -2;
+	}
 	file = filename;
 	fp = fopen(file, "w");
 	if(!fp){
