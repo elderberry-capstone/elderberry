@@ -25,12 +25,15 @@ void init_screenLogger () {
 // len... length of data in buffer
 void screenLogger_getMessage(const char *src, char *buffer, int len) {
 	// some data has been passed into this function for consumption.
-	printf("%s sends: \n", src);
+	
+	printf("%s: %s\n", src, buffer);
+
+	/*printf("%s sends: \n", src);
 	for (int i = 0; i < len; i++) {
 		char c = buffer[i];
 		printf ("%X(%c) ", c, c < 32 ? '.': c);
 	}
-	printf("\n");
+	printf("\n");*/
 }
 
 
