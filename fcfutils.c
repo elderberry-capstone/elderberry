@@ -1,3 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <poll.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include "fcfutils.h"
+
 /***
 *  So I've been told that when file descriptors are removed we remove
 *  all of them for a device and re-add everything. The tokens can be
@@ -22,19 +32,42 @@
 *	MIML file.
 */
 
-extern void fcf_add_usb_fd(char *token, int fd, char *callback) {
-  // Add file descriptor to array for USB device.
+//struct fcffd {
+//	const char *token;
+//	char *callback;
+//};
+
+static const int MAXFD = 100;
+static struct pollfd fds[MAXFD];
+//static struct fcffd fds2[MAXFD];
+static int nfds = 0;
+
+// Add file descriptor to array of FDs.
+extern void fcf_add_fd(const char *token, int fd, char *callbackname) {
+	fds[nfds].fd = fd;
+	fds[nfds].events = POLLIN | POLLPRI;
+//	fds2[nfds].token = token;
+//	fds2[nfds].callback = NULL;
+	nfds++;
 }
 
-extern void fcf_add_eth_fd(char *token, int fd, char *callback) {
-  // Add file descriptor to array for Ethernet device.
-}
 
-extern void fcf_add_can_fd(char *token, int fd, char *callback) {
-  // Add file descriptor to array for CAN device.
-}
 
-extern void fcf_remove_all_fd(char*) {
+//extern void fcf_add_usb_fd(char *token, int fd, char *callback) {
+//  // Add file descriptor to array for USB device.
+//}
+//
+//extern void fcf_add_eth_fd(char *token, int fd, char *callback) {
+//  // Add file descriptor to array for Ethernet device.
+//}
+//
+//extern void fcf_add_can_fd(char *token, int fd, char *callback) {
+//  // Add file descriptor to array for CAN device.
+//}
+//
+
+
+void fcf_remove_all_fd(const char*) {
   // Remove all file descriptors that were added under given source token.
 }
 
@@ -43,7 +76,9 @@ extern void fcf_remove_all_fd(char*) {
 // I'm assuming we should just put it in this library. Or we could make this
 // library only a wrapper for where the real structure lives. 
 
-extern void fcf_get_fd_structure(somedatatype *buffer) {
+void fcf_get_fd_structure(struct pollfd **_fds, int *_nfds) {
+	*_fds = fds;
+	*_nfds = nfds;
 }
 
 // What does struct_fc look like?
@@ -69,3 +104,6 @@ extern void fcf_get_fd_structure(somedatatype *buffer) {
 //	The point of token is to allow a single call to remove all previous FDs.
 //	Would it be easier to remove token and force users to remove each FD individually?
 //
+
+
+

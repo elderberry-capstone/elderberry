@@ -1,16 +1,15 @@
-#include <libusb.h>
 
 /***
 *  Test Module to Log data to Disk
 *
 */
 
-static void init_diskLogger () {
+void init_diskLogger () {
   // maybe nothing to do?
 }
 
-static void diskLogger_getMessage(somedata *buffer) {
-  // somedata has been passed into this function for consumption.
+void diskLogger_getMessage(char *buffer, int len) {
+  // some data has been passed into this function for consumption.
   // take buffer and write it to disk (append).
 } 
 

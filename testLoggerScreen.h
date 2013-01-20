@@ -1,5 +1,5 @@
 // Do we need header files for every code file?
 
-static void init_screenLogger();
+extern void init_screenLogger();
 
-static void screenLogger_getMessage(somedata *buffer);
+extern void screenLogger_getMessage(const char *src, char *buffer, int len);

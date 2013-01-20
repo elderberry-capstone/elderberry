@@ -1,4 +1,4 @@
-#include <libusb.h>
+#include <stdio.h>
 
 /***
 *  Assumptions about LibUSB:
@@ -16,13 +16,22 @@
 *		For Theo-IMU we want 0xFFFF vendor_id and 0x0005 product_id.
 */
 
-static void init_screenLogger () {
-  // maybe nothing to do?
+void init_screenLogger () {
+	// maybe nothing to do?
 }
 
-static void screenLogger_getMessage(somedata *buffer) {
-  // somedata has been passed into this function for consumption.
-} 
+// src... name of source
+// buffer... message
+// len... length of data in buffer
+void screenLogger_getMessage(const char *src, char *buffer, int len) {
+	// some data has been passed into this function for consumption.
+	printf("%s sends: \n", src);
+	for (int i = 0; i < len; i++) {
+		char c = buffer[i];
+		printf ("%X(%c) ", c, c < 32 ? '.': c);
+	}
+	printf("\n");
+}
 
 
 // Other private functions to do stuff.
