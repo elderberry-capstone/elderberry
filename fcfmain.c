@@ -39,8 +39,8 @@ void testIMU_MessageA_Handler(int fd) {
 
 	if (rc > 0) {
 		int len = rc;
-		screenLogger_getMessage("cyr", buffer, len);
-		diskLogger_getMessage(buffer, len);
+		screenLogger_getMessage("gyr", buffer, len);
+		//diskLogger_getMessage("gyr", buffer, len);
 	}
 }
 
@@ -53,7 +53,7 @@ void testIMU_MessageB_Handler(int fd) {
 	if (rc > 0) {
 		int len = rc;
 		screenLogger_getMessage("acc", buffer, len);
-		diskLogger_getMessage(buffer, len);
+		//diskLogger_getMessage("acc", buffer, len);
 	}
 }
 

@@ -23,11 +23,12 @@ int init_diskLogger (char *filename) {
 	if(!fp){
 		return -1;
 	}
+	return 0;
 }
 
 // Writes data to file.
 void diskLogger_getMessage(const char *src, char *buffer, int len) {
-	fprintf(fp, "%s: $s\n", src, buffer);
+	fprintf(fp, "%s: %s\n", src, buffer);
 
 } 
 
