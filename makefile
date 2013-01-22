@@ -22,4 +22,4 @@ profilerg:
 	cc -o profile testrun.c -lnsl -lresolv -lrt -g
 
 clean:
-	rm -f *.o fc hwemu1
+	rm -f *.o fc hwemu1 fc profile testrun
