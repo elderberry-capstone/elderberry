@@ -58,6 +58,7 @@ int print_help(){
 
 int print_usage(){
     print_help();
+    return 1;
 }
 
 char *get_current_time_str(const char *format){
@@ -73,7 +74,6 @@ int send_tests(FILE *handle, int socket, struct addrinfo *address){
     
     // Initialize the result variables.
     int res = 0;
-    char *res_str = (char *) malloc(_STR_LEN);
     
     // Variables related to the file.
     char *line = (char *) malloc(_FILE_LEN);
@@ -84,14 +84,11 @@ int send_tests(FILE *handle, int socket, struct addrinfo *address){
     }
     
     // Time variables.
-    struct timespec *time_sent = (struct timespec *)
-        malloc(sizeof (struct timespec));
     struct timespec *tp = (struct timespec *)
         malloc(sizeof (struct timespec ));
     
     int c = fgetc(handle);
     int l = -1;
-    int p = -1;
     
     // Try connecting to the socket.
     res = connect(socket, address->ai_addr, (size_t) 14);
@@ -128,11 +125,20 @@ int send_tests(FILE *handle, int socket, struct addrinfo *address){
     exit(EXIT_SUCCESS);
 }
 
+int uint8_cp(uint8_t *copy, char *src){
+    int max = sizeof(copy) * sizeof(char);
+    int i = 0;
+    for (i = 0; i < max; ++i){
+        copy[i] = src[i];
+    }
+    return max;
+}
+
 int main(int argc, char *argv[]){
     
     struct addrinfo address;
     struct addrinfo *info;
-    struct sockaddr_in6 *addr6;
+    struct sockaddr_in6 addr6;
 
     int opt;
     
@@ -140,23 +146,12 @@ int main(int argc, char *argv[]){
     char *target_port;
     char *input_file_path;
     char *log_file_path;
-    char *log_file_path_parsed;
+    //char *log_file_path_parsed;
     
-    FILE *input_file;
-    FILE *log_file;
-    
-    char *host = NULL;
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     int goal_us = 0;
-    struct tm *log_start;
+    //struct tm *log_start;
     char *log_start_str;
-    
-    //pthreads
-    pthread_t pthread_send_tests;
-    pthread_t pthread_get_response;
-    pthread_t log_response;
-    
-    void *thread_result;
     
     if ((argc < 4 || argc > 7) && _DEV == 0){
         print_usage();
@@ -217,21 +212,10 @@ int main(int argc, char *argv[]){
         }
     }
     
-    addr6 = ((struct sockaddr_in6 *) malloc(sizeof (struct sockaddr_in6)));
-    memset(&address, 0, sizeof address);
-    memset(&info, 0, sizeof info);
-    memset(&addr6, 0, sizeof addr6);
+    // Set up an inet 6 address structure
     
-    long prt = atol(target_port);
-    addr6->sin6_port = *(( int long *) malloc (sizeof prt));
-    addr6->sin6_port = prt;
-    addr6->sin6_addr = *((struct in6_addr *)malloc(sizeof (struct in6_addr)));
-    strncpy(addr6->sin6_addr.s6_addr, target_host, _STR_LEN);
-    
-    address.ai_addr = (struct sockaddr *) addr6;
-    address.ai_socktype = SOCK_STREAM;
-    address.ai_flags = AI_PASSIVE;
-    address.ai_family = AF_INET6;
+    inet_pton(AF_INET6, target_host, &(addr6.sin6_addr));
+    inet_pton(AF_INET6, target_port, &(addr6.sin6_port));
     
     // Get the info of the address.
     int res = 0;
@@ -241,7 +225,9 @@ int main(int argc, char *argv[]){
         printf("gai reported: %s.\n", gai_strerror(res));
         return -1;
     }
-    printf("AI Info: %s\n", info->ai_addr->sa_data);
+    char *dest = (char *) malloc (_STR_LEN);
+    inet_ntop(AF_UNSPEC, &(info->ai_addr->sa_data), dest, _STR_LEN);
+    printf("AI Info: %s\n", dest);
     
     // Get a string representing the time the log file was started.
     log_start_str = get_current_time_str("%Y-%m-%d %I:%M:%S %p");
@@ -254,4 +240,5 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
     send_tests(infile, sock, info);
+    return 1;
 }
