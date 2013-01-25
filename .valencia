@@ -1,0 +1,3 @@
+version = 1
+build_command = make profilerg
+clean_command = make clean

@@ -15,12 +15,13 @@
 #include <getopt.h>
 
 #define _STR_LEN 100
+#define _SOCK_LEN 1000
 #define _FILE_LEN 10000
 #define _MAX_PIDS 100
 #define _DEV 0
 
 // Define functions.
-int send_tests(FILE *handle, int socket, struct addrinfo *address);
+int send_tests(FILE *handle, int socket, struct addrinfo *hint);
 
 // Define global structs
 
@@ -58,11 +59,10 @@ int print_help(){
 
 int print_usage(){
     print_help();
-    return 1;
 }
 
 char *get_current_time_str(const char *format){
-    char *time_str = (char *) malloc(_STR_LEN);
+    char *time_str = (char *) malloc(_STR_LEN * sizeof (char *));
     time_t the_time;
     (void) time(&the_time);
     struct tm *tmp_ptr = localtime(&the_time);
@@ -70,13 +70,15 @@ char *get_current_time_str(const char *format){
     return time_str;
 }
 
-int send_tests(FILE *handle, int socket, struct addrinfo *address){
+int send_tests(FILE *handle, int socket, struct addrinfo *hint){
     
     // Initialize the result variables.
     int res = 0;
+    char *res_str = (char *) malloc(_STR_LEN);
+    memset(res_str, 0, _STR_LEN);
     
     // Variables related to the file.
-    char *line = (char *) malloc(_FILE_LEN);
+    char *line = (char *) calloc(_FILE_LEN, sizeof (char));
         
     if (handle == NULL){
         printf("Handle is null.");
@@ -84,14 +86,17 @@ int send_tests(FILE *handle, int socket, struct addrinfo *address){
     }
     
     // Time variables.
+    struct timespec *time_sent = (struct timespec *)
+        malloc(sizeof (struct timespec));
     struct timespec *tp = (struct timespec *)
         malloc(sizeof (struct timespec ));
     
     int c = fgetc(handle);
     int l = -1;
+    int p = -1;
     
     // Try connecting to the socket.
-    res = connect(socket, address->ai_addr, (size_t) 14);
+    res = connect(socket, hint->ai_addr, (size_t) 14);
     
     if (res == -1){
         perror("Connecting to socket");
@@ -106,7 +111,7 @@ int send_tests(FILE *handle, int socket, struct addrinfo *address){
             clock_gettime(CLOCK_REALTIME, tp);
             sprintf(message, "%s:%d.%ld", line, (int) tp->tv_sec, tp->tv_nsec);
             printf ("Sending %s to %s:%s\n", message,
-                address->ai_canonname, address->ai_canonname);
+                hint->ai_canonname, hint->ai_canonname);
             res = send(socket, message, _STR_LEN, MSG_DONTROUTE|MSG_DONTWAIT);
             if (res == -1){
                 perror(message);
@@ -125,47 +130,64 @@ int send_tests(FILE *handle, int socket, struct addrinfo *address){
     exit(EXIT_SUCCESS);
 }
 
-int uint8_cp(uint8_t *copy, char *src){
-    int max = sizeof(copy) * sizeof(char);
-    int i = 0;
-    for (i = 0; i < max; ++i){
-        copy[i] = src[i];
-    }
-    return max;
+int print_socket_info(int sock_fd, struct sockaddr_in *sin){
+        char dbg[_STR_LEN];
+        memset(dbg, 0, sizeof(dbg));
+        inet_ntop(AF_UNSPEC, &(sin->sin_addr.s_addr), &dbg, _STR_LEN);
+        printf("============ SOCKET INFORMATION =============\n");
+        printf("!** sock: %d\n", sock_fd);
+        printf("!** info->ai_addr: sockaddr_in(\n");
+        printf("!**     sin_family:    %d\n", sin->sin_family);
+        printf("!**     sin_port:      %d\n", sin->sin_port);
+        printf("!**     sin_addr: in_addr(\n");
+        printf("!**         s_addr: '%s'\n", dbg);
+        printf("!**     )\n)\n");
+        printf("=============================================\n");
+        return 1;
 }
 
 int main(int argc, char *argv[]){
     
-    struct addrinfo address;
     struct addrinfo *info;
-    struct sockaddr_in6 addr6;
+    struct in_addr i_a;
 
     int opt;
+    int res = 0;
+    int use_inet6 = 0;
     
     char *target_host;
     char *target_port;
     char *input_file_path;
+    char *goal;
     char *log_file_path;
-    //char *log_file_path_parsed;
+    char *log_file_path_parsed;
     
-    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    FILE *input_file;
+    FILE *log_file;
+    
+    char *host = NULL;
+    int sock = socket(AF_INET6, SOCK_STREAM, 0);
+    if (sock == -1){
+    	perror("!** Creating socket failed");
+	    exit(EXIT_FAILURE);
+    }
     int goal_us = 0;
-    //struct tm *log_start;
+    struct tm *log_start;
     char *log_start_str;
     
-    if ((argc < 4 || argc > 7) && _DEV == 0){
-        print_usage();
-        return -1;
-    }
+    //pthreads
+    pthread_t pthread_send_tests;
+    pthread_t pthread_get_response;
+    pthread_t log_response;
     
-    // Options
+    void *thread_result;
+    
+    // Deal with the command line paramaters
     struct option longopts[] = {
         {"host",    1,  NULL,   'H'},
         {"port",    1,  NULL,   'p'},
-        {"input",   1,  NULL,   'i'},
         {"goal-ms", 2,  NULL,   'g'},
-        {"inet6",   2,  NULL,   'n'},
-        {"logfile", 2,  NULL,   'o'},
+        {"inet6",   2,  NULL,   'i'},
         {"help",    2,  NULL,   'h'},
         {0,         0,  0,      0}
     };
@@ -179,66 +201,90 @@ int main(int argc, char *argv[]){
     }
     
     opt = -1;
-    
-    // Deal with the command line paramaters
-    while ((opt = getopt_long(argc, argv, ":H:p:i:g:nho:",
-        longopts, NULL)) != -1){
+    int size = 0;
+    int len = 0;
+    while ((opt = getopt_long(argc, argv, ":H:p:g:ih", longopts, NULL)) != -1){
+	    size = sizeof(optarg);
+	    if (optarg != NULL)
+            len = strlen(optarg);
+        printf("Opt is %c and optarg is %s.\n", opt, optarg);
         switch(opt){
             case 'H':
-                target_host = (char *) malloc(strlen(optarg));
-                strncpy(target_host, optarg, strlen(optarg));
+                printf("Host is %s\n", optarg);
+            	target_host = (char *) malloc(size);
+            	strncpy(target_host, optarg, len);
                 break;
             case 'p':
-                target_port = (char *) malloc(strlen(optarg));
-                strncpy(target_port, optarg, strlen(optarg));
+                printf("Port is %s\n", optarg);
+            	target_port = (char *) malloc(size);
+            	strncpy(target_port, optarg, len);
                 break;
             case 'i':
-                input_file_path = (char *) malloc(strlen(optarg)*4);
-                strncpy(input_file_path, optarg, strlen(optarg));
-                break;
-            case 'o':
-                log_file_path = (char *) malloc(strlen(optarg)*4);
-                strncpy(input_file_path, optarg, strlen(optarg));
+                use_inet6 = 1;
                 break;
             case 'g':
-                goal_us = atoi(optarg);
+                goal = (char *) malloc(size);
+                strncpy(goal, optarg, len);
                 break;
             case 'h':
                 print_help();
-                return 1;
+                break;
             default:
                 print_usage();
                 break;
         }
     }
     
-    // Set up an inet 6 address structure
+    short fam = (use_inet6)? AF_INET6 : AF_UNSPEC;
     
-    inet_pton(AF_INET6, target_host, &(addr6.sin6_addr));
-    inet_pton(AF_INET6, target_port, &(addr6.sin6_port));
     
-    // Get the info of the address.
-    int res = 0;
-    res =  getaddrinfo(target_host, target_port, &address, &info);
+    // Set sockadder_in structure
+    struct sockaddr_in sa_in = {
+        .sin_family =   fam,
+        .sin_port   =   htons(atol(target_port)),
+        .sin_addr   =   i_a
+    };
+    
+    // Set the in_addr structure
+    inet_pton(fam, target_host, &(sa_in.sin_addr), INET_ADDRSTRLEN);
+    char dbg1[INET_ADDRSTRLEN];
+    inet_ntop(fam, &(sa_in.sin_addr), dbg1, INET_ADDRSTRLEN);
+    printf ("i_a is %s\n\n", dbg1);
+    
+    print_socket_info(sock, &sa_in);
+    
+    // Clear sockadder_in.sin_zero
+    memset(sa_in.sin_zero, 0, sizeof(strlen));
+    
+    
+    // Set the addrinfo structure.
+    struct addrinfo hint = {
+        .ai_flags=      AI_PASSIVE,
+        .ai_family=     fam,
+        .ai_socktype=   SOCK_STREAM,
+        .ai_protocol=   0,
+        .ai_addrlen =   _STR_LEN,
+        .ai_addr =      (struct sockaddr *) (&sa_in)
+    };
+    
+    res =  getaddrinfo(target_host, target_port, NULL, &info);
     if (res != 0){
-        perror("! Getting address info");
-        printf("gai reported: %s.\n", gai_strerror(res));
+        perror("!** Getting address info");
+        printf("!** gai reported: %s.\n", gai_strerror(res));
+        struct sockaddr_in *i6 = (struct sockaddr_in *) info->ai_addr;
+        perror("!** Binding failed.");
+        printf("!** Environment:\n");
+        //print_socket_info(sock, i6);
+        exit(EXIT_FAILURE);
         return -1;
     }
-    char *dest = (char *) malloc (_STR_LEN);
-    inet_ntop(AF_UNSPEC, &(info->ai_addr->sa_data), dest, _STR_LEN);
-    printf("AI Info: %s\n", dest);
-    
-    // Get a string representing the time the log file was started.
-    log_start_str = get_current_time_str("%Y-%m-%d %I:%M:%S %p");
-    printf("Staring log file at %s.\n", log_start_str);
-    
-    // Get the files from the file path.
-    FILE *infile = fopen(input_file_path, "rb");
-    if (infile == NULL){
-        perror(input_file_path);
-        exit(EXIT_FAILURE);
+
+    if (bind(sock, (info->ai_addr), _SOCK_LEN) == -1){
+        struct sockaddr_in *i6 = (struct sockaddr_in *) info->ai_addr;
+        perror("!** Binding failed.");
+        print_socket_info(sock, i6);
+	    exit(EXIT_FAILURE);
     }
-    send_tests(infile, sock, info);
+
     return 1;
-}
+} 

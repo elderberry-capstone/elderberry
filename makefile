@@ -16,10 +16,10 @@ fc: fc.o fcfutils.o fcfmain.o testIMU.o testLoggerDisk.o testLoggerScreen.o
 	$(CC) -c -o $@ $< $(CFLAGS)
 	
 profiler:
-	cc -o profile testrun.c -lnsl -lresolv -lrt -Wall -pthread
+	cc -o profile testrun.c -lnsl -lresolv -lrt -pthread
 
 profilerg:
-	cc -o profile testrun.c -lnsl -lresolv -lrt -Wall -pthread -g
+	cc -o profile testrun.c -lnsl -lresolv -lrt -pthread -O0 -g
 
 clean:
 	rm -f *.o fc hwemu1 fc profile testrun
