@@ -13,11 +13,17 @@
 #include "libusb-basic.h"
 #include "logging.h"
 
+#define FCF_POLLSIZE 100
 
+
+//TODO: separate FCF structs from USB types so that FCF is hw independent
 struct libusbSource {
 //	GSource source;
 //	GSList * devices;
 //	GSList * fds;
+	struct pollfd pollfds[FCF_POLLSIZE];	//FCF
+	int nfds;								//FCF
+	pollCallback callbacks[FCF_POLLSIZE];	//FCF
 	int timeout_error;
 	int handle_events_error;
 	libusb_context * context;
@@ -134,51 +140,69 @@ struct libusbSource {
 //	libusb_exit(usb_src->context);
 //}
 
+// add file descriptor
+int fcf_addfd (int fd, short events, pollCallback cb, libusbSource *src) {
+	int *p = &(src->nfds);
 
-//TODO: this basic version of the code re-reads the FDs in fc.c
+	if (*p >=  FCF_POLLSIZE) {
+		return -1;
+	}
+
+	src->pollfds[*p].fd = fd;
+	src->pollfds[*p].events = events;
+	src->callbacks[*p] = cb;
+	(*p)++;
+	return 0;
+}
+
+//remove file descriptor
+int fcf_removefd (int fd, libusbSource *src) {
+	int *p = &(src->nfds);
+
+	for (int i = 0; i < *p; i++) {
+		if (src->pollfds[i].fd == fd) {
+			//we found fd we want to remove
+			//remove fd at index i by overwriting it with last fd
+			if (*p > 1) {
+				src->pollfds[i] = src->pollfds[*p - 1];
+				src->callbacks[i] = src->callbacks[*p - 1];
+				(*p)--;
+				return 0;
+			}
+		}
+	}
+
+	return -1; //fd was not in array
+}
+
+static struct timeval nonblocking = {
+		.tv_sec = 0,
+		.tv_usec = 0,
+};
+
+static libusbSource *g_usb_source = NULL;
+
+//active fd
+static int libusb_cb(struct pollfd *pfd) {
+//	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n libusb_cb");
+//	flush_buffers();
+
+	libusb_handle_events_timeout(g_usb_source->context, &nonblocking);
+	return 0;
+}
+
 static void usb_fd_added_cb(int fd, short events, void * source){
-
-	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n JM inside usb_fd_added_cb");
+	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n usb_fd_added_cb");
 	flush_buffers();
 
-//	libusbSource * usb_src = (libusbSource *)source;
-//	GPollFD * g_usb_fd = g_slice_new0(GPollFD);
-//
-//
-//
-//
-//	g_usb_fd->fd = fd;
-//	if (events & POLLIN)
-//			g_usb_fd->events |= G_IO_IN;
-////jm	if (events & POLLOUT)
-////jm			g_usb_fd->events |= G_IO_OUT;
-//
-//	usb_src->fds = g_slist_prepend(usb_src->fds, g_usb_fd);
-//	g_source_add_poll((GSource *)usb_src, g_usb_fd);
+	fcf_addfd (fd, events, libusb_cb, (libusbSource *)source);
 }
 
 static void usb_fd_removed_cb(int fd, void* source){
-
-	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n JM inside usb_fd_removed_cb");
+	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n usb_fd_removed_cb");
 	flush_buffers();
 
-//
-//	libusbSource * usb_src = (libusbSource *)source;
-//	GSList * elem = usb_src->fds;
-//	GPollFD * g_usb_fd = NULL;
-//
-//	if(!elem)
-//		return; //error? asked to remove an fd that wasn't being used in a poll
-//
-//	do{
-//		g_usb_fd = elem->data;
-//		if(g_usb_fd->fd == fd){
-//			g_source_remove_poll((GSource*)source, g_usb_fd);
-//			free_pollfd(g_usb_fd);
-//			usb_src->fds = g_slist_delete_link(usb_src->fds, elem);
-//			break;
-//		}
-//	}while((elem = g_slist_next(elem)));
+	fcf_removefd (fd, (libusbSource *)source);
 }
 
 static int init_usb_fds(libusbSource * usb_source){
@@ -245,6 +269,7 @@ libusbSource * libusbSource_new(void){
 
 //	usb_source->devices = NULL; //important to set null because g_source_destroy calls finalize
 //	usb_source->fds = NULL; //important to set null because g_source_destroy calls finalize
+	usb_source->nfds = 0;
 	usb_source->context = context;
 	usb_source->timeout_error = 0;
 	usb_source->handle_events_error = 0;
@@ -423,35 +448,44 @@ void print_libusb_transfer_error(int status, const char* str){
 
 void run_main_loop(libusbSource * usb_source) {
 
-	struct pollfd fds[100];
-	int numfds = 0;
-	const struct libusb_pollfd ** usb_fds = libusb_get_pollfds(usb_source->context);
+//	struct pollfd fds[100];
+//	int nfds = 0;
+//	const struct libusb_pollfd ** usb_fds = libusb_get_pollfds(usb_source->context);
+//
+////    	if(!usb_fds)
+////    		return -1;
+//
+//	for(nfds = 0; usb_fds[nfds] != NULL; ++nfds){
+//		fds[nfds].fd = usb_fds[nfds]->fd;
+//		fds[nfds].events = usb_fds[nfds]->events;
+//		printf("\n %d", fds[nfds].events);
+//		//fds[nfds].events = POLLIN | POLLPRI;
+//	}
+////exit(1);
+//	free(usb_fds);
 
-//    	if(!usb_fds)
-//    		return -1;
+//	struct timeval nonblocking = {
+//			.tv_sec = 0,
+//			.tv_usec = 0,
+//	};
 
-	for(numfds = 0; usb_fds[numfds] != NULL; ++numfds){
-		fds[numfds].fd = usb_fds[numfds]->fd;
-		fds[numfds].events = usb_fds[numfds]->events;
-	}
-
-	free(usb_fds);
-
-	struct timeval nonblocking = {
-			.tv_sec = 0,
-			.tv_usec = 0,
-	};
-
-
-
+	g_usb_source = usb_source;	//TODO find clean solution so that callback has access to usbcontext
+	int count = 0;
 	for (;;) {
+		struct pollfd *fds = usb_source->pollfds;
+		int nfds = usb_source->nfds;
 
-		int rc = poll(fds, numfds, 2000);
-		printf ("\n poll returned with rc=%d ", rc);
+		for (int i = 0; i < nfds; i++) {
+			printf("\npolling fd[%d]: fd=%d events=%d", i, fds[i].fd, fds[i].events);
+		}
 		fflush (stdout);
 
-		printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n after poll");
-		flush_buffers();
+		int rc = poll(fds, nfds, 2000);
+		printf ("\n%d. poll returned with rc=%d ", count++, rc);
+		fflush (stdout);
+
+//		printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n after poll");
+//		flush_buffers();
 
 		switch (rc) {
 		case -1:
@@ -459,19 +493,27 @@ void run_main_loop(libusbSource * usb_source) {
 			break;
 		case 0: //timeout
 			printf("poll timed out");
-			//libusb_handle_events (usb_source->context);
+			//TODO fine tune timeouts
 			libusb_handle_events_timeout(usb_source->context, &nonblocking);
 			break;
 		default:
-			for (int i = 0; i < numfds; i++) {
-				if(fds[i].revents == 0) {
-					continue;
-				}
-				printf("descriptor %d is readable\n", fds[i].fd);
-			}
+			for (int i = 0; i < nfds; i++) {
+				if(fds[i].revents != 0) {
 
-			//currently all FDs are USB
-			libusb_handle_events_timeout(usb_source->context, &nonblocking);
+					int re = fds[i].revents;
+					if (re & POLLERR) printf("\nPOLLERR - Error condition");
+					if (re & POLLHUP) printf("\nPOLLHUP - Hang up");
+					if (re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
+
+					//active fd or error
+					printf("\nfd[%d] is active, fd=%d events=%X revents=%X", i, fds[i].fd, fds[i].events, fds[i].revents);
+					usb_source->callbacks[i](&fds[i]);
+					//libusb_handle_events_timeout(usb_source->context, &nonblocking);
+				}
+
+			}
+			printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n after poll");
+			flush_buffers();
 			break;
 		}
 

@@ -23,9 +23,15 @@ static int is_mouse(libusb_device * device){
     }
 
 
-    if(descr.idVendor == 0x046D && descr.idProduct == 0xC03E){
+    if(descr.idVendor == 0x046D && descr.idProduct == 0xC03E) {
+    	//ID 046d:c03e Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
         return 1;
     }
+//    if(descr.idVendor == 0x045E && descr.idProduct == 0x00E1) {
+//    	//ID 045e:00e1 Microsoft Corp. Wireless Laser Mouse 6000 Reciever
+//    	//g_mouse_packet_size = 6;
+//        return 1;
+//    }
     //add your IDs here
 //    if(descr.idVendor == 0xFFFF && descr.idProduct == 0xFFFF){
 //    	//hack: set g_mouse_packet_size and g_mouse_IN_EP if necessary (?)
@@ -85,6 +91,11 @@ static void mag_cb(struct libusb_transfer *transfer){
 }
 
 
+//static void ctrl_cb(struct libusb_transfer *transfer){
+//	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\nJM inside ctrl_cb");
+//	flush_buffers();
+//}
+
 static int start_mouse_transfer(libusb_device_handle * handle,
         unsigned int ep, libusb_transfer_cb_fn cb, void * data,
         unsigned int timeout)
@@ -138,23 +149,28 @@ static int start_mouse_transfer(libusb_device_handle * handle,
 }
 
 void init_mouse(libusbSource * usb_source){
-    int iface_nums[1] = {0};
-    libusb_device_handle * mousehandle = open_usb_device_handle(usb_source, is_mouse, iface_nums, 1);
-    if(!mousehandle) {
-        return;
-    }
+	int iface_nums[1] = {0};
+	libusb_device_handle * mousehandle = open_usb_device_handle(usb_source, is_mouse, iface_nums, 1);
+	if(!mousehandle) {
+		return;
+	}
 
-//    struct libusb_transfer * ctrl = libusb_alloc_transfer(0);
-//    unsigned char * ctrl_buf = calloc(LIBUSB_CONTROL_SETUP_SIZE,
-//            sizeof(unsigned char));
-//    libusb_fill_control_setup(ctrl_buf, LIBUSB_RECIPIENT_OTHER |
-//            LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT,
-//            ADDR_ALL | INST_GO, 0, 0, 0);
-//    libusb_fill_control_transfer(ctrl, imu, ctrl_buf, ctrl_cb, NULL, 0);
-//    libusb_submit_transfer(ctrl);
+//	int rc = libusb_set_configuration(mousehandle, -1);
+//	printf ("\nlibusb_set_configuration=%d", rc);
+
+//	struct libusb_transfer * ctrl = libusb_alloc_transfer(0);
+//	unsigned char * ctrl_buf = calloc(LIBUSB_CONTROL_SETUP_SIZE, sizeof(unsigned char));
+//
+//	libusb_fill_control_setup(ctrl_buf,
+//			LIBUSB_REQUEST_TYPE_STANDARD, //ADDR_ALL | INST_GO,
+//			0, 0, 0);
+//	libusb_fill_control_transfer(ctrl, mousehandle, ctrl_buf, ctrl_cb, NULL, 10000);
+//	libusb_submit_transfer(ctrl);
 
 
-    start_mouse_transfer(mousehandle, g_mouse_IN_EP, mag_cb, NULL, 0);
+	start_mouse_transfer(mousehandle, g_mouse_IN_EP, mag_cb, NULL, 0);
 
 
 }
+
+

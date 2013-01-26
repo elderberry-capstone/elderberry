@@ -8,6 +8,8 @@
 #include "libusb-basic.h"
 #include "logging.h"
 #include "mouse.h"
+#include "virtdevsrv.h"
+
 
 
 int main(int argc, char **argv)
@@ -19,7 +21,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	init_mouse(usb_source);
+	init_mouse(usb_source);		//read from usb mouse; set your hw values in is_mouse()
+	init_virtgyro(usb_source);	//read from socket
 
 	run_main_loop(usb_source);
 

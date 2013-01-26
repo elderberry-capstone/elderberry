@@ -178,3 +178,17 @@ void printf_tagged_message(uint32_t fourcc, const char *fmt, ...)
 
 	write_tagged_message(fourcc, buf, len);
 }
+
+//debug helper function
+void printbuffer(uint32_t fourcc, const unsigned char *buffer, int act_len)
+{
+	printf("\nfourcc=%d buffer act_len=%d buffer: ", fourcc, act_len);
+	for (int i = 0; i < act_len; i++) {
+		char c = buffer[i];
+		printf ("%X(%c) ", c, c < 32 ? '.': c);
+	}
+	printf("\n");
+	fflush(stdout);
+}
+
+
