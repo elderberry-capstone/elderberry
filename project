@@ -19,9 +19,10 @@ long_line_column=80
 
 [files]
 current_page=0
-FILE_NAME_0=6351;C;0;16;0;1;0;/home/jordan/Documents/School/Capstone/elderberry/testrun.c;0;4
+FILE_NAME_0=3309;C;0;16;0;1;0;/home/jordan/Documents/School/Capstone/elderberry/testrun.c;0;4
 FILE_NAME_1=41;None;0;16;0;1;0;/home/jordan/Documents/School/Capstone/elderberry/testin.txt;0;4
-FILE_NAME_2=36;Sh;0;16;0;1;0;/home/jordan/Documents/School/Capstone/elderberry/runprofiler.sh;0;4
+FILE_NAME_2=30;Sh;0;16;0;1;0;/home/jordan/Documents/School/Capstone/elderberry/runprofiler.sh;0;4
+FILE_NAME_3=2177;C;0;16;0;1;0;/usr/include/string.h;0;4
 
 [VTE]
 last_dir=/home/jordan/Documents/School/Capstone/elderberry
