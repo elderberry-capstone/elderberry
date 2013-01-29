@@ -1,0 +1,15 @@
+This file lists notable changes.
+
+2013-01-28:
+* Add mouse2--to verify reading from two USB devices works. 
+ 
+2013-01-26:
+* Implement libusb_set_pollfd_notifiers() to recognize when libUSB adds or 
+  removes file descriptors.
+* Add functionality to poll and read from sockets.
+
+2013-01-25:
+* Initial import of code based on the PSAS ac3-fc. 
+* Compile without glib.
+* Use a basic poll(2) loop instead of glib's main loop.
+* Include asynchronous libUSB code to read from a mouse.
