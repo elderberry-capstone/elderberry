@@ -9,6 +9,7 @@
 #include "logging.h"
 #include "mouse.h"
 #include "mouse2.h"
+#include "gps.h"
 #include "virtdevsrv.h"
 
 
@@ -23,6 +24,7 @@ int main(int argc, char **argv)
 	}
 
 	//comment out the devices you don't have or want
+	init_gps(usb_source);
 	init_mouse(usb_source);		//read from usb mouse; set your hw values in is_mouse()
 	init_mouse2(usb_source);	//read from a 2nd usb mouse; set your hw values in is_mouse2()
 
