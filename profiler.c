@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <netdb.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,6 +20,17 @@
 #define _FILE_LEN 10000
 #define _MAX_PIDS 100
 #define _DEV 0
+#define _SHOW_ERR 1
+#define _BE_VERBOSE 1
+#define _DEBUG 1
+// Debugging macros
+#define bDBG if (_DEBUG) printf("[DEBUG]\t" 
+#define eDBG if );
+#define bERR if (_SHOW_ERR) printf("[ERROR]\t" 
+#define eERR );
+#define bVER if (_BE_VERBOSE) printf("[VERBOSE]\t" 
+#define eVER );
+
 
 // Define functions.
 int send_tests(FILE *handle, int socket, struct addrinfo *hint);
@@ -55,6 +67,26 @@ int print_usage(){
     print_help();
 }
 
+int debug(){
+    printf("\n[DEBUG]\t\t");
+    return 1;
+}
+
+int error(){
+    printf("\n[ERROR]\t\t");
+    return 1;
+}
+
+int verb(){
+    printf("\n[VERBOSE]\t\t");
+    return 1;
+}
+
+int warn(){
+    printf("\n[WARNING]\t\t");
+    return 1;
+}
+
 char *get_current_time_str(const char *format){
     char *time_str = (char *) malloc(_STR_LEN * sizeof (char *));
     time_t the_time;
@@ -68,15 +100,24 @@ int print_socket_info(const int sock_fd, const struct sockaddr_in *sin, short pr
     char dbg[INET_ADDRSTRLEN];
     char *famstr;
     inet_ntop(protocol, &(sin->sin_addr), dbg, INET_ADDRSTRLEN);
-    printf("============ SOCKET INFORMATION =============\n");
-    printf("!** socket: %d\n", sock_fd);
-    printf("!** info->ai_addr: sockaddr_in(\n");
+    debug();
+    printf("============ SOCKET INFORMATION =============" );
+    debug();
+    printf("socket: %d", sock_fd );
+    debug();
+    printf("info->ai_addr: sockaddr_in(" );
+    debug();
     famstr = fam2str(sin->sin_family);
-    printf("!**     sin_family:    %s\n", famstr);
-    printf("!**     sin_port:      %d\n", ntohs(sin->sin_port));
-    printf("!**     sin_addr:      in_addr( s_addr : '%s' )\n", dbg);
-    printf("!**)\n");
-    printf("=============================================\n");
+    debug();
+    printf("    sin_family:    %s", famstr );
+    debug();
+    printf("    sin_port:      %d", ntohs(sin->sin_port) );
+    debug();
+    printf("    sin_addr:      in_addr( s_addr : '%s' )", dbg );
+    debug();
+    printf(")");
+    debug();
+    printf("=============================================" );
     return 1;
 }
 
@@ -94,34 +135,74 @@ char *fam2str(int fam){
     return "(UNKNOWN)";
 }
 
-int pipe_in_loop(){
+int pipe_in_loop(const int *sock){
     // Start a new thread.
     int pid_receive_test = fork();
+    int status = 0;
     switch(pid_receive_test){
         case -1:
             perror("Forking error");
             exit(EXIT_FAILURE);
             return -1;
         case 0: // child
-            get_test_input();
+            debug();
+            printf("Starting child process %d\n", pid_receive_test);
+            get_test_input(sock);
+            break;
         case 1: // parent
+            if (waitpid(pid_receive_test, &status, 0)){
+                debug(); printf("Child %d exited.\n", pid_receive_test);
+            }else{
+                error(); printf("Child did not exit!\n");
+            }
             return 1;
     }
+    if (waitpid(pid_receive_test, &status, 0)){
+        debug();
+        printf("Child %d exited.\n", pid_receive_test);
+        return 1;
+    }
+    else
+        error();printf("Child did not exit!\n");
 }
 
-int get_test_input(){
-    const int std_in = 0;
-    int pip = dup(std_in);
-    size_t bytes_read = 0;
-    char input_buffer[BUFSIZ];
-    memset(input_buffer, 0, sizeof input_buffer);
-    bytes_read = read(pip, input_buffer, BUFSIZ);
-    while (bytes_read != 0){
-        printf("'%s' read.\n", input_buffer);
-        memset(input_buffer, 0, sizeof input_buffer);
-        bytes_read = read(pip, input_buffer, BUFSIZ);
+/**
+ * Read in one character at a time.  If we come to
+ * a newline character, add that as a word and print it
+ * out to the console.
+ * Otherwise, keep on reading.
+ **/
+int get_test_input(const int *sock){
+    int pip = dup(0);
+    int c = 0;
+    char word[_STR_LEN];
+    memset(word, 0, sizeof word);
+    int i = -1;
+    int res = 0;
+    while (1){
+        c = getchar();
+        if ((char) c == '\n'){  // if we've reached a new line.
+            printf("Read '%s'.\n", word);
+            char *now = get_current_time_str("%Y-%m-%d %I:%M:%S %p");
+            res = send(*sock, &word, _STR_LEN, MSG_DONTROUTE);
+            if (res == -1){
+                printf("[%s]\tERROR: File descriptor: %d\n", now, *sock);
+                printf("[%s]\tERROR:", now);
+                perror("");
+            }else{
+                printf("[%s]\tMessage '%s' successfully sent to server.\n", now,
+                    word);
+            }
+            
+            i = -1;
+            memset(word, 0, sizeof word);
+        }else{
+            word[++i] = (char) c;
+        }
     }
-    dup(std_in);
+    dup(pip);
+    exit(EXIT_SUCCESS);
+    return 1;
 }
 
 int main(int argc, char *argv[]){
@@ -293,15 +374,15 @@ int main(int argc, char *argv[]){
     }**/
     res = connect(sock, info->ai_addr, INET_ADDRSTRLEN);
     if (res == -1){
-        perror("Connecting to socket");
+        error(); perror("Connecting to socket");
         exit(EXIT_FAILURE);
         return -1;
     }else{
-        printf("Connected to socket.\n");
+        debug(); printf("Connected to socket.\n");
     }
     
-    pipe_in_loop(sock);
+    pipe_in_loop(&sock);
     
-    close(sock);
+    //close(sock);
     return 1;
 } 
