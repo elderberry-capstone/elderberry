@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
+#include "betterprint.c"
 
 #define _GNU_SOURCE
 #include <getopt.h>
@@ -68,17 +69,17 @@ int print_usage(){
 }
 
 int debug(){
-    printf("\n[DEBUG]\t\t");
+    if (_DEBUG) printf("\n[DEBUG]\t\t");
     return 1;
 }
 
 int error(){
-    printf("\n[ERROR]\t\t");
+    if (_SHOW_ERR) printf("\n[ERROR]\t\t");
     return 1;
 }
 
 int verb(){
-    printf("\n[VERBOSE]\t\t");
+    if (_BE_VERBOSE) printf("\n[VERBOSE]\t\t");
     return 1;
 }
 
@@ -94,6 +95,22 @@ char *get_current_time_str(const char *format){
     struct tm *tmp_ptr = localtime(&the_time);
     strftime(time_str, _STR_LEN, format, tmp_ptr);
     return time_str;
+}
+
+char *get_current_sys_time_str(){
+    struct timespec tp;
+    clock_t clock_id = clock();
+    int res = 0;
+    if (clock_gettime(clock_id, &tp) == -1){
+        perror("[ERROR]\t\tGetting time");
+        return NULL;
+    }else{
+        debug();
+        printf("Time is %d.%ld.\n", (int) tp.tv_sec, tp.tv_nsec);
+    }
+    char fulltime[_STR_LEN];
+    memset(fulltime, 0, sizeof fulltime);
+    sprintf(fulltime, "%d.%ld", (int) tp.tv_sec, tp.tv_nsec);
 }
 
 int print_socket_info(const int sock_fd, const struct sockaddr_in *sin, short protocol){
@@ -139,31 +156,11 @@ int pipe_in_loop(const int *sock){
     // Start a new thread.
     int pid_receive_test = fork();
     int status = 0;
-    switch(pid_receive_test){
-        case -1:
-            perror("Forking error");
-            exit(EXIT_FAILURE);
-            return -1;
-        case 0: // child
-            debug();
-            printf("Starting child process %d\n", pid_receive_test);
-            get_test_input(sock);
-            break;
-        case 1: // parent
-            if (waitpid(pid_receive_test, &status, 0)){
-                debug(); printf("Child %d exited.\n", pid_receive_test);
-            }else{
-                error(); printf("Child did not exit!\n");
-            }
-            return 1;
+    if (0 > pid_receive_test){
+        print_e("Error.");
+    }else{
+        print_i("Success!");
     }
-    if (waitpid(pid_receive_test, &status, 0)){
-        debug();
-        printf("Child %d exited.\n", pid_receive_test);
-        return 1;
-    }
-    else
-        error();printf("Child did not exit!\n");
 }
 
 /**
@@ -176,7 +173,9 @@ int get_test_input(const int *sock){
     int pip = dup(0);
     int c = 0;
     char word[_STR_LEN];
+    char mesg[_STR_LEN];
     memset(word, 0, sizeof word);
+    memset(mesg, 0, sizeof mesg);
     int i = -1;
     int res = 0;
     while (1){
@@ -184,18 +183,24 @@ int get_test_input(const int *sock){
         if ((char) c == '\n'){  // if we've reached a new line.
             printf("Read '%s'.\n", word);
             char *now = get_current_time_str("%Y-%m-%d %I:%M:%S %p");
-            res = send(*sock, &word, _STR_LEN, MSG_DONTROUTE);
-            if (res == -1){
+            
+            //construct the message from the word and the systime string.
+            
+            sprintf(mesg, "%s:%s", word, get_current_sys_time_str());
+            debug();
+            printf("Sending message '%s'.\t", mesg);
+            if(send(*sock, &mesg, _STR_LEN, MSG_DONTROUTE) == -1){
                 printf("[%s]\tERROR: File descriptor: %d\n", now, *sock);
                 printf("[%s]\tERROR:", now);
                 perror("");
             }else{
                 printf("[%s]\tMessage '%s' successfully sent to server.\n", now,
-                    word);
+                    mesg);
             }
             
             i = -1;
             memset(word, 0, sizeof word);
+            memset(mesg, 0, sizeof mesg);
         }else{
             word[++i] = (char) c;
         }
@@ -323,12 +328,14 @@ int main(int argc, char *argv[]){
     res = inet_pton(protocol, target_host, &(sa_in.sin_addr));
     
     if (res == 0){
-        printf("!** %s does not contain a character string representing\n"
-        "!** a valid network address in the specified address family.\n",
-        target_host);
+        error();
+        printf("%s does not contain a character string representing", target_host);
+        error();
+        printf("a valid network address in the specified address family.");
         exit(EXIT_FAILURE);
         return -1;
     }else if (res == -1){
+        error();
         perror("Error setting host.");
         exit(EXIT_FAILURE);
     }
@@ -349,8 +356,10 @@ int main(int argc, char *argv[]){
     
     res =  getaddrinfo(target_host, target_port, &hint, &info);
     if (res != 0){
-        perror("!** Getting address info");
-        printf("!** gai reported: %s.\n", gai_strerror(res));
+        error();
+        perror("Getting address info");
+        error();
+        printf("gai reported: %s.\n", gai_strerror(res));
         exit(EXIT_FAILURE);
         return -1;
     }
@@ -358,20 +367,10 @@ int main(int argc, char *argv[]){
     // Get the size of the list
     struct addrinfo *rp;
     for (rp = info; rp != NULL; rp = rp->ai_next){
-        printf("==> Another element.\n");
+        debug(); printf("==> Another element.\n");
         print_socket_info(sock, (struct sockaddr_in *) rp->ai_addr, protocol);
     }
     
-    /**
-    if (bind(sock, (info->ai_addr), INET_ADDRSTRLEN) == -1){
-    //if (bind(sock, (hint.ai_addr), INET_ADDRSTRLEN) == -1){
-        perror("!** Binding failed");
-        print_socket_info(sock, (struct sockaddr_in *) info->ai_addr, protocol);
-	    exit(EXIT_FAILURE);
-    }else{
-        printf("# Binding to host %s on port %s succeeded.\n",
-         target_host, target_port);
-    }**/
     res = connect(sock, info->ai_addr, INET_ADDRSTRLEN);
     if (res == -1){
         error(); perror("Connecting to socket");
