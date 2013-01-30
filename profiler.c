@@ -24,13 +24,6 @@
 #define _SHOW_ERR 1
 #define _BE_VERBOSE 1
 #define _DEBUG 1
-// Debugging macros
-#define bDBG if (_DEBUG) printf("[DEBUG]\t" 
-#define eDBG if );
-#define bERR if (_SHOW_ERR) printf("[ERROR]\t" 
-#define eERR );
-#define bVER if (_BE_VERBOSE) printf("[VERBOSE]\t" 
-#define eVER );
 
 
 // Define functions.
@@ -66,25 +59,6 @@ int print_help(){
 
 int print_usage(){
     print_help();
-}
-
-int debug(){
-    if (_DEBUG) printf("\n[DEBUG]\t\t");
-    return 1;
-}
-
-int error(){
-    if (_SHOW_ERR) printf("\n[ERROR]\t\t");
-    return 1;
-}
-
-int verb(){
-    if (_BE_VERBOSE) printf("\n[VERBOSE]\t\t");
-    return 1;
-}
-
-int warn(){
-    printf("\n[WARNING]\t\t");
     return 1;
 }
 
@@ -105,8 +79,7 @@ char *get_current_sys_time_str(){
         perror("[ERROR]\t\tGetting time");
         return NULL;
     }else{
-        debug();
-        printf("Time is %d.%ld.\n", (int) tp.tv_sec, tp.tv_nsec);
+                printf("Time is %d.%ld.\n", (int) tp.tv_sec, tp.tv_nsec);
     }
     char fulltime[_STR_LEN];
     memset(fulltime, 0, sizeof fulltime);
@@ -114,27 +87,7 @@ char *get_current_sys_time_str(){
 }
 
 int print_socket_info(const int sock_fd, const struct sockaddr_in *sin, short protocol){
-    char dbg[INET_ADDRSTRLEN];
-    char *famstr;
-    inet_ntop(protocol, &(sin->sin_addr), dbg, INET_ADDRSTRLEN);
-    debug();
-    printf("============ SOCKET INFORMATION =============" );
-    debug();
-    printf("socket: %d", sock_fd );
-    debug();
-    printf("info->ai_addr: sockaddr_in(" );
-    debug();
-    famstr = fam2str(sin->sin_family);
-    debug();
-    printf("    sin_family:    %s", famstr );
-    debug();
-    printf("    sin_port:      %d", ntohs(sin->sin_port) );
-    debug();
-    printf("    sin_addr:      in_addr( s_addr : '%s' )", dbg );
-    debug();
-    printf(")");
-    debug();
-    printf("=============================================" );
+    print_i("No socket info currently.");
     return 1;
 }
 
@@ -154,12 +107,17 @@ char *fam2str(int fam){
 
 int pipe_in_loop(const int *sock){
     // Start a new thread.
+    printf("Hello, World!", "Hello, World!");
     int pid_receive_test = fork();
-    int status = 0;
-    if (0 > pid_receive_test){
-        print_e("Error.");
-    }else{
-        print_i("Success!");
+    switch(pid_receive_test){
+        case 0:
+		    print_dbg("I am the child!");
+			break;
+	    case -1:
+		    print_e("I couldn't spawn a child.");
+			break;
+	    default:
+			print_dbg("I am the parent.");
     }
 }
 
@@ -187,14 +145,12 @@ int get_test_input(const int *sock){
             //construct the message from the word and the systime string.
             
             sprintf(mesg, "%s:%s", word, get_current_sys_time_str());
-            debug();
-            printf("Sending message '%s'.\t", mesg);
+            print_dbg("Sending message '%s'.\t", mesg);
             if(send(*sock, &mesg, _STR_LEN, MSG_DONTROUTE) == -1){
-                printf("[%s]\tERROR: File descriptor: %d\n", now, *sock);
-                printf("[%s]\tERROR:", now);
+                print_e("File descriptor: %d", now, *sock);
                 perror("");
             }else{
-                printf("[%s]\tMessage '%s' successfully sent to server.\n", now,
+                print_e("[%s]\tMessage '%s' successfully sent to server.", now,
                     mesg);
             }
             
@@ -211,6 +167,12 @@ int get_test_input(const int *sock){
 }
 
 int main(int argc, char *argv[]){
+
+    turn_on(BP_ERR);
+    turn_on(BP_DBG);
+    turn_on(BP_VER);
+    turn_on(BP_WAR);
+    turn_on(BP_INF);
     
     struct addrinfo *info;
     struct in_addr i_a;
@@ -268,16 +230,16 @@ int main(int argc, char *argv[]){
 	    size = sizeof(optarg) + sizeof(char);
 	    if (optarg != NULL)
             len = strlen(optarg);
-        printf("Opt is %c and optarg is %s.\n", opt, optarg);
+        print_dbg("Opt is %c and optarg is %s.\n", opt, optarg);
         switch(opt){
             case 'H':
-                printf("Host is %s\n", optarg);
+                print_dbg("Host is %s\n", optarg);
             	target_host = (char *) malloc(INET_ADDRSTRLEN);
                 memset(target_host, 0, sizeof(target_host));
             	strncpy(target_host, optarg, INET_ADDRSTRLEN);
                 break;
             case 'p':
-                printf("Port is %s\n", optarg);
+                print_dbg("Port is %s\n", optarg);
             	target_port = (char *) malloc(size);
                 memset(target_port, 0, sizeof(target_port));
             	strncpy(target_port, optarg, len+10);
@@ -289,10 +251,10 @@ int main(int argc, char *argv[]){
                 }else if (p){
                     protocol = AF_INET6;
                 }else{
-                    printf("Please specify either protocol 4 or 6.\n");
+                    print_w("Please specify either protocol 4 or 6.\n");
                     return -1;
                 }
-                printf("Setting protocol to inet%d\n", p);
+                print_dbg("Setting protocol to inet%d\n", p);
                 break;
             case 'g':
                 goal = (char *) malloc(size);
@@ -311,7 +273,7 @@ int main(int argc, char *argv[]){
     
     int sock = socket(protocol, SOCK_STREAM, 0);
     if (sock == -1){
-    	perror("!** Creating socket failed");
+    	print_e("!** Creating socket failed%s", strerror(errno));
 	    exit(EXIT_FAILURE);
     }
     
@@ -328,15 +290,12 @@ int main(int argc, char *argv[]){
     res = inet_pton(protocol, target_host, &(sa_in.sin_addr));
     
     if (res == 0){
-        error();
-        printf("%s does not contain a character string representing", target_host);
-        error();
-        printf("a valid network address in the specified address family.");
+        print_e("%s does not contain a character string representing", target_host);
+        print_e("a valid network address in the specified address family.");
         exit(EXIT_FAILURE);
         return -1;
     }else if (res == -1){
-        error();
-        perror("Error setting host.");
+        print_e("Error setting host.");
         exit(EXIT_FAILURE);
     }
     
@@ -367,17 +326,17 @@ int main(int argc, char *argv[]){
     // Get the size of the list
     struct addrinfo *rp;
     for (rp = info; rp != NULL; rp = rp->ai_next){
-        debug(); printf("==> Another element.\n");
+        print_dbg("==> Another element.\n");
         print_socket_info(sock, (struct sockaddr_in *) rp->ai_addr, protocol);
     }
     
     res = connect(sock, info->ai_addr, INET_ADDRSTRLEN);
     if (res == -1){
-        error(); perror("Connecting to socket");
+        print_e("Connecting to socket", strerror(errno));
         exit(EXIT_FAILURE);
         return -1;
     }else{
-        debug(); printf("Connected to socket.\n");
+        print_i("Connected to socket.\n");
     }
     
     pipe_in_loop(&sock);
