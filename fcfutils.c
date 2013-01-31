@@ -78,6 +78,7 @@ int fcf_remove_all_fd(const char *fd_src) {
 	int i = 0, removed = 0;
 	
 	for(i=0; i<nfds; i++){
+		// NOTE: if non-null-terminated strings, use strncmp with length
 		if(strcmp(fds2[i].token, fd_src) == 0){
 
 			// If matching fd is last in array.
