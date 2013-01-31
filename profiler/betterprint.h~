@@ -1,0 +1,5 @@
+int print_e(const int *, ...);
+int print_dbg(const int *, ...);
+int print_v(const int *, ...);
+int print_w(const int *, ...);
+int print_i(const char *, ...);
