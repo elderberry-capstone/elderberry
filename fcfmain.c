@@ -28,6 +28,7 @@ static char buffer [1024];
 void fcf_init() {
 	// Calls all init functions
 	init_theo_imu();
+
 	// Fetch all FileDescriptors
 	fcf_get_fd_structure(&fds, &nfds);
 }
