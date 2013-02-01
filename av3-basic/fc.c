@@ -27,7 +27,6 @@ int main(int argc, char **argv)
 	init_gps(usb_source);
 	init_mouse(usb_source);		//read from usb mouse; set your hw values in is_mouse()
 	init_mouse2(usb_source);	//read from a 2nd usb mouse; set your hw values in is_mouse2()
-
 	init_virtgyro(usb_source);	//read from socket
 
 	run_main_loop(usb_source);

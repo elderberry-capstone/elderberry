@@ -1,5 +1,5 @@
-/*
- * auto generated fcf
+/**
+ *	Auto-generated file
  */
 
 #include <stdio.h>
@@ -28,6 +28,7 @@ static char buffer [1024];
 void fcf_init() {
 	// Calls all init functions
 	init_theo_imu();
+	init_diskLogger("logfile.log");
 
 	// Fetch all FileDescriptors
 	fcf_get_fd_structure(&fds, &nfds);
@@ -41,7 +42,7 @@ void testIMU_MessageA_Handler(int fd) {
 	if (rc > 0) {
 		int len = rc;
 		screenLogger_getMessage("gyr", buffer, len);
-		//diskLogger_getMessage("gyr", buffer, len);
+		diskLogger_getMessage("gyr", buffer, len);
 	}
 }
 
@@ -54,7 +55,7 @@ void testIMU_MessageB_Handler(int fd) {
 	if (rc > 0) {
 		int len = rc;
 		screenLogger_getMessage("acc", buffer, len);
-		//diskLogger_getMessage("acc", buffer, len);
+		diskLogger_getMessage("acc", buffer, len);
 	}
 }
 
