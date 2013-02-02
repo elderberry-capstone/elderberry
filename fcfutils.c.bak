@@ -22,7 +22,7 @@ static struct fcffd fds2[MAXFD];
 static int nfds = 0;
 
 // Add file descriptor to array of FDs.
-extern void fcf_add_fd(const char *token, int fd) {
+extern void fcf_add_fd(const char *token, int fd, pollfd_callback cb) {
 	fds[nfds].fd = fd;
 	fds[nfds].events = POLLIN | POLLPRI;
 	fds2[nfds].token = token;

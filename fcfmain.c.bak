@@ -83,8 +83,6 @@ pollfd_callback fcf_get_callback_function(const char * token){
 		return fcf_callback_acc;
 	}
 
-	printf("Uh-oh, we don't have a callback function for you. Back to the MIML file!\n");
-
 	return NULL;
 }
 

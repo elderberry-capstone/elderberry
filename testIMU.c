@@ -21,11 +21,11 @@ void init_theo_imu () {
 
 	printf ("probing gyro: (waiting for connection localhost:8081)\n");
 	int fd1 = getsocket(8081);
-	fcf_add_fd ("IMU", fd1, NULL);
+	fcf_add_fd ("gyr", fd1);
 
 	printf ("probing acc: (waiting for connection localhost:8082)\n");
 	int fd2 = getsocket(8082);
-	fcf_add_fd ("IMU", fd2, NULL);
+	fcf_add_fd ("acc", fd2);
 }
 
 int fileA_handler(int fd, char *buffer, int bufsize) {

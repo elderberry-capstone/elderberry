@@ -29,116 +29,6 @@ struct libusbSource {
 	libusb_context * context;
 };
 
-//static gboolean prepare(GSource *g_source, gint *timeout_)
-//{
-//	libusbSource *usb_src = (libusbSource *)g_source;
-//	struct timeval timeout;
-//    int retval = libusb_get_next_timeout(usb_src->context, &timeout);
-//    switch(retval){
-//		case 0:
-//			*timeout_ = -1;
-//			return FALSE;
-//		case 1:
-//			*timeout_  =  timeout.tv_sec*1000 + timeout.tv_usec/1000; //wait at most timeout, rounded down to nearest msec
-//			return *timeout_ == 0 ? TRUE : FALSE;
-//		default:
-//			usb_src->timeout_error = retval;
-//			return TRUE;
-//	}
-//    return FALSE;
-//}
-//
-//static gboolean alt_prepare(GSource *g_source, gint *timeout_){
-//	*timeout_ = -1;
-//	return FALSE;
-//}
-//
-//static gboolean check(GSource *g_source)
-//{
-//	libusbSource *usb_src = (libusbSource *)g_source;
-//	GSList * elem = usb_src->fds;
-//	GPollFD * g_usb_fd = NULL;
-//
-//	if(!elem)
-//		return FALSE;
-//
-//	do{
-//		g_usb_fd = elem->data;
-//		if(g_usb_fd->revents)
-//			return TRUE;
-//	}while((elem = g_slist_next(elem)));
-//
-//	return FALSE;
-//}
-//
-//static gboolean dispatch(GSource *g_source, GSourceFunc callback, gpointer user_data)
-//{
-//	// from some random bit of code on the interwebs:
-//	// If Dispatch returns FALSE, GLib will destroy the source.
-//	// src.chromium.org/svn/trunk/src/base/message_pump_glib.cc
-//
-//	//printf ("\n in dispatch()");
-//    printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\ndispatch");
-//    flush_buffers();
-//
-//	libusbSource *usb_src = (libusbSource *)g_source;
-//	libusbSourceErrorCallback errCB = (libusbSourceErrorCallback)callback;
-//	struct timeval nonblocking = {
-//			.tv_sec = 0,
-//			.tv_usec = 0,
-//	};
-//
-//	if(usb_src->timeout_error && errCB != NULL){
-//		errCB(usb_src->timeout_error, 0, user_data);
-//		return TRUE;
-//	}
-//
-//    printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n before handle events");
-//    flush_buffers();
-//
-//	usb_src->handle_events_error = libusb_handle_events_timeout(usb_src->context, &nonblocking);
-//    printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n after handle events");
-//    flush_buffers();
-//
-//
-//	if(usb_src->handle_events_error) {
-//		   printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n event error1");
-//		    flush_buffers();
-//
-//	}
-//
-//
-//
-//	if(usb_src->handle_events_error && errCB != NULL) {
-//		   printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n event error2");
-//		    flush_buffers();
-//
-//		errCB(0, usb_src->handle_events_error, user_data);
-//	}
-//    return TRUE;
-//}
-//
-//static void close_device(gpointer data, gpointer user_data){
-//	libusb_device_handle * handle = data;
-//	libusb_close(handle);
-//}
-//
-//static void free_pollfd(gpointer data){
-//	g_slice_free(GPollFD, data);
-//}
-//
-//static void finalize(GSource *g_source){
-//	libusbSource * usb_src = (libusbSource*)g_source;
-//
-//	/* Since this GSource is finalizing, the pollfds are already
-//	 * removed. Simply free them all so we don't try to remove
-//	 * them from the source again. */
-//	g_slist_free_full(usb_src->fds, free_pollfd);
-//	usb_src->fds = NULL;
-//
-//	g_slist_foreach(usb_src->devices, close_device, NULL);
-//	libusb_exit(usb_src->context);
-//}
 
 // add file descriptor
 int fcf_addfd (int fd, short events, pollCallback cb, libusbSource *src) {
@@ -219,37 +109,6 @@ static int init_usb_fds(libusbSource * usb_source){
 	libusb_set_pollfd_notifiers(usb_source->context, usb_fd_added_cb, usb_fd_removed_cb, usb_source);
 	return 0;
 }
-
-//libusbSource * libusbSource_new(void){
-//	libusb_context * context;
-//	int usbErr = libusb_init(&context);
-//	if(usbErr){
-//		print_libusb_error(usbErr, "libusb_init");
-//		return NULL;
-//	}
-//	libusb_set_debug(context, 3);
-//
-//	static GSourceFuncs usb_funcs = {prepare, check, dispatch, finalize};
-//	if(!libusb_pollfds_handle_timeouts(context)){
-//		usb_funcs.prepare = alt_prepare;
-//	}
-//
-//	GSource * g_usb_source = g_source_new (&usb_funcs, sizeof(libusbSource));
-//	libusbSource * usb_source = (libusbSource *) g_usb_source;
-//
-//	usb_source->devices = NULL; //important to set null because g_source_destroy calls finalize
-//	usb_source->fds = NULL; //important to set null because g_source_destroy calls finalize
-//	usb_source->context = context;
-//	usb_source->timeout_error = 0;
-//	usb_source->handle_events_error = 0;
-//
-//	if(init_usb_fds(usb_source)){
-//		g_source_destroy((GSource*)usb_source);
-//		return NULL;
-//	}
-//
-//	return usb_source;
-//}
 
 
 libusbSource * libusbSource_new(void){
@@ -355,8 +214,7 @@ static libusb_device_handle * open_device_interface(libusbSource * usb_source, l
 }
 
 libusb_device_handle * open_usb_device_handle(libusbSource * usb_source,
-	is_device is_device, int * iface_num, int num_ifaces)
-{
+	is_device is_device, int * iface_num, int num_ifaces){
 	libusb_device * dev = find_usb_device(usb_source, is_device);
 	return open_device_interface(usb_source, dev, iface_num, num_ifaces);
 
@@ -447,27 +305,6 @@ void print_libusb_transfer_error(int status, const char* str){
 
 
 void run_main_loop(libusbSource * usb_source) {
-
-//	struct pollfd fds[100];
-//	int nfds = 0;
-//	const struct libusb_pollfd ** usb_fds = libusb_get_pollfds(usb_source->context);
-//
-////    	if(!usb_fds)
-////    		return -1;
-//
-//	for(nfds = 0; usb_fds[nfds] != NULL; ++nfds){
-//		fds[nfds].fd = usb_fds[nfds]->fd;
-//		fds[nfds].events = usb_fds[nfds]->events;
-//		printf("\n %d", fds[nfds].events);
-//		//fds[nfds].events = POLLIN | POLLPRI;
-//	}
-////exit(1);
-//	free(usb_fds);
-
-//	struct timeval nonblocking = {
-//			.tv_sec = 0,
-//			.tv_usec = 0,
-//	};
 
 	g_usb_source = usb_source;	//TODO find clean solution so that callback has access to usbcontext
 	int count = 0;
