@@ -1,22 +1,44 @@
-#OPTS := -O3 -ffast-math $(call cc-option,-flto -fwhole-program)
-#WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings -Wno-missing-field-initializers -Wno-unused-parameter
-#CFLAGS := -g -MD -std=gnu99 $(OPTS) $(WARNINGS) -fno-strict-aliasing $(shell pkg-config --cflags glib-2.0 libusb-1.0)
-#LDLIBS := -lrt $(shell pkg-config --libs glib-2.0 libusb-1.0)
+GCC := gcc
+GWARNINGS := -Wall
+GDEBUG := -g -O0
 
-CC := gcc
-WARNINGS := -Wall
+CIN := profiler.c
+COUT := profile
 CFLAGS := -lnsl -lresolv -lrt -pthread $(WARNINGS)
-CDEBUG := -g -O0 $(CFLAGS)
-OUT := profile
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+SC := gcc
+SWARNINGS := -Wall
+SFLAGS := -lnsl -lresolv -lrt -lHX -pthread -std=gnu99 $(WARNINGS)
+SIN := server_listener.c
+SOUT := listener
 	
-profiler:
-	$(CC) -o $(OUT) $(CFLAGS)
+all:
+	make client;
+	make server;
+	
+debug:
+	make debugclient;
+	make debugserver;
+	
+client:
+	$(GCC) $(CIN) -o $(COUT) $(CFLAGS)
+	
+server:
+	$(GCC) $(SIN) -o $(SOUT) $(SFLAGS)
+	
+debugclient:
+	$(GCC) $(CIN) -o $(COUT) $(CFLAGS) $(GDEBUG)
+	
+debugserver:
+	$(GCC) $(SIN) -o $(SOUT) $(SFLAGS) $(GDEBUG)
 
-profilerg:
-	$(CC) -o $(OUT) $(DEBUG)
 
 clean:
-	rm -f *.o fc hwemu1 fc profile testrun
+	make cleanclient;
+	make cleanserver;
+	
+cleanclient:
+	rm $(COUT)
+
+cleanserver:
+	rm $(SOUT)
