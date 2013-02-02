@@ -1,5 +1,9 @@
 This file lists notable changes.
 
+2013-02-02:
+* Add MIML config file and auto-generated file (miml.c) to visualize
+  how the code generator and sending messages could work. 
+
 2013-01-28:
 * Add mouse2--to verify reading from two USB devices works. 
  

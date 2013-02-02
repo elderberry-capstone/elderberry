@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "socket.h"
 #include "virtdevsrv.h"
-#include "logging.h"
+#include "miml.h"
 
 static unsigned char buffer[1000];
 
@@ -13,9 +13,10 @@ static int common_cb (uint32_t fourcc, int fd) {
 
 	int rc = readsocket(fd, buffer, sizeof(buffer));
 	if (rc > 0) {
-		printbuffer(fourcc, buffer, rc);	//print to screen
-		write_tagged_message(fourcc, buffer, rc);
-		flush_buffers();
+//		printbuffer(fourcc, buffer, rc);	//print to screen
+//		write_tagged_message(fourcc, buffer, rc);
+//		flush_buffers();
+		FCF_Log(fourcc, buffer, rc);
 	}
 	return rc;
 }

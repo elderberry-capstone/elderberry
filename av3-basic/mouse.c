@@ -7,7 +7,8 @@
 #include <stdio.h>
 #include "libusb-basic.h"
 #include "mouse.h"
-#include "logging.h"
+#include "miml.h"
+
 
 static const int g_dev_IN_EP = 0x81;
 static int g_packet_size = 4;
@@ -47,7 +48,9 @@ static void common_cb(struct libusb_transfer *transfer, uint32_t fourcc){
         buf = transfer->buffer;
         act_len = transfer->actual_length;
 
-        write_tagged_message(fourcc, buf, act_len);
+        FCF_Log(fourcc, buf, act_len);	// send message
+
+        //write_tagged_message(fourcc, buf, act_len);
 
 //        if(act_len != g_mouse_packet_size){
 //            write_tagged_message(fourcc, buf, act_len);
