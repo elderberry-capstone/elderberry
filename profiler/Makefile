@@ -1,44 +1,18 @@
-GCC := gcc
-GWARNINGS := -Wall
-GDEBUG := -g -O0
+CC:=g++
+IN:=profile.cpp
+TESTIN:=gettfds.cpp
+TESTOUT:=gtfds
+OUT:=profile
+OPTIONS:= -Wall
+DEBUG:=-g
+INCLUDE:= -I /usr/lib/
+LINK:= -lboost_program_options
 
-CIN := profiler.c
-COUT := profile
-CFLAGS := -lnsl -lresolv -lrt -pthread $(WARNINGS)
-
-SC := gcc
-SWARNINGS := -Wall
-SFLAGS := -lnsl -lresolv -lrt -lHX -pthread -std=gnu99 $(WARNINGS)
-SIN := server_listener.c
-SOUT := listener
-	
 all:
-	make client;
-	make server;
+	$(CC) -o $(OUT) $(IN) $(INCLUDE) $(LINK) $(OPTIONS)
 	
 debug:
-	make debugclient;
-	make debugserver;
-	
-client:
-	$(GCC) $(CIN) -o $(COUT) $(CFLAGS)
-	
-server:
-	$(GCC) $(SIN) -o $(SOUT) $(SFLAGS)
-	
-debugclient:
-	$(GCC) $(CIN) -o $(COUT) $(CFLAGS) $(GDEBUG)
-	
-debugserver:
-	$(GCC) $(SIN) -o $(SOUT) $(SFLAGS) $(GDEBUG)
+	$(CC) -o $(OUT) $(IN) $(INCLUDE) $(LINK) $(OPTIONS) $(DEBUG)
 
-
-clean:
-	make cleanclient;
-	make cleanserver;
-	
-cleanclient:
-	rm $(COUT)
-
-cleanserver:
-	rm $(SOUT)
+test:
+	$(CC) -o $(TESTOUT) $(TESTIN)
