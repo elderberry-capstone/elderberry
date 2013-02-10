@@ -5,6 +5,10 @@
 
 #include "miml.h"
 
+void FCFERR_Poll() {
+	handleErrorPoll();
+}
+
 void FCF_Init (libusbSource * src) {
 	init_gps(src);
 	init_theo_imu(src);

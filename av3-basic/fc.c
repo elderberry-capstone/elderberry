@@ -4,17 +4,35 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <signal.h>
+#include <errno.h>
 
+#include "fc.h"
 #include "libusb-basic.h"
 #include "logging.h"
 #include "miml.h"
 
 
-void signalhandler(int signum);
-void signalhandler(int signum) {
+
+
+static void signalhandler(int signum) {
 	printf ("\n **signal handler: signum = %d", signum);
 }
+
+void handleErrorPoll(void) {
+	int err = errno;
+	char *msg = strerror(err);
+	printf ("\n poll error handling: errno=%d %s ", err, msg);
+	switch(err) {
+		case EFAULT: printf ("EFAULT"); break;
+		case EINTR: printf ("EINTR"); break;
+		case EINVAL: printf ("EINVAL"); break;
+		case ENOMEM: printf ("ENOMEM"); break;
+	}
+	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n poll returned with errno=%d %s", err, msg);
+}
+
 
 int main(int argc, char **argv)
 {
