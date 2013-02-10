@@ -7,6 +7,7 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "fc.h"
 #include "libusb-basic.h"
@@ -36,6 +37,23 @@ void handleErrorPoll(void) {
 
 int main(int argc, char **argv)
 {
+	int opt;
+	while ( (opt = getopt (argc, argv, "g:")) != -1) {
+		switch (opt) {
+		case -1:
+			break;
+		case 'g':
+			set_gps_devicepath (optarg);
+			break;
+		case 't':
+			break;
+		default: /* '?' */
+			fprintf(stderr, "Usage: %s [-g Device path]\n",
+					argv[0]);
+			exit(EXIT_FAILURE);
+		}
+	}
+
 	signal (SIGUSR1, signalhandler);
 	signal (SIGUSR2, signalhandler);
 

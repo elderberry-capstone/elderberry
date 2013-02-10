@@ -13,25 +13,15 @@
 #include "miml.h"
 #include "gps.h"
 
-static const char *device = "/dev/usbserial";	//TODO should be configurable
-
-//static GOptionEntry options[] = {
-//	{ "gps-device", 'g', 0, G_OPTION_ARG_FILENAME, &device, "Device path", NULL },
-//	{ NULL },
-//};
-//
-//GOptionGroup *options_gps(void)
-//{
-//	GOptionGroup *option_group = g_option_group_new(
-//		"gps",
-//		"GPS Options:",
-//		"Show GPS options",
-//		NULL, NULL);
-//	g_option_group_add_entries(option_group, options);
-//	return option_group;
-//}
+static const char *device = NULL;
 
 static unsigned char buf[4096], *cur = buf;
+
+
+void set_gps_devicepath (const char *dev) {
+	device = dev;
+}
+
 
 static void find_frames(void)
 {
@@ -83,24 +73,30 @@ static void find_frames(void)
 	}
 }
 
+
 //returns true/false
 static int read_gps_cb (struct pollfd *pfd) {
-	if (pfd->revents != POLLIN) {	//TODO double check this line
+	if (pfd->revents != POLLIN) {
 		return 0;
 	}
 
-	//TODO code here is only a first draft
 	ssize_t nread = read (pfd->fd, cur, sizeof(buf)-(cur-buf));
 
-	//TODO read(2) and related man pages and double check logic
-	if (nread == -1) {
-		if (errno==EAGAIN) {
-			return 0;
-		} else {
-			return 0;
-		}
-
+	if (nread <= 0) {
+		//error or nothing was read
+		return 0;
 	}
+
+//	if (nread == -1) {
+//		//read returned with error
+//		if (errno == EAGAIN) {
+//			//read would block
+//			return 0;
+//		} else {
+//			//other error
+//			return 0;
+//		}
+//	}
 
 	cur += nread;
 	find_frames();
@@ -110,13 +106,12 @@ static int read_gps_cb (struct pollfd *pfd) {
 
 void init_gps(libusbSource * src)	//TODO FCF struct must not be part of libusbSource
 {
-//	if(!device)
-//		device = g_strdup("/dev/usbserial");
+	if(!device)
+		device = "/dev/usbserial";
 
-	//TODO read open(2), verify flags; O_ASYNC
 	int fd = open (device, O_RDONLY | O_NONBLOCK);
 	if (fd == -1) {
-		perror ("Can't connect to GPS");
+		fprintf (stderr, "Can't connect to GPS on %s: %s\n", device, strerror(errno));
 		return;
 	}
 
