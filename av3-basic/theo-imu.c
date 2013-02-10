@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <libusb.h>
-#include "libusb-gsource.h"
+#include "libusb-basic.h"
 #include "theo-imu.h"
-#include "logging.h"
+#include "miml.h"
 
 
 #define BULK0_IN_EP 0x82
@@ -40,18 +40,18 @@
 #define IMU_PACKET_SIZE 13
 #define SENSOR_DATA_OFFSET 6
 
-static gboolean is_imu(libusb_device * device){
+static int is_imu(libusb_device * device){
     struct libusb_device_descriptor descr;
     int retErr = libusb_get_device_descriptor(device, &descr);
     if(retErr){
         print_libusb_error(retErr,"is_imu libusb_get_device_descriptor");
-        return FALSE;
+        return 0;
     }
     if(descr.idVendor == 0xFFFF && descr.idProduct == 0x0005){
         //todo: more ID methods
-        return TRUE;
+        return 1;
     }
-    return FALSE;
+    return 0;
 }
 
 static void common_cb(struct libusb_transfer *transfer, uint32_t fourcc){
@@ -65,12 +65,12 @@ static void common_cb(struct libusb_transfer *transfer, uint32_t fourcc){
 
         act_len = transfer->actual_length;
         if(act_len != IMU_PACKET_SIZE){
-            write_tagged_message(fourcc, buf, act_len);
+            FCF_Log(fourcc, buf, act_len);
         }else{
             if(IMU_ADDR(buf[0]) == ADDR_GYR){
-                write_tagged_message(fourcc, buf, act_len);
+                FCF_Log(fourcc, buf, act_len);
             }else{
-                write_tagged_message(fourcc, buf, act_len -1);
+                FCF_Log(fourcc, buf, act_len - 1);
             }
         }
         retErr = libusb_submit_transfer(transfer);

@@ -1,6 +1,10 @@
 This file lists notable changes.
 
 2013-02-02:
+* Import of the PSAS theo-imu module.
+  http://git.psas.pdx.edu/av3-fc.git/blob/HEAD:/theo-imu.c
+
+2013-02-02:
 * Add MIML config file and auto-generated file (miml.c) to visualize
   how the code generator and sending messages could work. 
 

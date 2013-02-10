@@ -11,6 +11,7 @@
 #include "mouse.h"
 #include "mouse2.h"
 #include "gps.h"
+#include "theo-imu.h"
 #include "virtdevsrv.h"
 
 void FCF_Init (libusbSource * usb_source);
