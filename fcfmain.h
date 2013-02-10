@@ -4,7 +4,8 @@
 #define TRUE             1
 #define FALSE            0
 
-typedef void (*pollfd_callback)(int fd_idx);
-extern pollfd_callback fcf_get_callback_function(const char *);
+
+extern void fcf_callback_gyr(char *buff, int length);
+extern void fcf_callback_acc(char *buff, int length);
 
 #endif

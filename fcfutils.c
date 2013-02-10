@@ -18,17 +18,25 @@ struct fcffd {
 
 static const int MAXFD = 100;
 static struct pollfd fds[MAXFD];
-static struct fcffd fds2[MAXFD];
+static struct fcffd fdx[MAXFD];
 static int nfds = 0;
 
 // Add file descriptor to array of FDs.
-extern void fcf_add_fd(const char *token, int fd) {
+extern void fcf_add_fd(const char *token, int fd, pollfd_callback cb) {
 	fds[nfds].fd = fd;
 	fds[nfds].events = POLLIN | POLLPRI;
-	fds2[nfds].token = token;
-	fds2[nfds].callback = fcf_get_callback_function(token);
+	fdx[nfds].token = token;
+	fdx[nfds].callback = cb;
 	nfds++;
 }
+
+/*extern void fcf_add_fd(const char *token, int fd, pollfd_callback callback) {
+	fds[nfds].fd = fd;
+	fds[nfds].events = POLLIN | POLLPRI;
+	fdx[nfds].token = token;
+	fdx[nfds].callback = fcf_get_callback_function(token);
+	nfds++;
+}*/
 
 
 int fcf_remove_all_fd(const char *fd_src) {
@@ -42,7 +50,7 @@ int fcf_remove_all_fd(const char *fd_src) {
 	
 	for(i=0; i<nfds; i++){
 		// NOTE: if non-null-terminated strings, use strncmp with length
-		if(strcmp(fds2[i].token, fd_src) == 0){
+		if(strcmp(fdx[i].token, fd_src) == 0){
 
 			// If matching fd is last in array.
 			if(nfds - 1 == i){
@@ -55,7 +63,7 @@ int fcf_remove_all_fd(const char *fd_src) {
 			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
 
 			// Replace fcffd at index i with last fcffd in array.
-			memmove(&fds2[i], &fds2[nfds - 1], sizeof(struct fcffd));
+			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
 			
 			// Decrement number of fds and increment amount removed.
 			nfds--;
@@ -66,11 +74,75 @@ int fcf_remove_all_fd(const char *fd_src) {
 	return removed;
 }
 
+pollfd *fcf_get_fd(int idx){
+	return &fds[idx];
+}
 
-void fcf_get_fd_structure(struct pollfd **_fds, struct fcffd **_fds2, int *_nfds) {
+void fcf_get_fd_structure(struct pollfd **_fds, struct fcffd **_fdx, int *_nfds) {
 	*_fds = fds;
-	*_fds2 = fds2;
+	*_fdx = fdx;
 	*_nfds = nfds;
 }
 
+int run_poll_loop(void){
+	int rc;
+	int timeout = 5 * 1000;	// in ms
 
+	for (;;)
+	{
+		/**
+		*	Call poll() and wait for it to complete.
+		*/
+		printf("Waiting on poll()...\n");
+		rc = poll(fds, nfds, timeout);
+
+		/**
+		*	Check to see if the poll call failed. 
+		*/
+		if (rc < 0){
+			perror("  poll() failed");
+			break;
+		}
+
+		/**
+		*	poll timed out 
+		*/
+		if (rc == 0){
+			//do something useful, e.g. call into libusb so that libusb can deal with timeouts
+			printf("  poll() timed out.\n");
+		}
+
+
+		/**
+		*	One or more descriptors are readable.  Need to 
+		*	determine which ones they are. 
+		*/
+		int current_size = nfds;
+		for (int i = 0; i < current_size; i++){
+			/*********************************************************/
+			/* Loop through to find the descriptors that returned    */
+			/* POLLIN and determine whether it's the listening       */
+			/* or the active connection.                             */
+			/*********************************************************/
+			if(fds[i].revents == 0) {
+				continue;
+			}
+
+			/*********************************************************/
+			/* If revents is not POLLIN, it's an unexpected result,  */
+			/* log and end the server.                               */
+			/*********************************************************/
+//			if(fds[i].revents != POLLIN)
+//			{
+//				printf("  Error! revents = %d\n", fds[i].revents);
+//
+//			}
+
+			printf("  Descriptor %d is readable\n", fds[i].fd);
+
+			fdx[i].callback(i);
+		}
+	}
+
+	return 0;
+}

@@ -12,8 +12,8 @@
 #include "fcfutils.h"
 #include "testIMU.h"
 
-extern void fcf_callback_gyr(char *, int);
-extern void fcf_callback_acc(char *, int);
+extern fcf_callback_gyr(char *, int);
+extern fcf_callback_acc(char *, int);
 
 static int readsocket(int fd, char *buffer, int bufsize);
 static int getsocket(int serverport);
