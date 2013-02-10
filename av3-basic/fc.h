@@ -1,8 +1,6 @@
 /*
  * fc.h
  *
- *  Created on: Feb 10, 2013
- *      Author: peps
  */
 
 #ifndef FC_H_
