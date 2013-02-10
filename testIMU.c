@@ -1,3 +1,12 @@
+/**
+ *  @file testIMU.c
+ *  @brief Brief description needs to go here
+ *  @details More detailed desciption needs to go here
+ *  @author Ron Astin
+ *  @date February 5th, 2013
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +24,10 @@
 static int readsocket(int fd, char *buffer, int bufsize);
 static int getsocket(int serverport);
 
-
+/**
+ *  @brief Initializes sockets to communicate with the IMU.
+ *  @details Starts by removing all file descriptors that were added under the "IMU" source token [place code snippet here].  After removing the file descriptors, we add the fild descriptors from socket 8081, and 8082 with the IMU token.
+ */
 void init_theo_imu () {
 	fcf_remove_all_fd("IMU");
 
@@ -28,8 +40,15 @@ void init_theo_imu () {
 	fcf_add_fd ("IMU", fd2, NULL);
 }
 
+/**
+ *  @brief This function handles a particular message type (fileA)
+ *  @details This function hides all of the ugly work of getting "The Message" off of the hardware device. Every hardware interfacing module that sends messages will have specific callback functions for each message type to send.
+ *  @param fd File descriptor
+ *  @param buffer Contents of character buffer
+ *  @param bufsize Size/length of buffer.
+ */
 int fileA_handler(int fd, char *buffer, int bufsize) {
-/***
+  /***
 *  In this function we point buffer at a message from device.
 *  This function handles a particular message type (fileA).
 */
@@ -42,7 +61,13 @@ int fileA_handler(int fd, char *buffer, int bufsize) {
 	return readsocket(fd, buffer, bufsize);
 }
 
-
+/**
+ *  @brief This function handles a particular message type (fileB)
+ *  @details This function hides all of the ugly work of getting "The Message" off of the hardware device. Every hardware interfacing module that sends messages will have specific callback functionsfor each message type to send.
+ *  @param fd File Descriptor
+ *  @param buffer Contents of character buffer
+ *  @param bufsize Size/length of buffer
+ */
 int fileB_handler(int fd, char *buffer, int bufsize) {
 /***
 *  In this function we point buffer at a message from device.
@@ -60,7 +85,13 @@ int fileB_handler(int fd, char *buffer, int bufsize) {
 // Other private functions to do stuff.
 
 
-
+/**
+ *  @brief Recieve data from a socket for a file descriptor
+ *  @details Receive data on this connection until the recv fails with EWOULDBLOCK. If any other failur occures, we will termintate the connection
+ *  @param fd File Descriptor
+ *  @param buffer Contents of character buffer
+ *  @param bufsize Size/length of buffer
+ */
 static int readsocket(int fd, char *buffer, int bufsize) {
 	/*****************************************************/
 	/* Receive data on this connection until the         */
@@ -98,6 +129,11 @@ static int readsocket(int fd, char *buffer, int bufsize) {
 	return rc;
 }
 
+/**
+ *  @brief Create a socket to receive on.
+ *  @details Create an AF_INET stream socket to receive incoming connections on. We bind the cocket, then set the listen backlog, then accept each incoming connection. If the accept fails with EWOULDBLOCK, then we have accepted all connections. Any other failure on accept will cause us to end the server.
+ *  @param serverport 
+ */
 static int getsocket(int serverport) {
 	int listen_sd;
 	int rc;
