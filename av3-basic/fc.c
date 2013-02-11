@@ -19,7 +19,15 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+<<<<<<< HEAD
 	FCF_Init(usb_source);
+=======
+	//comment out the devices you don't have or want
+	init_gps(usb_source);
+	init_mouse(usb_source);		//read from usb mouse; set your hw values in is_mouse()
+	init_mouse2(usb_source);	//read from a 2nd usb mouse; set your hw values in is_mouse2()
+	init_virtgyro(usb_source);	//read from socket
+>>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
 
 	run_main_loop(usb_source);
 
