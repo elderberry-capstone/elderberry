@@ -27,7 +27,7 @@ void print_libusb_transfer_error(int status, const char* str);
 typedef int (*pollCallback)(struct pollfd *pfd);
 int fcf_addfd (int fd, short events, pollCallback cb, libusbSource *src);
 int fcf_removefd (int fd, libusbSource *src);
-
+void stop_main_loop(void);
 
 
 

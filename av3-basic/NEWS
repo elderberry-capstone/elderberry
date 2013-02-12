@@ -1,5 +1,8 @@
 This file lists notable changes.
 
+2013-02-12:
+* Add stop_main_loop().
+
 2013-02-10:
 * Add error handling to poll(2).
 * Import of the PSAS GPS module.
