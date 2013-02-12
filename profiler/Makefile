@@ -1,18 +1,3 @@
-CC:=g++
-IN:=profile.cpp
-TESTIN:=gettfds.cpp
-TESTOUT:=gtfds
-OUT:=profile
-OPTIONS:= -Wall
-DEBUG:=-g
-INCLUDE:= -I /usr/lib/
-LINK:= -lboost_program_options
-
+INCLUDE=fc.c fcfmain.c fcfutils.h gps.h libusb-basic.h logging.h miml.h mouse2.h mouse.h socket.h testIMU.h testLoggerDisk.h testLoggerScreen.h virtdevsrv.h
 all:
-	$(CC) -o $(OUT) $(IN) $(INCLUDE) $(LINK) $(OPTIONS)
-	
-debug:
-	$(CC) -o $(OUT) $(IN) $(INCLUDE) $(LINK) $(OPTIONS) $(DEBUG)
-
-test:
-	$(CC) -o $(TESTOUT) $(TESTIN)
+	gcc $(INCLUDE) profile.c `pkg-config --libs --cflags libusb-1.0`

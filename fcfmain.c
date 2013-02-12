@@ -122,7 +122,8 @@ int fcf_main_loop_run() {
 		/* determine which ones they are.                          */
 		/***********************************************************/
 		int current_size = nfds;
-		for (int i = 0; i < current_size; i++)
+        int i = 0;
+		for (i = 0; i < current_size; i++)
 		{
 			/*********************************************************/
 			/* Loop through to find the descriptors that returned    */
