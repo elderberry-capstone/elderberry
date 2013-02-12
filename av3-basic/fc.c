@@ -19,6 +19,10 @@
 
 static void signalhandler(int signum) {
 	printf ("\n **signal handler: signum = %d", signum);
+
+	if (signum == SIGINT)  {
+		stop_main_loop ();
+	}
 }
 
 void handleErrorPoll(void) {
@@ -56,6 +60,7 @@ int main(int argc, char **argv)
 
 	signal (SIGUSR1, signalhandler);
 	signal (SIGUSR2, signalhandler);
+	signal (SIGINT, signalhandler);
 
 	init_logging();
 
@@ -76,5 +81,6 @@ int main(int argc, char **argv)
 
 	run_main_loop(usb_source);
 
+	printf("\n");
 	return 0;
 }

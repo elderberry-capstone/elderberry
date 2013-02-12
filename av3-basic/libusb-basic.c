@@ -447,6 +447,10 @@ void print_libusb_transfer_error(int status, const char* str){
 	}
 }
 
+static int run_fc = 0;
+void stop_main_loop() {
+	run_fc = 0;
+}
 
 void run_main_loop(libusbSource * usb_source) {
 
@@ -471,9 +475,10 @@ void run_main_loop(libusbSource * usb_source) {
 //			.tv_usec = 0,
 //	};
 
+	run_fc = 1;
 	g_usb_source = usb_source;	//TODO find clean solution so that callback has access to usbcontext
 	int count = 0;
-	for (;;) {
+	while (run_fc) {
 		struct pollfd *fds = usb_source->pollfds;
 		int nfds = usb_source->nfds;
 
@@ -524,6 +529,8 @@ void run_main_loop(libusbSource * usb_source) {
 		}
 
 	}
+
+	printf("\n exiting main loop");
 
 }
 
