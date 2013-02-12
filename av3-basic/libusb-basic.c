@@ -9,9 +9,11 @@
 #include <poll.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "libusb-basic.h"
 #include "logging.h"
+#include "miml.h"
 
 #define FCF_POLLSIZE 100
 
@@ -476,20 +478,24 @@ void run_main_loop(libusbSource * usb_source) {
 		int nfds = usb_source->nfds;
 
 		for (int i = 0; i < nfds; i++) {
-			printf("\npolling fd[%d]: fd=%d events=%d", i, fds[i].fd, fds[i].events);
+			printf("\npolling fd[%d]: fd=%d events=%X", i, fds[i].fd, fds[i].events);
 		}
 		fflush (stdout);
 
-		int rc = poll(fds, nfds, 2000);
+		errno = 0;
+		int rc = poll(fds, nfds, -1);
 		printf ("\n%d. poll returned with rc=%d ", count++, rc);
+		for (int i = 0; i < nfds; i++) {
+			printf("\n   after poll fd[%d]: fd=%d events=%X revents=%X", i, fds[i].fd, fds[i].events, fds[i].revents);
+		}
 		fflush (stdout);
 
 //		printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n after poll");
 //		flush_buffers();
 
 		switch (rc) {
-		case -1:
-			printf("poll failed!");
+		case -1: //error
+			FCFERR_Poll();
 			break;
 		case 0: //timeout
 			printf("poll timed out");
