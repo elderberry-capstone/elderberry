@@ -14,6 +14,7 @@
 #include "theo-imu.h"
 #include "virtdevsrv.h"
 #include "fc.h"
+#include "profile.h"
 
 void FCFERR_Poll(void);
 void FCF_Init (libusbSource * usb_source);

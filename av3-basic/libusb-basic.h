@@ -7,7 +7,7 @@
 
 #ifndef LIBUSB_GSOURCE_H_
 #define LIBUSB_GSOURCE_H_
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 #include <poll.h>
 
 //typedef void (*libusbSourceErrorCallback)(int, int, gpointer);
