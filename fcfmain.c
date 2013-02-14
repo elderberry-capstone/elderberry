@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include "mouse.h"
 #include "testIMU.h"
 #include "testLoggerDisk.h"
 #include "testLoggerScreen.h"
@@ -25,6 +26,7 @@ void fcf_init() {
 	// Calls all init functions
 	init_theo_imu();
 	init_diskLogger();
+	//init_mouse();
 
 	// Fetch all FileDescriptors
 	//fcf_get_fd_structure(&fds, &fdx, &nfds);
@@ -41,6 +43,9 @@ void fcf_callback_acc(char *buff, int length) {
 	diskLogger_getMessage("acc", buff, length);
 }
 
+void fcf_callback_mouse(char *buff, int length){
+	screenLogger_getMessage("mouse", buff, length);
+}
 
 /****************	END CODE GENERATED SPACE	*****************/
 

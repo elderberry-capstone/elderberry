@@ -12,8 +12,8 @@
 #include "fcfutils.h"
 #include "testIMU.h"
 
-extern fcf_callback_gyr(char *, int);
-extern fcf_callback_acc(char *, int);
+extern void fcf_callback_gyr(char *, int);
+extern void fcf_callback_acc(char *, int);
 
 static int readsocket(int fd, char *buffer, int bufsize);
 static int getsocket(int serverport);
@@ -21,14 +21,14 @@ static int getsocket(int serverport);
 static char _buffer [1024];
 
 void gyr_handler(int idx) {
-	pollfd *fd = fcf_get_fd(idx);
+	struct pollfd *fd = fcf_get_fd(idx);
 	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
 	fcf_callback_gyr(_buffer, length);
 }
 
 
 void acc_handler(int idx) {
-	pollfd *fd = fcf_get_fd(idx);
+	structpollfd *fd = fcf_get_fd(idx);
 	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
 	fcf_callback_acc(_buffer, length);
 }

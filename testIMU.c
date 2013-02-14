@@ -21,14 +21,14 @@ static int getsocket(int serverport);
 static char _buffer [1024];
 
 void gyr_handler(int idx) {
-	pollfd *fd = fcf_get_fd(idx);
+	struct pollfd *fd = fcf_get_fd(idx);
 	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
 	fcf_callback_gyr(_buffer, length);
 }
 
 
 void acc_handler(int idx) {
-	pollfd *fd = fcf_get_fd(idx);
+	struct pollfd *fd = fcf_get_fd(idx);
 	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
 	fcf_callback_acc(_buffer, length);
 }

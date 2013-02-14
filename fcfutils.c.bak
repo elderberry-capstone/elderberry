@@ -16,28 +16,19 @@ struct fcffd {
 	pollfd_callback callback;
 };
 
-static const int MAXFD = 100;
-static struct pollfd fds[MAXFD];
-static struct fcffd fdx[MAXFD];
+//static int MAXFD = 100;
+static struct pollfd fds[100];
+static struct fcffd fdx[100];
 static int nfds = 0;
 
 // Add file descriptor to array of FDs.
-extern void fcf_add_fd(const char *token, int fd, pollfd_callback *cb) {
+extern void fcf_add_fd(const char *token, int fd, pollfd_callback cb) {
 	fds[nfds].fd = fd;
 	fds[nfds].events = POLLIN | POLLPRI;
 	fdx[nfds].token = token;
 	fdx[nfds].callback = cb;
 	nfds++;
 }
-
-/*extern void fcf_add_fd(const char *token, int fd, pollfd_callback callback) {
-	fds[nfds].fd = fd;
-	fds[nfds].events = POLLIN | POLLPRI;
-	fdx[nfds].token = token;
-	fdx[nfds].callback = fcf_get_callback_function(token);
-	nfds++;
-}*/
-
 
 int fcf_remove_all_fd(const char *fd_src) {
   // Remove all file descriptors that were added under given source token.
@@ -74,15 +65,10 @@ int fcf_remove_all_fd(const char *fd_src) {
 	return removed;
 }
 
-pollfd *fcf_get_fd(int idx){
+struct pollfd *fcf_get_fd(int idx){
 	return &fds[idx];
 }
 
-void fcf_get_fd_structure(struct pollfd **_fds, struct fcffd **_fdx, int *_nfds) {
-	*_fds = fds;
-	*_fdx = fdx;
-	*_nfds = nfds;
-}
 
 int run_poll_loop(void){
 	int rc;
