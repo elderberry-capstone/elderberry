@@ -8,7 +8,7 @@
 #ifndef THEO_IMU_H_
 #define THEO_IMU_H_
 
-#include "libusb-basic.h"
+#include "usbutils.h"
 
 void init_theo_imu(libusbSource * usb_source);
 

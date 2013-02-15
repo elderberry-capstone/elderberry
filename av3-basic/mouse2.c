@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "libusb-basic.h"
+#include "usbutils.h"
 #include "mouse2.h"
 #include "miml.h"
 

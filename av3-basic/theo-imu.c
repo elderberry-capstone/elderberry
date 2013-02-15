@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <libusb.h>
-#include "libusb-basic.h"
+#include "usbutils.h"
 #include "theo-imu.h"
 #include "miml.h"
 

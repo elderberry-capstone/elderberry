@@ -7,7 +7,7 @@
 #define MIML_H_
 
 #include "logging.h"
-#include "libusb-basic.h"
+#include "usbutils.h"
 #include "mouse.h"
 #include "mouse2.h"
 #include "gps.h"

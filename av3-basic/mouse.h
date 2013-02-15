@@ -7,7 +7,7 @@
 #ifndef MOUSE_H_
 #define MOUSE_H_
 
-#include "libusb-basic.h"
+#include "usbutils.h"
 
 void init_mouse(libusbSource * usb_source);
 

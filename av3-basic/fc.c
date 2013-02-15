@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "fc.h"
-#include "libusb-basic.h"
+#include "usbutils.h"
 #include "fcfutils.h"
 #include "logging.h"
 #include "miml.h"
