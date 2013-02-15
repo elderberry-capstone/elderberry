@@ -12,7 +12,7 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <unistd.h>
-#include "socket.h"
+#include "netutils.h"
 
 int readsocket(int fd, unsigned char *buffer, int bufsize) {
 	/*****************************************************/

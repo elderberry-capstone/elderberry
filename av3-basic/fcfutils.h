@@ -2,7 +2,6 @@
  * fcfutils.h
  *
  *  Created on: Feb 15, 2013
- *      Author: peps
  */
 
 #ifndef FCFUTILS_H_

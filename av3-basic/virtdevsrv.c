@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "socket.h"
+#include "netutils.h"
 #include "fcfutils.h"
 #include "virtdevsrv.h"
 #include "miml.h"

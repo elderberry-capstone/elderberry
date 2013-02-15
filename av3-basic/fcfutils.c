@@ -83,7 +83,6 @@ void run_main_loop() {
 		switch (rc) {
 		case -1: //error
 			FCFERR_Poll();
-			printf("\nFUX\n"); fflush(stdout);
 			break;
 		case 0: //timeout
 			printf("poll timed out");
