@@ -1,8 +1,9 @@
-//TODO src must not be tied to usb stuff
 #include <stdio.h>
 #include "socket.h"
+#include "fcfutils.h"
 #include "virtdevsrv.h"
 #include "miml.h"
+
 
 static unsigned char buffer[1000];
 
@@ -31,10 +32,10 @@ static int virtacc_cb (struct pollfd *pfd) {
 }
 
 
-static int initvirtdev (const char* devname, int port, pollCallback cb, libusbSource *src) {
+static int initvirtdev (const char* devname, int port, pollCallback cb) {
 	printf ("probing %s: (waiting for connection localhost:%d)\n", devname, port);
 	int fd = getsocket(port);
-	int rc = fcf_addfd (fd, POLLIN, cb, src);
+	int rc = fcf_addfd (fd, POLLIN, cb);
 	return rc;
 }
 
@@ -43,11 +44,11 @@ static int initvirtdev (const char* devname, int port, pollCallback cb, libusbSo
 //instead of having multiple callback functions,
 //have one and pass through parameters?
 
-int init_virtgyro(libusbSource *src) {
-	return initvirtdev ("virt gyro", 8081, virtgyro_cb, src);
+int init_virtgyro() {
+	return initvirtdev ("virt gyro", 8081, virtgyro_cb);
 }
 
-int init_virtacc(libusbSource *src) {
-	return initvirtdev ("virt acc", 8082, virtacc_cb, src);
+int init_virtacc() {
+	return initvirtdev ("virt acc", 8082, virtacc_cb);
 }
 

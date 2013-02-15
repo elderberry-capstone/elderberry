@@ -9,9 +9,8 @@
 #define VIRTDEVSRV_H_
 
 #include "socket.h"
-#include "libusb-basic.h"
 
-int init_virtgyro(libusbSource *src);
-int init_virtacc(libusbSource *src);
+int init_virtgyro(void);
+int init_virtacc(void);
 
 #endif /* VIRTDEVSRV_H_ */

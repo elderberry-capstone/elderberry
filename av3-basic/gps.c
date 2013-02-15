@@ -12,6 +12,7 @@
 
 #include "miml.h"
 #include "gps.h"
+#include "fcfutils.h"
 
 static const char *device = NULL;
 
@@ -115,5 +116,5 @@ void init_gps(libusbSource * src)	//TODO FCF struct must not be part of libusbSo
 		return;
 	}
 
-	fcf_addfd (fd, POLLIN, read_gps_cb, src);
+	fcf_addfd (fd, POLLIN, read_gps_cb);
 }

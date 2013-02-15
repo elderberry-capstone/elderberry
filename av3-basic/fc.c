@@ -11,6 +11,7 @@
 
 #include "fc.h"
 #include "libusb-basic.h"
+#include "fcfutils.h"
 #include "logging.h"
 #include "miml.h"
 
@@ -28,7 +29,8 @@ static void signalhandler(int signum) {
 void handleErrorPoll(void) {
 	int err = errno;
 	char *msg = strerror(err);
-	printf ("\n poll error handling: errno=%d %s ", err, msg);
+	printf ("\n poll error handling: errno=%d |%s| ", err, msg);
+	fflush(stdout);
 	switch(err) {
 		case EFAULT: printf ("EFAULT"); break;
 		case EINTR: printf ("EINTR"); break;
@@ -71,7 +73,7 @@ int main(int argc, char **argv)
 
 	FCF_Init(usb_source);
 
-	run_main_loop(usb_source);
+	run_main_loop();
 
 	printf("\n");
 	return 0;
