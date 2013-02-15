@@ -12,6 +12,7 @@
 #include "mouse2.h"
 #include "gps.h"
 #include "theo-imu.h"
+#include "adis-imu.h"
 #include "virtdevsrv.h"
 #include "fc.h"
 

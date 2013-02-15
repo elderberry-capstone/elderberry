@@ -1,5 +1,10 @@
 This file lists notable changes.
 
+2013-02-15:
+* Import of the PSAS adis-imu module.
+* Some code cleanup: all helper functions are now in
+  fcfutils.c, usbutils.c, and netutils.c. 
+
 2013-02-12:
 * Add stop_main_loop().
 

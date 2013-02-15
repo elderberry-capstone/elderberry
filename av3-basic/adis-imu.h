@@ -8,7 +8,7 @@
 #ifndef ADIS_IMU_H_
 #define ADIS_IMU_H_
 
-#include "libusb-gsource.h"
+#include "usbutils.h"
 
 void init_adis_imu(libusbSource * usb_source);
 

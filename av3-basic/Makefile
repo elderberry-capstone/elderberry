@@ -5,7 +5,7 @@ LDLIBS := -lrt $(shell pkg-config --libs libusb-1.0)
 
 all: fc
 
-fc: fc.o fcfutils.o logging.o usbutils.o theo-imu.o gps.o mouse.o mouse2.o netutils.o virtdevsrv.o miml.o
+fc: fc.o fcfutils.o logging.o usbutils.o theo-imu.o adis-imu.o gps.o mouse.o mouse2.o netutils.o virtdevsrv.o miml.o
 
 clean:
 	rm -f *.o *.d fc core
