@@ -62,6 +62,7 @@ int fcf_removefd (int fd) {
 			if (*p > 1) {
 				fds[i] = fds[*p - 1];
 				callbacks[i] = callbacks[*p - 1];
+				cbCat[i] = cbCat[*p - 1];
 				(*p)--;
 				return 0;
 			}
