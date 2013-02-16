@@ -17,22 +17,11 @@
 
 static const int g_dev_IN_EP = 0x81;
 
-libusb_device * find_device(libusb_device **, int);
-static int start_usb_transfer(libusb_device_handle *, unsigned int, libusb_transfer_cb_fn , void *, unsigned int);
-static void data_callback();
-
 libusb_context *context;
-libusb_device **devs, *device;
-libusb_device_handle *handle;
-//struct libusb_transfer *xfer;
 struct libusb_transfer * transfer[1];
-const struct libusb_pollfd ** fds;
 static int packet_size;
 
-//extern void mouse_handler(int);
-//extern int init_mouse();
 extern void fcf_callback_mouse(unsigned char *, int);
-//extern void fcf_add_fd(const char *, int, pollfd_callback);
 
 static struct timeval nonblocking = {
 		.tv_sec = 0,
@@ -43,14 +32,13 @@ static struct timeval nonblocking = {
 /**	START FUNCTIONS */
 
 void mouse_handler(int idx){
-	printf("Callback function for fd %d\n", idx);
+	//printf("Callback function for fd %d\n", idx);
 	libusb_handle_events_timeout(context, &nonblocking);
 }
 
 
-static int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_transfer_cb_fn cb, void * data, unsigned int timeout){
-	printf("[In start_usb_transfer()]\n");
-   	
+int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_transfer_cb_fn cb, void * data, unsigned int timeout){
+	
 	unsigned char * buf;
 	int usb_err;
 	transfer[0] = libusb_alloc_transfer(0);
@@ -84,12 +72,10 @@ static int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, li
 }
 
 
-static void data_callback(){
+void data_callback(){
 	unsigned char *buf = NULL;
     int act_len;
     int retErr;
-
-	printf("[In data_callback()]\n");
 
 	switch(transfer[0]->status){
     case LIBUSB_TRANSFER_COMPLETED:
@@ -98,12 +84,13 @@ static void data_callback(){
         act_len = transfer[0]->actual_length;
 
         retErr = libusb_submit_transfer(transfer[0]);
-		printf("Data from mouse: %02x \n", (char)buf[0]);
+		//printf("Data from mouse: %02x \n", (char)buf[0]);
 
 		if(retErr){
             //print_libusb_transfer_error(transfer->status, "common_cb resub");
         }
 
+		// Call to CGS mouse handler.
 		fcf_callback_mouse(buf, act_len);
 
         break;
@@ -146,6 +133,9 @@ libusb_device * find_device(libusb_device ** devices, int cnt){
 int init_mouse(){
 	
 	int error, cnt;
+	libusb_device_handle *handle;
+	libusb_device **devs, *device;
+	const struct libusb_pollfd ** fds;
 	
 	error = libusb_init(&context);
 	if(error){
@@ -212,18 +202,17 @@ int init_mouse(){
 		return 1; 
 	} 
   
+	
   
 	fds = libusb_get_pollfds(context);
 	
 	int num = 0;
 	for(num=0; fds[num] != NULL; num++){
-		fcf_add_fd("mouse", fds[num]->fd, mouse_handler);
+		fcf_add_fd("mouse", fds[num]->fd, fds[num]->events, mouse_handler);
 	}
 
 	packet_size = libusb_get_max_packet_size (libusb_get_device (handle), g_dev_IN_EP);
 	start_usb_transfer(handle, g_dev_IN_EP, data_callback, NULL, 0);
-
-	printf("Mouse successfully added.\n");
 
 	return 0;
 }

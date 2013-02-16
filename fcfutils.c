@@ -23,9 +23,9 @@ static struct fcffd fdx[100];
 static int nfds = 0;
 
 // Add file descriptor to array of FDs.
-extern void fcf_add_fd(const char *token, int fd, pollfd_callback cb) {
+extern void fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb) {
 	fds[nfds].fd = fd;
-	fds[nfds].events = POLLIN | POLLPRI;
+	fds[nfds].events = events;
 	fdx[nfds].token = token;
 	fdx[nfds].callback = cb;
 	nfds++;
@@ -61,6 +61,7 @@ int fcf_remove_all_fd(const char *fd_src) {
 			// Decrement number of fds and increment amount removed.
 			nfds--;
 			removed++;
+			printf("FD removed at index %d. Total: %d\n", i, nfds);
 		}
 	}
 
@@ -72,16 +73,16 @@ struct pollfd *fcf_get_fd(int idx){
 }
 
 
-int run_poll_loop(void){
+int fcf_run_poll_loop(void){
 	int rc;
-	int timeout = 1 * 1000;	// in ms
+	int timeout = -1 * 1000;	// in ms
 
 	for (;;)
 	{
 		/**
 		*	Call poll() and wait for it to complete.
 		*/
-		printf("Waiting on poll()...\n");
+		//printf("Waiting on poll()...\n");
 		rc = poll(fds, nfds, timeout);
 
 		/**
@@ -97,7 +98,7 @@ int run_poll_loop(void){
 		*/
 		if (rc == 0){
 			//do something useful, e.g. call into libusb so that libusb can deal with timeouts
-			printf("  poll() timed out.\n");
+			printf("poll() timed out.\n");
 			//mouse_handler(0);
 		}
 
@@ -135,7 +136,7 @@ int run_poll_loop(void){
 //
 //			}
 
-			printf("  Descriptor %d is readable\n", fds[i].fd);
+			//printf("  Descriptor %d is readable\n", fds[i].fd);
 
 			fdx[i].callback(i);
 		}

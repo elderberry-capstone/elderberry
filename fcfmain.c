@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include "mouse.h"
+#include "mouse2.h"
 #include "testIMU.h"
 #include "testLoggerDisk.h"
 #include "testLoggerScreen.h"
@@ -25,12 +26,9 @@
 void fcf_init() {
 	// Calls all init functions
 	init_mouse();
+	init_mouse2();
 	//init_theo_imu();
 	init_diskLogger();
-
-
-	// Fetch all FileDescriptors
-	//fcf_get_fd_structure(&fds, &fdx, &nfds);
 }
 
 void fcf_callback_gyr(char *buff, int length) {
@@ -45,13 +43,12 @@ void fcf_callback_acc(char *buff, int length) {
 }
 
 void fcf_callback_mouse(unsigned char *buff, int length){
-	screenLogger_getMessage("mouse", buff, length);
+	screenLogger_getMouseMessage("mouse", buff, length);
+}
+
+void fcf_callback_mouse2(unsigned char *buff, int length){
+	screenLogger_getMouseMessage("mouse", buff, length);
 }
 
 /****************	END CODE GENERATED SPACE	*****************/
-
-
-int fcf_main_loop_run() {
-	return run_poll_loop();
-}
 

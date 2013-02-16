@@ -1,23 +1,8 @@
 #include <stdio.h>
 
-/***
-*  Assumptions about LibUSB:
-*
-*	So this is a first attempt at hacking libusb code, I'm less concerned
-*	with it working than in trying to get a correct process flow for
-*	how most USB communication is done.
-*
-*	int libusb_init ( libusb_context** ctx )
-*		Called to initialize a libusb context. Context allow for multiple simultaneous uses of libusb for
-*		different devices. The context can also be used in the below functions. 
-*
-*	libusb_device_handle* libusb_open_device_with_vid_pid (libusb_context *ctx, uint16_t vendor_id, uint16_t product_id)
-*		PSAS does not use this function but it seems a good choice for finding a device that you know about.
-*		For Theo-IMU we want 0xFFFF vendor_id and 0x0005 product_id.
-*/
 
 void init_screenLogger () {
-	// maybe nothing to do?
+	
 }
 
 // src... name of source
@@ -32,6 +17,38 @@ void screenLogger_getMessage(const char *src, char *buffer, int len) {
 		printf ("%X(%c) ", c, c < 32 ? '.': c);
 	}
 	printf("\n");
+}
+
+void screenLogger_getMouseMessage(const char *src, unsigned char *buffer, int len){
+	char but = buffer[0];
+	
+	switch((int)but){
+		case 1:
+			printf("Mouse button(s): [X][0][0]\n");
+			break;
+		case 2:
+			printf("Mouse button(s): [0][0][X]\n");
+			break;
+		case 3:
+			printf("Mouse button(s): [X][0][X]\n");
+			break;
+		case 4:
+			printf("Mouse button(s): [0][X][0]\n");
+			break;
+		case 5:
+			printf("Mouse button(s): [X][X][0]\n");
+			break;
+		case 6:
+			printf("Mouse button(s): [0][X][X]\n");
+			break;
+		case 7:
+			printf("Mouse button(s): [X][X][X]\n");
+			break;
+		default: 
+			printf("---------\n");
+			break;
+		
+	}
 }
 
 
