@@ -24,9 +24,10 @@
 
 void fcf_init() {
 	// Calls all init functions
-	init_theo_imu();
-	init_diskLogger();
 	init_mouse();
+	//init_theo_imu();
+	init_diskLogger();
+
 
 	// Fetch all FileDescriptors
 	//fcf_get_fd_structure(&fds, &fdx, &nfds);

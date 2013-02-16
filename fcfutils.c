@@ -29,6 +29,7 @@ extern void fcf_add_fd(const char *token, int fd, pollfd_callback cb) {
 	fdx[nfds].token = token;
 	fdx[nfds].callback = cb;
 	nfds++;
+	printf("Added %s fd: %d. FD count: %d\n", token, fd, nfds);
 }
 
 int fcf_remove_all_fd(const char *fd_src) {
@@ -73,7 +74,7 @@ struct pollfd *fcf_get_fd(int idx){
 
 int run_poll_loop(void){
 	int rc;
-	int timeout = 5 * 1000;	// in ms
+	int timeout = 1 * 1000;	// in ms
 
 	for (;;)
 	{
@@ -97,6 +98,7 @@ int run_poll_loop(void){
 		if (rc == 0){
 			//do something useful, e.g. call into libusb so that libusb can deal with timeouts
 			printf("  poll() timed out.\n");
+			//mouse_handler(0);
 		}
 
 
@@ -111,9 +113,17 @@ int run_poll_loop(void){
 			/* POLLIN and determine whether it's the listening       */
 			/* or the active connection.                             */
 			/*********************************************************/
+
+			
+
 			if(fds[i].revents == 0) {
 				continue;
 			}
+
+			int re = fds[i].revents;
+			if (re & POLLERR) printf("POLLERR - Error condition\n");
+			if (re & POLLHUP) printf("POLLHUP - Hang up\n");
+			if (re & POLLNVAL) printf("POLLNVAL - Invalid request: fd not open\n");
 
 			/*********************************************************/
 			/* If revents is not POLLIN, it's an unexpected result,  */

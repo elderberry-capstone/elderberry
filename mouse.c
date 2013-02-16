@@ -18,20 +18,21 @@
 static const int g_dev_IN_EP = 0x81;
 
 libusb_device * find_device(libusb_device **, int);
-static int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_transfer_cb_fn cb, void * data, unsigned int timeout);
+static int start_usb_transfer(libusb_device_handle *, unsigned int, libusb_transfer_cb_fn , void *, unsigned int);
 static void data_callback();
 
 libusb_context *context;
 libusb_device **devs, *device;
 libusb_device_handle *handle;
-struct libusb_transfer *xfer;
+//struct libusb_transfer *xfer;
+struct libusb_transfer * transfer[1];
 const struct libusb_pollfd ** fds;
 static int packet_size;
 
-extern void mouse_handler(int);
-extern int init_mouse();
-extern void fcf_callback_mouse(char *, int);
-extern void fcf_add_fd(const char *, int, pollfd_callback);
+//extern void mouse_handler(int);
+//extern int init_mouse();
+extern void fcf_callback_mouse(unsigned char *, int);
+//extern void fcf_add_fd(const char *, int, pollfd_callback);
 
 static struct timeval nonblocking = {
 		.tv_sec = 0,
@@ -49,32 +50,32 @@ void mouse_handler(int idx){
 
 static int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_transfer_cb_fn cb, void * data, unsigned int timeout){
 	printf("[In start_usb_transfer()]\n");
-   	//struct libusb_transfer * transfer[1];
-	char * buf;
+   	
+	unsigned char * buf;
 	int usb_err;
-	xfer = libusb_alloc_transfer(0);
+	transfer[0] = libusb_alloc_transfer(0);
         
-	if(xfer == NULL){
-		libusb_free_transfer(xfer);
+	if(transfer[0] == NULL){
+		libusb_free_transfer(transfer[0]);
 		return -1;
 	}
-     
+        
 	buf  = calloc(packet_size, sizeof(unsigned char));
 
 	if(buf == NULL){
-		libusb_free_transfer(xfer);
+		libusb_free_transfer(transfer[0]);
 		return -1;
 	}
 
-	libusb_fill_interrupt_transfer(xfer, handle, ep, buf, packet_size, cb, data, timeout);
+	libusb_fill_interrupt_transfer(transfer[0], handle, ep, buf, packet_size, cb, data, timeout);
 
-	xfer->flags = LIBUSB_TRANSFER_FREE_BUFFER;
-	usb_err = libusb_submit_transfer(xfer);
+	transfer[0]->flags = LIBUSB_TRANSFER_FREE_BUFFER;
+	usb_err = libusb_submit_transfer(transfer[0]);
 	
 	if(usb_err != 0){
-		libusb_cancel_transfer(xfer);
+		libusb_cancel_transfer(transfer[0]);
 		//todo: handle error besides LIBUSB_ERROR_NOT_FOUND for cancel
-		//libusb_free_transfer(xfer);
+		libusb_free_transfer(transfer[0]);
 		printf("USB ERROR\n");
 		return usb_err;
 	}
@@ -88,13 +89,15 @@ static void data_callback(){
     int act_len;
     int retErr;
 
-	switch(xfer->status){
+	printf("[In data_callback()]\n");
+
+	switch(transfer[0]->status){
     case LIBUSB_TRANSFER_COMPLETED:
 
-        buf = xfer->buffer;
-        act_len = xfer->actual_length;
+        buf = transfer[0]->buffer;
+        act_len = transfer[0]->actual_length;
 
-        retErr = libusb_submit_transfer(xfer);
+        retErr = libusb_submit_transfer(transfer[0]);
 		printf("Data from mouse: %02x \n", (char)buf[0]);
 
 		if(retErr){
@@ -105,10 +108,12 @@ static void data_callback(){
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:
+		printf("transfer cancelled\n");
         //do nothing.
         break;
     default:
         //print_libusb_transfer_error(transfer->status, "common_cb");
+		printf("data_callback() error\n");
         break;
     }
 }
@@ -206,9 +211,6 @@ int init_mouse(){
 		libusb_close(handle); 
 		return 1; 
 	} 
-
-	packet_size = libusb_get_max_packet_size (libusb_get_device (handle), g_dev_IN_EP);
-	start_usb_transfer(handle, g_dev_IN_EP, data_callback, NULL, 0);
   
   
 	fds = libusb_get_pollfds(context);
@@ -217,6 +219,11 @@ int init_mouse(){
 	for(num=0; fds[num] != NULL; num++){
 		fcf_add_fd("mouse", fds[num]->fd, mouse_handler);
 	}
+
+	packet_size = libusb_get_max_packet_size (libusb_get_device (handle), g_dev_IN_EP);
+	start_usb_transfer(handle, g_dev_IN_EP, data_callback, NULL, 0);
+
+	printf("Mouse successfully added.\n");
 
 	return 0;
 }
