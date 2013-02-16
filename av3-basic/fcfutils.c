@@ -11,25 +11,44 @@
 
 #define FCF_POLLSIZE 100
 
+static const int standard = 0;	///< standard callback
+static const int ppc = 1;		///< per poll cycle callback
 
-struct pollfd fds[FCF_POLLSIZE];
-static int nfds;
-static pollCallback callbacks[FCF_POLLSIZE];
+static struct pollfd fds[FCF_POLLSIZE];			///< first param to poll(2)
+static int nfds = 0;							///< second param to poll(2)
+static pollCallback callbacks[FCF_POLLSIZE];	///< callbacks parallel to fds array
+static char cbCat[FCF_POLLSIZE];				///< the type (i.e. category) of the callback (standard, ppc)
+
 static int run_fc = 0;
 
 
-int fcf_addfd (int fd, short events, pollCallback cb) {
-	int *p = &(nfds);
+static void debug_fd (const char *msg, int i, struct pollfd *pfd);
 
-	if (*p >=  FCF_POLLSIZE) {
+
+
+//add standard file descriptor
+//return index in fds; i.e. value of >= 0 is ok; -1 is error
+int fcf_addfd (int fd, short events, pollCallback cb) {
+	if (nfds >=  FCF_POLLSIZE) {
 		return -1;
 	}
+	int i = nfds++;
+	fds[i].fd = fd;
+	fds[i].events = events;
+	callbacks[i] = cb;
+	cbCat[i] = standard;
+	return i;
+}
 
-	fds[*p].fd = fd;
-	fds[*p].events = events;
-	callbacks[*p] = cb;
-	(*p)++;
-	return 0;
+//add per poll cycle file descriptor
+//return index in fds; i.e. value of >= 0 is ok; -1 is error
+int fcf_addfd_ppc (int fd, short events, pollCallback cb)
+{
+	int i = fcf_addfd (fd, events, cb);
+	if (i >= 0) {
+		cbCat[i] = ppc;
+	}
+	return i;
 }
 
 //remove file descriptor
@@ -57,16 +76,17 @@ void stop_main_loop() {
 	run_fc = 0;
 }
 
-
 void run_main_loop() {
 
+	pollCallback ppc[FCF_POLLSIZE];
+	int  nppc= 0;
 	run_fc = 1;
 	int count = 0;
 
 	while (run_fc) {
 
 		for (int i = 0; i < nfds; i++) {
-			printf("\nbefore poll<<< fd[%d]: fd=%d events=%X", i, fds[i].fd, fds[i].events);
+			debug_fd("\nbefore poll<<< ", i, &fds[i]);
 		}
 		printf("\nwaiting");
 		fflush (stdout);
@@ -75,10 +95,8 @@ void run_main_loop() {
 		int rc = poll(fds, nfds, -1);
 		printf ("\n%d. poll returned with rc=%d ", count++, rc);
 		for (int i = 0; i < nfds; i++) {
-			printf("\n   after poll>>> fd[%d]: fd=%d events=%X revents=%X", i, fds[i].fd, fds[i].events, fds[i].revents);
+			debug_fd("\n   after poll>>> ", i, &fds[i]);
 		}
-		fflush (stdout);
-
 
 		switch (rc) {
 		case -1: //error
@@ -88,21 +106,39 @@ void run_main_loop() {
 			printf("poll timed out");
 			break;
 		default:
+			nppc = 0;
 			for (int i = 0; i < nfds; i++) {
 				if(fds[i].revents != 0) {
+					debug_fd("\n active fd ", i, &fds[i]);
+					if (cbCat[i] == standard) {
+						//callback for this active fd is a standard callback
+						callbacks[i](&fds[i]);
+					} else {
+						//callback for this active fd is a "per poll cycle" callback
+						int j;
+						for (j = 0; j < nppc && ppc[j] != callbacks[i]; j++)
+						{ /*empty*/ }
+						if (j == nppc) {
+							//a new ppc callback
+							//add to ppc so that callback will be called at end of poll cycle
+							ppc[nppc++] = callbacks[i];
+						} else {
+							//we have seen this callback before
+							printf ("\n multiple active ppc, ignoring callback for fd[%d]: fd=%d", j, fds[i].fd);
+						}
+					}
+				} // (revents set)
+			} // (for i)
 
-					int re = fds[i].revents;
-					if (re & POLLERR) printf("\nPOLLERR - Error condition");
-					if (re & POLLHUP) printf("\nPOLLHUP - Hang up");
-					if (re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
-
-					//active fd or error
-					printf("\nfd[%d] is active, fd=%d events=%X revents=%X", i, fds[i].fd, fds[i].events, fds[i].revents);
-					callbacks[i](&fds[i]);
-					//libusb_handle_events_timeout(usb_source->context, &nonblocking);
-				}
-
+			//handle ppc callbacks
+			for (int j = 0; j < nppc; j++) {
+				//if callback wants to access the fds, callback
+				//is expected to know the indices into the fds array
+				//i.e., module must store return values it gets from fcf_addfdPpc
+				printf ("\n calling ppc callback [%d]", j);
+				ppc[j](fds);
 			}
+
 			break;
 		}
 
@@ -112,4 +148,11 @@ void run_main_loop() {
 
 }
 
-
+static void debug_fd (const char *msg, int i, struct pollfd *pfd) {
+	printf("%s fd[%d]: fd=%d events=%X revents=%X", msg, i, pfd->fd, pfd->events, pfd->revents);
+	int re = pfd->revents;
+	if (re & POLLERR) printf("\nPOLLERR - Error condition");
+	if (re & POLLHUP) printf("\nPOLLHUP - Hang up");
+	if (re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
+	fflush (stdout);
+}

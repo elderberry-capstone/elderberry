@@ -1,6 +1,9 @@
 This file lists notable changes.
 
 2013-02-15:
+* Add "per poll cycle" (ppc) callbacks. 
+
+2013-02-15:
 * Import of the PSAS adis-imu module.
 * Some code cleanup: all helper functions are now in
   fcfutils.c, usbutils.c, and netutils.c. 

@@ -41,7 +41,7 @@ static void usb_fd_added_cb(int fd, short events, void * source){
 	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n usb_fd_added_cb");
 	flush_buffers();
 
-	fcf_addfd (fd, events, libusb_cb);
+	fcf_addfd_ppc (fd, events, libusb_cb);
 }
 
 static void usb_fd_removed_cb(int fd, void* source){
