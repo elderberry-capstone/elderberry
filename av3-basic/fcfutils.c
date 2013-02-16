@@ -125,7 +125,7 @@ void run_main_loop() {
 							ppc[nppc++] = callbacks[i];
 						} else {
 							//we have seen this callback before
-							printf ("\n multiple active ppc, ignoring callback for fd[%d]: fd=%d", j, fds[i].fd);
+							printf ("\n multiple active ppc, ignoring callback for fd[%d]: fd=%d", i, fds[i].fd);
 						}
 					}
 				} // (revents set)
