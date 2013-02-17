@@ -1,3 +1,12 @@
+/**
+ *  @file testLoggerDisk.c
+ *  @brief Logs all info to a file on disk
+ *  @details Has functions to initialize the disk logger, get messages to log to disk, and to "finalize" the disk logging by closing the file being written to.
+ *  @author Clark Wachsmuth
+ *  @date February 8th, 2013
+ */
+
+
 /***
 *  testLoggerDisk.c
 *  Test Module to Log data to Disk
@@ -10,7 +19,11 @@ FILE *fp = NULL;
 char * file;
 char * filename = "logfile.log";
 
-
+/**
+ *  @brief Initializes the disk logging function
+ *  @details Initializes function by copying filename into private data and opening the file. Error produced if file can't be opened.  
+ *  @param filename Character pointer to name of file to be written to.
+ */
 // Initializes function by copying filename into private data and 
 // opening file. Error produced if file can't be opened. (NOTE!) Not
 // sure about passing only be reference.
@@ -30,6 +43,12 @@ int init_diskLogger (void) {
 	return 0;
 }
 
+/**
+ *  @brief Gets message to write to file.
+ *  @param src Name of source
+ *  @param buffer Message to be written
+ *  @param len Length of data in buffer
+ */
 // Writes data to file.
 void diskLogger_getMessage(const char *src, char *buffer, int len) {
 	//fprintf(fp, "%s: %s\n", src, buffer);
@@ -40,6 +59,9 @@ void diskLogger_getMessage(const char *src, char *buffer, int len) {
 
 } 
 
+/**
+ *  @brief Closes the file stream.
+ */
 // Closes file stream.
 int finalize_disklogger(){
 	fclose(fp);

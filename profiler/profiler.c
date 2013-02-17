@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -29,6 +30,9 @@
 // Define functions.
 int send_tests(FILE *handle, int socket, struct addrinfo *hint);
 char *fam2str(int fam);
+long get_time_diff(const int *socket, const char *message);
+
+
 // Define global structs
 
 struct struct_args_send {
@@ -62,28 +66,18 @@ int print_usage(){
     return 1;
 }
 
-char *get_current_time_str(const char *format){
-    char *time_str = (char *) malloc(_STR_LEN * sizeof (char *));
-    time_t the_time;
-    (void) time(&the_time);
-    struct tm *tmp_ptr = localtime(&the_time);
-    strftime(time_str, _STR_LEN, format, tmp_ptr);
-    return time_str;
-}
-
-char *get_current_sys_time_str(){
+int get_current_sys_time_str(char *buff){
     struct timespec tp;
     clock_t clock_id = clock();
-    int res = 0;
     if (clock_gettime(clock_id, &tp) == -1){
         perror("[ERROR]\t\tGetting time");
-        return NULL;
+        return -1;
     }else{
                 printf("Time is %d.%ld.\n", (int) tp.tv_sec, tp.tv_nsec);
     }
-    char fulltime[_STR_LEN];
-    memset(fulltime, 0, sizeof fulltime);
-    sprintf(fulltime, "%d.%ld", (int) tp.tv_sec, tp.tv_nsec);
+    memset(buff, 0, sizeof buff); 
+    sprintf(buff, "%d.%ld", (int) tp.tv_sec, tp.tv_nsec);
+    return 1;
 }
 
 int print_socket_info(const int sock_fd, const struct sockaddr_in *sin, short protocol){
@@ -111,15 +105,15 @@ int pipe_in_loop(const int *sock){
     switch(pid_receive_test){
         case 0:
 	    print_dbg("I am the child!");
-	    get_test_input(sock);
-	    break;
+        return 1;
 	case -1:
 	    print_e("I couldn't spawn a child.");
-	    break;
+        return -1;
 	default:
 	    print_dbg("I am the parent.");
-	    break;
+        return 1;
     }
+    return 1;
 }
 
 /**
@@ -131,29 +125,30 @@ int pipe_in_loop(const int *sock){
 int get_test_input(const int *sock){
     int pip = dup(0);
     int c = 0;
-    char word[_STR_LEN];
-    char mesg[_STR_LEN];
+    char word[_STR_LEN], mesg[_STR_LEN];
+    long td_test1=0, td_test2=0, td_test3=0;
     memset(word, 0, sizeof word);
     memset(mesg, 0, sizeof mesg);
     int i = -1;
-    int res = 0;
+    char sentTime[BUFSIZ];
     while (1){
         c = getchar();
         if ((char) c == '\n'){  // if we've reached a new line.
             printf("Read '%s'.\n", word);
-            char *now = get_current_time_str("%Y-%m-%d %I:%M:%S %p");
             
             //construct the message from the word and the systime string.
-            
-            sprintf(mesg, "%s:%s", word, get_current_sys_time_str());
+            get_current_sys_time_str(sentTime);
+            sprintf(mesg, "%s:%s", word, sentTime);
             print_dbg("Sending message '%s'.\t", mesg);
-            if(send(*sock, &mesg, _STR_LEN, MSG_DONTROUTE) == -1){
-                print_e("File descriptor: %d", now, *sock);
-                perror("");
-            }else{
-                print_e("[%s]\tMessage '%s' successfully sent to server.", now,
-                    mesg);
-            }
+
+            // Send the message (exit if we error).
+            td_test1 = get_time_diff(sock, "");    //message of length 1
+            td_test2 = get_time_diff(sock, "\0");  //message of length 2
+            td_test3 = get_time_diff(sock, "\0\0");//message of length 3.
+
+            print_i("Sending length 0 took %d nanoseconds.", td_test1);
+            print_i("Sending length 1 took %d nanoseconds.", td_test2);
+            print_i("Sending length 2 took %d nanoseconds.", td_test3);
             
             i = -1;
             memset(word, 0, sizeof word);
@@ -167,43 +162,30 @@ int get_test_input(const int *sock){
     return 1;
 }
 
+long get_time_diff(const int *socket, const char *message){
+    if(send(*socket, &message, _STR_LEN, MSG_DONTROUTE) == -1){
+        print_e("File descriptor: %d", *socket);
+        perror("");
+        exit(EXIT_FAILURE);
+    }else{
+        print_l("Message '%s' successfully sent to server.", message);
+    }
+    return 10;
+}
+
 int main(int argc, char *argv[]){
 
-    turn_on(BP_ERR);
-    turn_on(BP_DBG);
-    turn_on(BP_VER);
-    turn_on(BP_WAR);
-    turn_on(BP_INF);
+    turn_on(BP_ERR|BP_DBG|BP_VER|BP_WAR|BP_INF);
     
     struct addrinfo *info;
-    struct in_addr i_a;
 
     int opt;
     int res = 0;
-    int use_inet6 = 0;
     int protocol = AF_UNSPEC;
     
     char *target_host;
     char *target_port;
-    char *input_file_path;
     char *goal;
-    char *log_file_path;
-    char *log_file_path_parsed;
-    
-    FILE *input_file;
-    FILE *log_file;
-    
-    char *host = NULL;
-    int goal_us = 0;
-    struct tm *log_start;
-    char *log_start_str;
-    
-    //pthreads
-    pthread_t pthread_send_tests;
-    pthread_t pthread_get_response;
-    pthread_t log_response;
-    
-    void *thread_result;
     
     // Deal with the command line paramaters
     struct option longopts[] = {
@@ -316,10 +298,8 @@ int main(int argc, char *argv[]){
     
     res =  getaddrinfo(target_host, target_port, &hint, &info);
     if (res != 0){
-        error();
-        perror("Getting address info");
-        error();
-        printf("gai reported: %s.\n", gai_strerror(res));
+        print_e("Getting address info");
+        print_e("gai reported: %s.\n", gai_strerror(res));
         exit(EXIT_FAILURE);
         return -1;
     }

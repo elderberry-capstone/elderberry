@@ -1,3 +1,4 @@
+
 [indentation]
 indent_width=4
 indent_type=0
@@ -17,10 +18,7 @@ long_line_behaviour=1
 long_line_column=80
 
 [files]
-current_page=2
-FILE_NAME_0=41;None;0;16;0;1;0;%2Fhome%2Fjordan%2FDocuments%2FSchool%2FCapstone%2Felderberry%2Ftestin.txt;0;4
-FILE_NAME_1=47;Sh;0;16;0;1;0;%2Fhome%2Fjordan%2FDocuments%2FSchool%2FCapstone%2Felderberry%2Frunprofiler.sh;0;4
-FILE_NAME_2=10624;C;0;16;0;1;0;%2Fhome%2Fjordan%2FDocuments%2FSchool%2FCapstone%2Felderberry%2Fprofiler.c;0;4
+current_page=0
 
 [VTE]
 last_dir=/home/jordan/Documents/School/Capstone/elderberry
@@ -36,3 +34,11 @@ final_new_line=true
 ensure_convert_new_lines=false
 strip_trailing_spaces=false
 replace_tabs=false
+
+[debugger]
+target=
+debugger=
+arguments=
+envvar_count=0
+watches_count=0
+breaks_count=0

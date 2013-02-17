@@ -1,3 +1,13 @@
 fc
 profile
 testrun
+*~
+profiler/profiler
+*.o
+*.d
+core
+logs
+.project
+.project.ori
+.cproject
+

@@ -1,3 +1,10 @@
+/**
+ *  @file fcfutils.c
+ *  @brief Utility functions for the flight control framework
+ *  @author Ron Astin
+ *  @date February 8th, 2013
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <poll.h>
@@ -23,6 +30,13 @@ static struct fcffd fdx[100];
 static int nfds = 0;
 
 // Add file descriptor to array of FDs.
+
+/**
+ *  @brief Add file descriptor to array of existing file descriptors
+ *  @param token Source token for file descriptor (will be used for removal?)
+ *  @param fd integer number for file descriptor
+ *  @param callbackname Character pointer for name used to refer to file descriptor.
+ */
 extern void fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb) {
 	fds[nfds].fd = fd;
 	fds[nfds].events = events;
