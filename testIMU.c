@@ -27,7 +27,6 @@ extern void fcf_callback_acc(char *, int);
 static int readsocket(int fd, char *buffer, int bufsize);
 static int getsocket(int serverport);
 
-<<<<<<< HEAD
 static char _buffer [1024];
 
 void gyr_handler(int idx) {
@@ -42,15 +41,11 @@ void acc_handler(int idx) {
 	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
 	fcf_callback_acc(_buffer, length);
 }
-
-void init_theo_imu() {
-=======
 /**
  *  @brief Initializes sockets to communicate with the IMU.
  *  @details Starts by removing all file descriptors that were added under the "IMU" source token [place code snippet here].  After removing the file descriptors, we add the fild descriptors from socket 8081, and 8082 with the IMU token.
  */
-void init_theo_imu () {
->>>>>>> branch 'master' of git@github.com:elderberry-capstone/elderberry.git
+void init_theo_imu() {
 	fcf_remove_all_fd("IMU");
 
 	printf ("probing gyro: (waiting for connection localhost:8081)\n");
@@ -62,15 +57,7 @@ void init_theo_imu () {
 	fcf_add_fd ("acc", fd2, acc_handler);
 }
 
-<<<<<<< HEAD
-=======
-/**
- *  @brief This function handles a particular message type (fileA)
- *  @details This function hides all of the ugly work of getting "The Message" off of the hardware device. Every hardware interfacing module that sends messages will have specific callback functions for each message type to send.
- *  @param fd File descriptor
- *  @param buffer Contents of character buffer
- *  @param bufsize Size/length of buffer.
- */
+
 int fileA_handler(int fd, char *buffer, int bufsize) {
   /***
 *  In this function we point buffer at a message from device.
@@ -105,7 +92,6 @@ int fileB_handler(int fd, char *buffer, int bufsize) {
 
 	return readsocket(fd, buffer, bufsize);
 }
->>>>>>> branch 'master' of git@github.com:elderberry-capstone/elderberry.git
 
 // Other private functions to do stuff.
 
