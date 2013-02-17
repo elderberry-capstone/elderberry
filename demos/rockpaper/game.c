@@ -114,9 +114,7 @@ int checkValues(){
 
 
 void end_game(int winner, int loser){
-	char * temp = NULL;
-	sprintf(temp, "\n\n\n\n********************************\n  Player %d wins game, %d to %d! \n********************************\n\n\n\n\n\n", winner+1, score[winner], score[loser]);
-	fcf_callback_game(temp, sizeof(temp));
+	printf("\n\n\n\n********************************\n  Player %d wins game, %d to %d! \n********************************\n\n\n\n\n\n", winner+1, score[winner], score[loser]);
 	resetAll();
 }
 
