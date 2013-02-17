@@ -5,6 +5,7 @@ testrun
 profiler/profiler
 *.o
 *.d
+*.bak
 core
 logs
 .project
