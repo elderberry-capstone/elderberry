@@ -1,9 +1,20 @@
+<<<<<<< HEAD
 /**
  *  @file fcfutils.c
  *  @brief Utility functions for the flight control framework
  *  @author Ron Astin
  *  @date February 8th, 2013
  */
+=======
+
+/**
+*
+*	\brief API code for framework.
+*
+*	This file includes the functions needed to add and remove file
+*	descriptors, as well as store the file descriptor arrays.
+*/
+>>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +27,7 @@
 #include <string.h>
 #include "fcfutils.h"
 
-/***
+/**
 *  So I've been told that when file descriptors are removed we remove
 *  all of them for a device and re-add everything. The tokens can be
 *  used to that only 1 call to our API is needed to remove all file
@@ -40,9 +51,14 @@
 *	MIML file.
 */
 
+/**
+*	\struct fcffd
+*	
+*	This struct holds the callback functions and souce tokens of the devices.
+*/
 struct fcffd {
-	const char *token;
-	char *callback;
+	const char *token;	/**< The short name of the device. */
+	char *callback;		/**< The function pointer to the callback. NEEDS TYPE CHANGE! */
 };
 
 static const int MAXFD = 100;
@@ -50,6 +66,7 @@ static struct pollfd fds[MAXFD];
 static struct fcffd fds2[MAXFD];
 static int nfds = 0;
 
+<<<<<<< HEAD
 // Add file descriptor to array of FDs.
 
 /**
@@ -59,11 +76,23 @@ static int nfds = 0;
  *  @param callbackname Character pointer for name used to refer to file descriptor.
  */
 extern void fcf_add_fd(const char *token, int fd, char *callbackname) {
+=======
+// Add file descriptor to array of FDs. Returns index of device in fds/fds2 arrays
+int fcf_add_fd(const char *token, int fd, char *callbackname) {
+	/**
+	*
+	* Need to check sizes of array, etc..
+	*
+	*/
+
+>>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
 	fds[nfds].fd = fd;
 	fds[nfds].events = POLLIN | POLLPRI;
 	fds2[nfds].token = token;
 	fds2[nfds].callback = NULL;
 	nfds++;
+
+	return nfds-1;
 }
 
 
