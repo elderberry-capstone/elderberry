@@ -18,11 +18,11 @@
 
 
 static void signalhandler(int signum) {
-	printf ("\n **signal handler: signum = %d", signum);
+    printf ("\n **signal handler: signum = %d", signum);
 
-	if (signum == SIGINT)  {
-		stop_main_loop ();
-	}
+    if (signum == SIGINT)  {
+        stop_main_loop ();
+    }
 }
 
 void handleErrorPoll(void) {
@@ -58,21 +58,26 @@ int main(int argc, char **argv)
         }
     }
 
-	signal (SIGUSR1, signalhandler);
-	signal (SIGUSR2, signalhandler);
-	signal (SIGINT, signalhandler);
+    signal (SIGUSR1, signalhandler);
+    signal (SIGUSR2, signalhandler);
+    signal (SIGINT, signalhandler);
 
-	init_logging();
+    init_logging();
 
-	libusbSource * usb_source = libusbSource_new();
-	if(usb_source == NULL){
-		exit(1);
-	}
+    libusbSource * usb_source = libusbSource_new();
+    if(usb_source == NULL){
+        exit(1);
+    }
 
-	FCF_Init(usb_source);
+    FCF_Init(usb_source);
+    //comment out the devices you don't have or want
+    init_gps(usb_source);
+    init_mouse(usb_source);     //read from usb mouse; set your hw values in is_mouse()
+    init_mouse2(usb_source);    //read from a 2nd usb mouse; set your hw values in is_mouse2()
+    init_virtgyro(usb_source);  //read from socket
 
-	run_main_loop(usb_source);
+    run_main_loop(usb_source);
 
-	printf("\n");
-	return 0;
+    printf("\n");
+    return 0;
 }
