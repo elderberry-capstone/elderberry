@@ -25,23 +25,27 @@
 
 void fcf_init() {
 	// Calls all init functions
+	/* MAKE SURE DISKLOGGER INIT IS FIRST! */
+	init_diskLogger();
 	init_mouse();
 	init_mouse2();
 	init_game();
-	init_diskLogger();
+	
 }
 
 void fcf_callback_game(char *buff, int length) {
-	//screenLogger_getMessage("game", buff, length);
-	diskLogger_getMessage("game", buff, length);
+	screenLogger_getMessage("game", buff, length);
+	diskLogger_getGameMessage("game", buff, length);
 }
 
 void fcf_callback_mouse(unsigned char *buff, int length){
 	game_getDeviceClick(buff, 0);
+	diskLogger_getMouseMessage("mouse1", buff, length);
 }
 
 void fcf_callback_mouse2(unsigned char *buff, int length){
 	game_getDeviceClick(buff, 1);
+	diskLogger_getMouseMessage("mouse2", buff, length);
 }
 
 /****************	END CODE GENERATED SPACE	*****************/

@@ -15,31 +15,23 @@
 
 #include <stdio.h>
 
-FILE *fp = NULL;
-char * file;
-char * filename = "logfile.log";
+FILE * game_fp = NULL;
 
 /**
  *  @brief Initializes the disk logging function
  *  @details Initializes function by copying filename into private data and opening the file. Error produced if file can't be opened.  
  *  @param filename Character pointer to name of file to be written to.
  */
-// Initializes function by copying filename into private data and 
-// opening file. Error produced if file can't be opened. (NOTE!) Not
-// sure about passing only be reference.
 int init_diskLogger (void) {
 	// Need to check filename!!!
 
-	if(!filename){
+	game_fp = fopen("gamelogfile.log", "w+");
+	printf("\n\nNice %d\n\n", (int)game_fp);
+	if(!game_fp){
 		printf("Could not open file for writing.\n");
-		return -2;
-	}
-	file = filename;
-	fp = fopen(file, "w+");
-	if(!fp){
 		return -1;
 	}
-	setbuf(fp, NULL);
+	setbuf(game_fp, NULL);
 	return 0;
 }
 
@@ -50,13 +42,17 @@ int init_diskLogger (void) {
  *  @param len Length of data in buffer
  */
 // Writes data to file.
-void diskLogger_getMessage(const char *src, char *buffer, int len) {
-	//fprintf(fp, "%s: %s\n", src, buffer);
-	fwrite(src, 1, sizeof(src)-1, fp);
-	fwrite(": ", 1, 2, fp);
-	fwrite(buffer, 1, sizeof(buffer)-1, fp);
-	fwrite("\n", 1, 1, fp);
+void diskLogger_getGameMessage(char *src, char *buffer, int len) {
+	fprintf(game_fp, "[%s]\n%s\n", (const char *)src, (const char *)buffer);
+} 
 
+void diskLogger_getMouseMessage(char *src, unsigned char *buffer, int len) {
+	//fprintf(game_fp, "%s: %s\n", src, buffer);
+	if(len){
+		if(buffer[0] > 0){
+			fprintf(game_fp, "[%s]\nButton click %d\n", (const char *)src, (int)buffer[0]);
+		}
+	}
 } 
 
 /**
@@ -64,6 +60,6 @@ void diskLogger_getMessage(const char *src, char *buffer, int len) {
  */
 // Closes file stream.
 int finalize_disklogger(){
-	fclose(fp);
+	fclose(game_fp);
 	return 0;
 }
