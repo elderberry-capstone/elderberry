@@ -4,15 +4,11 @@
  *  Created on: Feb 11, 2013
  *      Author: jordan
  */
-#include <sys/timerfd.h>
-#include <stdio.h>
-#include "usbutils.h"
-#include "fc.h"
 #include "profile.h"
+#include "fcfutils.h"
 #define MAX_COUNT 10
 
 // profile.c
-
 static int count = 0; //!< The number of times the loop has run.
 
 /**
@@ -24,18 +20,24 @@ static int count = 0; //!< The number of times the loop has run.
  */
 void InitProfiling(libusbSource * src) {
     int thefd = timerfd_create(CLOCK_REALTIME, 0);
-    fcf_addfd(thefd, POLLIN, NULL);
+    struct pollfd pfd = {
+      .fd = thefd,
+      .events = 0,
+      .revents = 0
+    };
+    fcf_addfd(thefd, POLLIN, (pollCallback) &pfd);
 }
 
 /**
  * The callback function for profiling.
- * @fn profiling_bp
+ * @fn profiling_cb
  * @param None
  * @return None
  *
  */
-void profiling_cb() {
+int profiling_cb() {
     FCF_ProfSendMsg("");
+    return 1;
 }
 
 /**

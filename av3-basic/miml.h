@@ -14,7 +14,10 @@
 #include "theo-imu.h"
 #include "adis-imu.h"
 #include "virtdevsrv.h"
+#ifndef FC_H
+#define FC_H
 #include "fc.h"
+#endif
 #include "profile.h"
 
 void FCFERR_Poll(void);
