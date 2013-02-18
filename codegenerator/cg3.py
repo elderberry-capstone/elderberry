@@ -2,32 +2,49 @@
 
 import yaml
 
-path = ['root']
+parse_handlers = {}
+path = ['']
+
+def makepath():
+    return '/'.join(path)
+
+def build_router():
+    return yaml.load(open('./cg.conf'))
+
+def matchpath(s):
+    for key in parse_handlers.keys():
+        if makepath() == parse_handlers[key]['path']:
+            eval(key)(s)
 
 def parse(s):
     if type(s).__name__=='dict':
-#        print ('Its dict!', s, '\n\n')
         for key in s.keys():
-#            print ("key: ", key)
             path.append(key)
-#            print (path)
+            matchpath(s)
             parse (s[key])
             path.pop()
     elif type(s).__name__=='list':
-#        print ('Its list!', s, '\n\n')
         for element in s:
-#            path.append('element')
-#            print (path, element)
-            parse (element)
-#            path.pop()
-            
+            matchpath(s)
+            parse (element)            
     else:
-#        path.append(s)
-        print (path, s)
-#        print ('Its a scalar?', s, '\n\n')
-#        path.pop()
+        matchpath(s)
+    #    print (makepath(), s)
 
-rules = yaml.load(open('./cg.conf'))
-struct = yaml.load(open('./test.miml'))
-parse (struct)
-print (yaml.dump(rules))
+def parse_error(s):
+    print ("Func parse_error", s)
+
+def parse_finalize(s):
+    print ("Func parse_finalize", s)
+
+def parse_functions(s):
+    print ("Func parse_functions", s)
+
+def parse_includes(s):
+    print ("Func parse_includes", s)
+
+def parse_initialize(s):
+    print ("Func parse_initialize", s)
+
+parse_handlers = build_router()
+parse(yaml.load(open('./test.miml')))
