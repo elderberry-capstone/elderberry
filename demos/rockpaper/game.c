@@ -7,15 +7,17 @@
 #define ROCK	 1
 #define PAPER	 4
 #define SCISSORS 2
-#define NUMTOWIN 5
+#define NUMTOWIN 5	/* The score needed to win the game */
 
 #define true  1
 #define false 0
 
+/* Data Variables */
 int device_click[2], score[2], click_val[2];
 char game_buffer[2048];
 int length;
 
+/* Functions */
 extern void fcf_callback_game(char *, int);
 void resetTurn(void);
 void resetAll(void);

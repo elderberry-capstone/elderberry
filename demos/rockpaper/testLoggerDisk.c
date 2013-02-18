@@ -26,7 +26,7 @@ int init_diskLogger (void) {
 	// Need to check filename!!!
 
 	game_fp = fopen("gamelogfile.log", "w+");
-	printf("\n\nNice %d\n\n", (int)game_fp);
+
 	if(!game_fp){
 		printf("Could not open file for writing.\n");
 		return -1;
