@@ -25,31 +25,10 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include <libusb-1.0/libusb.h>
 #include "fcfutils.h"
+#include "fcfmain.h"
 
-/**
-*  So I've been told that when file descriptors are removed we remove
-*  all of them for a device and re-add everything. The tokens can be
-*  used to that only 1 call to our API is needed to remove all file
-*  descriptors for any device. It is assumed the device code would then
-*  re-add what new ones it discovers.
-*
-*  From Josef's early research it looks like CAN and Ethernet can also
-*  be interfaced by using file descriptors. I've added stubs for those.
-*
-*  Adding FileDescriptors:
-*
-*	Tokens - User supplied modules define their own token when
-*	supplying file descriptors to the API. The point of tokens
-*	is to allow easy removal of all old file descriptors in the
-*	event of a reset. See fcf_remove_all_fd.
-*
-*	FD - The numeric file descriptor being added to the system.
-*
-*	Callback - The name of the handling function in the user
-*	supplied module. Callbacks match the name configured in the
-*	MIML file.
-*/
 
 /**
 *	\struct fcffd
@@ -58,63 +37,23 @@
 */
 struct fcffd {
 	const char *token;	/**< The short name of the device. */
-	char *callback;		/**< The function pointer to the callback. NEEDS TYPE CHANGE! */
+	pollfd_callback callback;
 };
 
-static const int MAXFD = 100;
-static struct pollfd fds[MAXFD];
-static struct fcffd fds2[MAXFD];
+//static int MAXFD = 100;
+static struct pollfd fds[100];
+static struct fcffd fdx[100];
 static int nfds = 0;
-
-<<<<<<< HEAD
-// Add file descriptor to array of FDs.
-
-/**
- *  @brief Add file descriptor to array of existing file descriptors
- *  @param token Source token for file descriptor (will be used for removal?)
- *  @param fd integer number for file descriptor
- *  @param callbackname Character pointer for name used to refer to file descriptor.
- */
-extern void fcf_add_fd(const char *token, int fd, char *callbackname) {
-=======
-// Add file descriptor to array of FDs. Returns index of device in fds/fds2 arrays
-int fcf_add_fd(const char *token, int fd, char *callbackname) {
-	/**
-	*
-	* Need to check sizes of array, etc..
-	*
-	*/
-
->>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
+7
 	fds[nfds].fd = fd;
-	fds[nfds].events = POLLIN | POLLPRI;
-	fds2[nfds].token = token;
-	fds2[nfds].callback = NULL;
+	fds[nfds].events = events;
+	fdx[nfds].token = token;
+	fdx[nfds].callback = cb;
 	nfds++;
-
+	printf("Added %s fd: %d. FD count: %d\n", token, fd, nfds);
 	return nfds-1;
 }
 
-
-
-//extern void fcf_add_usb_fd(char *token, int fd, char *callback) {
-//  // Add file descriptor to array for USB device.
-//}
-//
-//extern void fcf_add_eth_fd(char *token, int fd, char *callback) {
-//  // Add file descriptor to array for Ethernet device.
-//}
-//
-//extern void fcf_add_can_fd(char *token, int fd, char *callback) {
-//  // Add file descriptor to array for CAN device.
-//}
-//
-
-/**
- *  @brief removes all file descriptors added under the given source token
- *  @details will return 0 or error code if there are no file descriptors.
- *  @param fd_source Source token to be removed from array of file descriptors.
- */
 int fcf_remove_all_fd(const char *fd_src) {
   // Remove all file descriptors that were added under given source token.
 
@@ -126,7 +65,7 @@ int fcf_remove_all_fd(const char *fd_src) {
 	
 	for(i=0; i<nfds; i++){
 		// NOTE: if non-null-terminated strings, use strncmp with length
-		if(strcmp(fds2[i].token, fd_src) == 0){
+		if(strcmp(fdx[i].token, fd_src) == 0){
 
 			// If matching fd is last in array.
 			if(nfds - 1 == i){
@@ -139,50 +78,91 @@ int fcf_remove_all_fd(const char *fd_src) {
 			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
 
 			// Replace fcffd at index i with last fcffd in array.
-			memmove(&fds2[i], &fds2[nfds - 1], sizeof(struct fcffd));
+			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
 			
 			// Decrement number of fds and increment amount removed.
 			nfds--;
 			removed++;
+			printf("FD removed at index %d. Total: %d\n", i, nfds);
 		}
 	}
 
 	return removed;
 }
 
-
-// We also need some functions so that our framework can poll this data.
-// I'm assuming we should just put it in this library. Or we could make this
-// library only a wrapper for where the real structure lives. 
-
-void fcf_get_fd_structure(struct pollfd **_fds, int *_nfds) {
-	*_fds = fds;
-	*_nfds = nfds;
+struct pollfd *fcf_get_fd(int idx){
+	return &fds[idx];
 }
 
-// What does struct_fc look like?
-//
-// 	#include <libusb.h>
-//
-//	struct libusb_pollfd {
-//	  int fd,
-//	  short events,
-//	};
-// 
-// We need to add 2 more pieces of information to this structure
-//
-//	1) The token used by the user supplied module for adding all FDs.
-//
-//	2) A callback function to use for each FD when that FD is responsive.
-//
-// We also need to manage growth/shrinkage of our structure/array.
-//
-//	How much space do we allocate initially?
-//		0/1 seems shortsighted.
-//	Should the token be a number? Easier to compare with.
-//	The point of token is to allow a single call to remove all previous FDs.
-//	Would it be easier to remove token and force users to remove each FD individually?
-//
+
+int fcf_run_poll_loop(void){
+	int rc;
+	int timeout = -1 * 1000;	// in ms
+
+	for (;;)
+	{
+		/**
+		*	Call poll() and wait for it to complete.
+		*/
+		//printf("Waiting on poll()...\n");
+		rc = poll(fds, nfds, timeout);
+
+		/**
+		*	Check to see if the poll call failed. 
+		*/
+		if (rc < 0){
+			perror("  poll() failed");
+			break;
+		}
+
+		/**
+		*	poll timed out 
+		*/
+		if (rc == 0){
+			//do something useful, e.g. call into libusb so that libusb can deal with timeouts
+			printf("poll() timed out.\n");
+			//mouse_handler(0);
+		}
 
 
+		/**
+		*	One or more descriptors are readable.  Need to 
+		*	determine which ones they are. 
+		*/
+		int current_size = nfds;
+		for (int i = 0; i < current_size; i++){
+			/*********************************************************/
+			/* Loop through to find the descriptors that returned    */
+			/* POLLIN and determine whether it's the listening       */
+			/* or the active connection.                             */
+			/*********************************************************/
 
+			
+
+			if(fds[i].revents == 0) {
+				continue;
+			}
+
+			int re = fds[i].revents;
+			if (re & POLLERR) printf("POLLERR - Error condition\n");
+			if (re & POLLHUP) printf("POLLHUP - Hang up\n");
+			if (re & POLLNVAL) printf("POLLNVAL - Invalid request: fd not open\n");
+
+			/*********************************************************/
+			/* If revents is not POLLIN, it's an unexpected result,  */
+			/* log and end the server.                               */
+			/*********************************************************/
+//			if(fds[i].revents != POLLIN)
+//			{
+//				printf("  Error! revents = %d\n", fds[i].revents);
+//
+//			}
+
+			//printf("  Descriptor %d is readable\n", fds[i].fd);
+
+			fdx[i].callback(i);
+		}
+	}
+
+	return 0;
+}

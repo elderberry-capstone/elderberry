@@ -6,7 +6,7 @@
  */
 #include <sys/timerfd.h>
 #include <stdio.h>
-#include "libusb-basic.h"
+#include "usbutils.h"
 #include "fc.h"
 #include "profile.h"
 #define MAX_COUNT 10
@@ -24,7 +24,7 @@ static int count = 0; //!< The number of times the loop has run.
  */
 void InitProfiling(libusbSource * src) {
     int thefd = timerfd_create(CLOCK_REALTIME, 0);
-    fcf_addfd(thefd, POLLIN, /** What is a pollCallback? **/, src);
+    fcf_addfd(thefd, POLLIN, NULL);
 }
 
 /**

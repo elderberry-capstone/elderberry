@@ -20,6 +20,7 @@
 
 FILE *fp = NULL;
 char * file;
+char * filename = "logfile.log";
 
 /**
  *  @brief Initializes the disk logging function
@@ -29,7 +30,7 @@ char * file;
 // Initializes function by copying filename into private data and 
 // opening file. Error produced if file can't be opened. (NOTE!) Not
 // sure about passing only be reference.
-int init_diskLogger (char *filename) {
+int init_diskLogger (void) {
 	// Need to check filename!!!
 
 	if(!filename){

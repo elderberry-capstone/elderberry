@@ -52,15 +52,6 @@ static void common_cb(struct libusb_transfer *transfer, uint32_t fourcc){
 
         //write_tagged_message(fourcc, buf, act_len);
 
-//        if(act_len != g_mouse_packet_size){
-//            write_tagged_message(fourcc, buf, act_len);
-//        }else{
-////            if(IMU_ADDR(buf[0]) == ADDR_GYR){
-////                write_tagged_message(fourcc, buf, act_len);
-////            }else{
-//                write_tagged_message(fourcc, buf, act_len -1);
-////            }
-//        }
         retErr = libusb_submit_transfer(transfer);
         if(retErr){
             print_libusb_transfer_error(transfer->status, "common_cb resub");
@@ -89,6 +80,7 @@ static int start_mouse_transfer(libusb_device_handle * handle,
         unsigned int ep, libusb_transfer_cb_fn cb, void * data,
         unsigned int timeout)
 {
+	printf("Transfer time!\n");
     int iso_packets = 0, usb_err, i, num_urbs_in_flight = 8;
 
     num_urbs_in_flight = 1;	//JM

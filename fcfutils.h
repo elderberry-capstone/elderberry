@@ -12,7 +12,10 @@
 #define TRUE             1
 #define FALSE            0
 
-extern int fcf_add_fd(const char*, int, char*);
+typedef void (*pollfd_callback)(int fd_idx);
+extern void fcf_add_fd(const char*, int, short, pollfd_callback);
 extern int fcf_remove_all_fd(const char*);
-extern void fcf_get_fd_structure(struct pollfd **_fds, int *_nfds);
+extern struct pollfd * fcf_get_fd(int);
+extern int fcf_run_poll_loop(void);
+
 #endif
