@@ -11,8 +11,8 @@
 
 #define FCF_POLLSIZE 100
 
-static const int standard = 0;	///< standard callback
-static const int ppc = 1;		///< per poll cycle callback
+static const char standard = 0;	///< standard callback
+static const char ppc = 1;		///< per poll cycle callback
 
 static struct pollfd fds[FCF_POLLSIZE];			///< first param to poll(2)
 static int nfds = 0;							///< second param to poll(2)
@@ -32,7 +32,7 @@ int fcf_addfd (int fd, short events, pollCallback cb) {
 	if (nfds >=  FCF_POLLSIZE) {
 		return -1;
 	}
-	int i = nfds++;
+	unsigned int i = nfds++;
 	fds[i].fd = fd;
 	fds[i].events = events;
 	callbacks[i] = cb;
