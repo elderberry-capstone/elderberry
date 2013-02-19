@@ -7,13 +7,17 @@
 #define ROCK	 1
 #define PAPER	 4
 #define SCISSORS 2
-#define NUMTOWIN 5
+#define NUMTOWIN 5	/* The score needed to win the game */
 
 #define true  1
 #define false 0
 
+/* Data Variables */
 int device_click[2], score[2], click_val[2];
+char game_buffer[2048];
+int length;
 
+/* Functions */
 extern void fcf_callback_game(char *, int);
 void resetTurn(void);
 void resetAll(void);
@@ -26,7 +30,8 @@ void end_game(int, int);
 void setValidClick(int val, int dev){
 	click_val[dev] = val;
 	device_click[dev] = true;
-	printf("Player %d has decided.\n", dev+1);
+	length = sprintf(game_buffer, "Player %d has decided.\n", dev+1);
+	fcf_callback_game(game_buffer, length);
 }
 
 
@@ -64,7 +69,8 @@ char * returnValueName(int val){
 int checkValues(){
 	if(device_click[0] && device_click[1]){
 		if(click_val[0]==click_val[1]){
-			printf("\n* Tie! Both players chose %s\n\n", returnValueName(click_val[0]));
+			length = sprintf(game_buffer, "\n* Tie! Both players chose %s\n\n", returnValueName(click_val[0]));
+			fcf_callback_game(game_buffer, length);
 			resetTurn();
 		}
 		else{
@@ -92,7 +98,8 @@ int checkValues(){
 				loser=1;
 			}
 
-			printf("\n* Player %d wins matchup! %s beats %s\n\n\n", winner+1, returnValueName(click_val[winner]), returnValueName(click_val[loser]));
+			length = sprintf(game_buffer, "\n* Player %d wins matchup! %s beats %s\n\n\n", winner+1, returnValueName(click_val[winner]), returnValueName(click_val[loser]));
+			fcf_callback_game(game_buffer, length);
 			sleep(1);
 
 			if(score[winner] >= NUMTOWIN){
@@ -114,7 +121,8 @@ int checkValues(){
 
 
 void end_game(int winner, int loser){
-	printf("\n\n\n\n********************************\n  Player %d wins game, %d to %d! \n********************************\n\n\n\n\n\n", winner+1, score[winner], score[loser]);
+	length = sprintf(game_buffer, "\n\n\n\n********************************\n  Player %d wins game, %d to %d! \n********************************\n\n\n\n\n\n", winner+1, score[winner], score[loser]);
+	fcf_callback_game(game_buffer, length);
 	resetAll();
 }
 
@@ -124,7 +132,8 @@ void resetTurn(){
 	device_click[1] = false;
 	click_val[0] = 0;
 	click_val[1] = 0;
-	printf("[Score: P1: %d | P2: %d] Ready... Go!\n", score[0], score[1]);
+	length = sprintf(game_buffer, "[Score: P1: %d | P2: %d] Ready... Go!\n", score[0], score[1]);
+	fcf_callback_game(game_buffer, length);
 }
 
 
@@ -137,7 +146,7 @@ void resetAll(){
 
 void init_game(){
 	system ( "clear" );
-	printf("\n======================================================\n   WELCOME TO ROCK, PAPER, SCISSORS!!1!one!\n======================================================\n\n");
-
+	length = sprintf(game_buffer, "\n======================================================\n   WELCOME TO ROCK, PAPER, SCISSORS!!1!one!\n======================================================\n\n");
+	fcf_callback_game(game_buffer, length);
 	resetAll();
 }

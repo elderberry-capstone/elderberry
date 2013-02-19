@@ -11,9 +11,9 @@
 
 #include "fc.h"
 #include "usbutils.h"
+#include "fcfutils.h"
 #include "logging.h"
 #include "miml.h"
-#include "profile.h"
 
 
 
@@ -27,6 +27,19 @@ static void signalhandler(int signum) {
 }
 
 void handleErrorPoll(void) {
+<<<<<<< HEAD
+	int err = errno;
+	char *msg = strerror(err);
+	printf ("\n poll error handling: errno=%d |%s| ", err, msg);
+	fflush(stdout);
+	switch(err) {
+		case EFAULT: printf ("EFAULT"); break;
+		case EINTR: printf ("EINTR"); break;
+		case EINVAL: printf ("EINVAL"); break;
+		case ENOMEM: printf ("ENOMEM"); break;
+	}
+	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n poll returned with errno=%d %s", err, msg);
+=======
     int err = errno;
     char *msg = strerror(err);
     printf ("\n poll error handling: errno=%d %s ", err, msg);
@@ -37,6 +50,7 @@ void handleErrorPoll(void) {
         case ENOMEM: printf ("ENOMEM"); break;
     }
     printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n poll returned with errno=%d %s", err, msg);
+>>>>>>> 9addd6302fab9f4837530da0fc95d6dbe65af505
 }
 
 
@@ -74,9 +88,14 @@ int main(int argc, char **argv)
     //comment out the devices you don't have or want
     init_gps(usb_source);
     init_mouse(usb_source);     //read from usb mouse; set your hw values in is_mouse()
-    init_virtgyro();//read from socket
+    init_mouse2(usb_source);    //read from a 2nd usb mouse; set your hw values in is_mouse2()
+    init_virtgyro(usb_source);  //read from socket
 
-    //run_main_loop();
+<<<<<<< HEAD
+	run_main_loop();
+=======
+    run_main_loop(usb_source);
+>>>>>>> 9addd6302fab9f4837530da0fc95d6dbe65af505
 
     printf("\n");
     return 0;

@@ -19,7 +19,7 @@ void init_screenLogger () {
 // len... length of data in buffer
 
 void screenLogger_getMessage(const char *src, char *buffer, int len) {
-	printf("%s", buffer);
+	printf("%s", (const char *)buffer);
 }
 
 

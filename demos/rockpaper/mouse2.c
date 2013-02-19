@@ -183,7 +183,7 @@ int init_mouse2(){
 	// the kernal driver so we can claim interface. I commented out
 	// the error code since it will error when already having been 
 	// previsouly detached on earlier run of program.
-	error = libusb_detach_kernel_driver(handle2, 0);
+	error = libusb_detach_kernel_driver(handle2, 1);
 	if(error!=0){
 		printf("Error code on kernel detach: %s.\n", libusb_error_name(error)); 
 		//return -1;

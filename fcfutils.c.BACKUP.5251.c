@@ -29,6 +29,32 @@
 #include "fcfutils.h"
 #include "fcfmain.h"
 
+<<<<<<< HEAD
+/**
+*  So I've been told that when file descriptors are removed we remove
+*  all of them for a device and re-add everything. The tokens can be
+*  used to that only 1 call to our API is needed to remove all file
+*  descriptors for any device. It is assumed the device code would then
+*  re-add what new ones it discovers.
+*
+*  From Josef's early research it looks like CAN and Ethernet can also
+*  be interfaced by using file descriptors. I've added stubs for those.
+*
+*  Adding FileDescriptors:
+*
+*	Tokens - User supplied modules define their own token when
+*	supplying file descriptors to the API. The point of tokens
+*	is to allow easy removal of all old file descriptors in the
+*	event of a reset. See fcf_remove_all_fd.
+*
+*	FD - The numeric file descriptor being added to the system.
+*
+*	Callback - The name of the handling function in the user
+*	supplied module. Callbacks match the name configured in the
+*	MIML file.
+*/
+=======
+>>>>>>> 0da32b22bb20d30f403b0f333121b09192f86454
 
 /**
 *	\struct fcffd
@@ -36,22 +62,55 @@
 *	This struct holds the callback functions and souce tokens of the devices.
 */
 struct fcffd {
+<<<<<<< HEAD
 	const char *token;	/**< The short name of the device. */
+	char *callback;		/**< The function pointer to the callback. NEEDS TYPE CHANGE! */
+=======
+	const char *token;
 	pollfd_callback callback;
+>>>>>>> 0da32b22bb20d30f403b0f333121b09192f86454
 };
 
 //static int MAXFD = 100;
 static struct pollfd fds[100];
 static struct fcffd fdx[100];
 static int nfds = 0;
-7
+
+<<<<<<< HEAD
+// Add file descriptor to array of FDs.
+
+/**
+ *  @brief Add file descriptor to array of existing file descriptors
+ *  @param token Source token for file descriptor (will be used for removal?)
+ *  @param fd integer number for file descriptor
+ *  @param callbackname Character pointer for name used to refer to file descriptor.
+ */
+<<<<<<< HEAD
+extern void fcf_add_fd(const char *token, int fd, char *callbackname) {
+=======
+// Add file descriptor to array of FDs. Returns index of device in fds/fds2 arrays
+int fcf_add_fd(const char *token, int fd, char *callbackname) {
+	/**
+	*
+	* Need to check sizes of array, etc..
+	*
+	*/
+
+>>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
+=======
+extern void fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb) {
+>>>>>>> 0da32b22bb20d30f403b0f333121b09192f86454
 	fds[nfds].fd = fd;
 	fds[nfds].events = events;
 	fdx[nfds].token = token;
 	fdx[nfds].callback = cb;
 	nfds++;
-	printf("Added %s fd: %d. FD count: %d\n", token, fd, nfds);
+<<<<<<< HEAD
+
 	return nfds-1;
+=======
+	printf("Added %s fd: %d. FD count: %d\n", token, fd, nfds);
+>>>>>>> 0da32b22bb20d30f403b0f333121b09192f86454
 }
 
 int fcf_remove_all_fd(const char *fd_src) {

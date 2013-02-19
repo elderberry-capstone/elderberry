@@ -1,5 +1,5 @@
-/*
- * auto generated fcf
+/**
+ *	Auto-generated file
  */
 
 #include <stdio.h>
@@ -25,6 +25,38 @@
 
 void fcf_init() {
 	// Calls all init functions
+<<<<<<< HEAD
+	init_theo_imu();
+	init_diskLogger("logfile.log");
+
+	// Fetch all FileDescriptors
+	fcf_get_fd_structure(&fds, &nfds);
+}
+
+void testIMU_MessageA_Handler(int fd) {
+	// generated function that is called when a file descriptor
+	// that testIMU maps to MessageA is responsive.
+	int rc = fileA_handler(fd, buffer, sizeof(buffer));
+
+	if (rc > 0) {
+		int len = rc;
+		screenLogger_getMessage("gyr", buffer, len);
+		diskLogger_getMessage("gyr", buffer, len);
+	}
+}
+
+
+void testIMU_MessageB_Handler(int fd) {
+	// generated function that is called when a file descriptor
+	// that testIMU maps to MessageA is responsive.
+	int rc = fileB_handler(fd, buffer, sizeof(buffer));
+
+	if (rc > 0) {
+		int len = rc;
+		screenLogger_getMessage("acc", buffer, len);
+		diskLogger_getMessage("acc", buffer, len);
+	}
+=======
 	init_mouse();
 	init_mouse2();
 	//init_theo_imu();
@@ -36,9 +68,11 @@ void fcf_callback_gyr(char *buff, int length) {
 	diskLogger_getMessage("gyr", buff, length);
 }
 
+
 void fcf_callback_acc(char *buff, int length) {
 	screenLogger_getMessage("acc", buff, length);
 	diskLogger_getMessage("acc", buff, length);
+>>>>>>> 0da32b22bb20d30f403b0f333121b09192f86454
 }
 
 void fcf_callback_mouse(unsigned char *buff, int length){
@@ -49,8 +83,7 @@ void fcf_callback_mouse2(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse", buff, length);
 }
 
-
-
+<<<<<<< HEAD
 int fcf_main_loop_run() {
 
 // starting code for socket/poll was this:
@@ -112,7 +145,8 @@ int fcf_main_loop_run() {
 		/* determine which ones they are.                          */
 		/***********************************************************/
 		int current_size = nfds;
-		for (int i = 0; i < current_size; i++)
+        int i = 0;
+		for (i = 0; i < current_size; i++)
 		{
 			/*********************************************************/
 			/* Loop through to find the descriptors that returned    */
@@ -195,6 +229,7 @@ int fcf_main_loop_run() {
 //	if(fds[i].fd >= 0)
 //		close(fds[i].fd);
 //	}
+=======
+/****************	END CODE GENERATED SPACE	*****************/
+>>>>>>> 0da32b22bb20d30f403b0f333121b09192f86454
 
-	return 0;
-}
