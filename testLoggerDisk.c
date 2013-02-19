@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  *  @file testLoggerDisk.c
  *  @brief Logs all info to a file on disk
@@ -7,6 +8,8 @@
  */
 
 
+=======
+>>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
 /***
 *  testLoggerDisk.c
 *  Test Module to Log data to Disk
@@ -17,6 +20,7 @@
 
 FILE *fp = NULL;
 char * file;
+char * filename = "logfile.log";
 
 /**
  *  @brief Initializes the disk logging function
@@ -26,7 +30,7 @@ char * file;
 // Initializes function by copying filename into private data and 
 // opening file. Error produced if file can't be opened. (NOTE!) Not
 // sure about passing only be reference.
-int init_diskLogger (char *filename) {
+int init_diskLogger (void) {
 	// Need to check filename!!!
 
 	if(!filename){

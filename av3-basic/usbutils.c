@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-
 #include "usbutils.h"
 #include "fcfutils.h"
 #include "logging.h"

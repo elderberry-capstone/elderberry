@@ -13,49 +13,40 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include "mouse.h"
+#include "mouse2.h"
 #include "testIMU.h"
 #include "testLoggerDisk.h"
 #include "testLoggerScreen.h"
 #include "fcfutils.h"
 
 
-static struct pollfd *fds;
-static int nfds = 0;
-
-static char buffer [1024];
-
+/***************	CODE GENERATED SPACE	**************/
 
 void fcf_init() {
 	// Calls all init functions
-	init_theo_imu();
-
-	// Fetch all FileDescriptors
-	fcf_get_fd_structure(&fds, &nfds);
+	init_mouse();
+	init_mouse2();
+	//init_theo_imu();
+	init_diskLogger();
 }
 
-void testIMU_MessageA_Handler(int fd) {
-	// generated function that is called when a file descriptor
-	// that testIMU maps to MessageA is responsive.
-	int rc = fileA_handler(fd, buffer, sizeof(buffer));
-
-	if (rc > 0) {
-		int len = rc;
-		screenLogger_getMessage("gyr", buffer, len);
-		//diskLogger_getMessage("gyr", buffer, len);
-	}
+void fcf_callback_gyr(char *buff, int length) {
+	screenLogger_getMessage("gyr", buff, length);
+	diskLogger_getMessage("gyr", buff, length);
 }
 
+void fcf_callback_acc(char *buff, int length) {
+	screenLogger_getMessage("acc", buff, length);
+	diskLogger_getMessage("acc", buff, length);
+}
 
-void testIMU_MessageB_Handler(int fd) {
-	// generated function that is called when a file descriptor
-	// that testIMU maps to MessageA is responsive.
-	int rc = fileB_handler(fd, buffer, sizeof(buffer));
+void fcf_callback_mouse(unsigned char *buff, int length){
+	screenLogger_getMouseMessage("mouse", buff, length);
+}
 
-	if (rc > 0) {
-		int len = rc;
-		screenLogger_getMessage("acc", buffer, len);
-		//diskLogger_getMessage("acc", buffer, len);
-	}
+void fcf_callback_mouse2(unsigned char *buff, int length){
+	screenLogger_getMouseMessage("mouse", buff, length);
 }
 
 

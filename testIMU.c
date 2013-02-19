@@ -21,32 +21,44 @@
 #include "fcfutils.h"
 #include "testIMU.h"
 
+extern void fcf_callback_gyr(char *, int);
+extern void fcf_callback_acc(char *, int);
+
 static int readsocket(int fd, char *buffer, int bufsize);
 static int getsocket(int serverport);
 
+static char _buffer [1024];
+
+void gyr_handler(int idx) {
+	struct pollfd *fd = fcf_get_fd(idx);
+	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
+	fcf_callback_gyr(_buffer, length);
+}
+
+
+void acc_handler(int idx) {
+	struct pollfd *fd = fcf_get_fd(idx);
+	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
+	fcf_callback_acc(_buffer, length);
+}
 /**
  *  @brief Initializes sockets to communicate with the IMU.
  *  @details Starts by removing all file descriptors that were added under the "IMU" source token [place code snippet here].  After removing the file descriptors, we add the fild descriptors from socket 8081, and 8082 with the IMU token.
  */
-void init_theo_imu () {
+void init_theo_imu() {
 	fcf_remove_all_fd("IMU");
+	short tevents = 0;
 
 	printf ("probing gyro: (waiting for connection localhost:8081)\n");
 	int fd1 = getsocket(8081);
-	fcf_add_fd ("IMU", fd1, NULL);
+	fcf_add_fd ("gyr", fd1, tevents, gyr_handler);
 
 	printf ("probing acc: (waiting for connection localhost:8082)\n");
 	int fd2 = getsocket(8082);
-	fcf_add_fd ("IMU", fd2, NULL);
+	fcf_add_fd ("acc", fd2, tevents, acc_handler);
 }
 
-/**
- *  @brief This function handles a particular message type (fileA)
- *  @details This function hides all of the ugly work of getting "The Message" off of the hardware device. Every hardware interfacing module that sends messages will have specific callback functions for each message type to send.
- *  @param fd File descriptor
- *  @param buffer Contents of character buffer
- *  @param bufsize Size/length of buffer.
- */
+
 int fileA_handler(int fd, char *buffer, int bufsize) {
   /***
 *  In this function we point buffer at a message from device.

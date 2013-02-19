@@ -8,7 +8,7 @@ main program
 
 
 extern void fcf_init();
-extern void fcf_main_loop_run();
+extern int fcf_run_poll_loop();
 
 
 
@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 	puts("FC");
 
 	fcf_init();
-	fcf_main_loop_run();
+	int rc = fcf_run_poll_loop();
 
 	return EXIT_SUCCESS;
 }
