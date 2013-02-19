@@ -10,10 +10,10 @@
 #include <unistd.h>
 
 #include "fc.h"
+#include "fcfutils.h"
 #include "usbutils.h"
 #include "logging.h"
 #include "miml.h"
-#include "profile.h"
 
 
 
@@ -71,12 +71,7 @@ int main(int argc, char **argv)
     }
 
     FCF_Init(usb_source);
-    //comment out the devices you don't have or want
-    init_gps(usb_source);
-    init_mouse(usb_source);     //read from usb mouse; set your hw values in is_mouse()
-    init_virtgyro();//read from socket
-
-    //run_main_loop();
+    run_main_loop();
 
     printf("\n");
     return 0;
