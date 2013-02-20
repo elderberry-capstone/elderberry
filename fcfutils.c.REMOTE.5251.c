@@ -1,20 +1,9 @@
-<<<<<<< HEAD
 /**
  *  @file fcfutils.c
  *  @brief Utility functions for the flight control framework
  *  @author Ron Astin
  *  @date February 8th, 2013
  */
-=======
-
-/**
-*
-*	\brief API code for framework.
-*
-*	This file includes the functions needed to add and remove file
-*	descriptors, as well as store the file descriptor arrays.
-*/
->>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,13 +19,8 @@
 #include "fcfmain.h"
 
 
-/**
-*	\struct fcffd
-*	
-*	This struct holds the callback functions and souce tokens of the devices.
-*/
 struct fcffd {
-	const char *token;	/**< The short name of the device. */
+	const char *token;
 	pollfd_callback callback;
 };
 
@@ -44,14 +28,22 @@ struct fcffd {
 static struct pollfd fds[100];
 static struct fcffd fdx[100];
 static int nfds = 0;
-7
+
+// Add file descriptor to array of FDs.
+
+/**
+ *  @brief Add file descriptor to array of existing file descriptors
+ *  @param token Source token for file descriptor (will be used for removal?)
+ *  @param fd integer number for file descriptor
+ *  @param callbackname Character pointer for name used to refer to file descriptor.
+ */
+extern void fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb) {
 	fds[nfds].fd = fd;
 	fds[nfds].events = events;
 	fdx[nfds].token = token;
 	fdx[nfds].callback = cb;
 	nfds++;
 	printf("Added %s fd: %d. FD count: %d\n", token, fd, nfds);
-	return nfds-1;
 }
 
 int fcf_remove_all_fd(const char *fd_src) {

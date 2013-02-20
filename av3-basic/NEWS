@@ -1,5 +1,9 @@
 This file lists notable changes.
 
+2013-02-18:
+* Add profile module that triggers timer fds.
+* Add "debug" target to Makefile for gprof support.
+
 2013-02-15:
 * Add "per poll cycle" (ppc) callbacks. 
 
