@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include "fcfutils.h"
-#include "miml.h"
 
 #define FCF_POLLSIZE 100
 
@@ -77,13 +76,17 @@ void stop_main_loop() {
 	run_fc = 0;
 }
 
-void run_main_loop() {
-
-	pollCallback ppc[FCF_POLLSIZE];
-	int  nppc= 0;
+static void start_main_loop() {
 	run_fc = 1;
-	int count = 0;
+}
 
+int run_main_loop() {
+	pollCallback ppc[FCF_POLLSIZE];
+	int nppc= 0;
+	int count = 0;
+	int ret = 0;
+
+	start_main_loop();
 	while (run_fc) {
 
 		for (int i = 0; i < nfds; i++) {
@@ -94,23 +97,28 @@ void run_main_loop() {
 
 		errno = 0;
 		int rc = poll(fds, nfds, -1);
-		printf ("\n%d. poll returned with rc=%d ", count++, rc);
+		printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
 		for (int i = 0; i < nfds; i++) {
 			debug_fd("\n   after poll>>> ", i, &fds[i]);
 		}
 
 		switch (rc) {
 		case -1: //error
-			FCFERR_Poll();
+			if (errno != EINTR) {
+				perror ("run_main_loop: poll returned with error");
+				ret = -1;
+				stop_main_loop();
+			}
 			break;
 		case 0: //timeout
 			printf("poll timed out");
 			break;
 		default:
 			nppc = 0;
-			for (int i = 0; i < nfds; i++) {
+			for (int i = 0; i < nfds && rc > 0; i++) {
 				if(fds[i].revents != 0) {
 					debug_fd("\n active fd ", i, &fds[i]);
+					rc--;
 					if (cbCat[i] == standard) {
 						//callback for this active fd is a standard callback
 						callbacks[i](&fds[i]);
@@ -146,7 +154,7 @@ void run_main_loop() {
 	}
 
 	printf("\n exiting main loop");
-
+	return ret;
 }
 
 static void debug_fd (const char *msg, int i, struct pollfd *pfd) {
