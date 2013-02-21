@@ -1,20 +1,9 @@
-<<<<<<< HEAD
 /**
  *  @file fcfutils.c
  *  @brief Utility functions for the flight control framework
  *  @author Ron Astin
  *  @date February 8th, 2013
  */
-=======
-
-/**
-*
-*	\brief API code for framework.
-*
-*	This file includes the functions needed to add and remove file
-*	descriptors, as well as store the file descriptor arrays.
-*/
->>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
 
 #include <stdio.h>
 #include <stdlib.h>
