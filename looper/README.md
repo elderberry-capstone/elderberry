@@ -19,18 +19,18 @@ RUNNING THE PROGRAM
 In whichever file you have a function you want to test, include _looper.h_ in
 with the rest of the imports:
 
->#include "looper.h"
+>\#include "looper.h"
 
 And, finally, for the function _func()_ that you want to test, add it as a
 callback to the looper function, e.g.
 
 >int f()\{
-    ...
-\}
+>    ...
+>\}
 
-int g()\{
-    loop(f, _\[times\]_);
-\}
+>int g()\{
+>    loop(f, _\[times\]_);
+>\}
 
 It would be helpful to have _time_ be a command line argument, as in the test
 program below.
