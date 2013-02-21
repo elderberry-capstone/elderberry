@@ -14,6 +14,7 @@
 
 /* Data Variables */
 int device_click[2], score[2], click_val[2];
+char * player_names[2];
 char game_buffer[2048];
 int length;
 
@@ -30,7 +31,7 @@ void end_game(int, int);
 void setValidClick(int val, int dev){
 	click_val[dev] = val;
 	device_click[dev] = true;
-	length = sprintf(game_buffer, "Player %d has decided.\n", dev+1);
+	length = sprintf(game_buffer, "%s has decided.\n", player_names[dev]);
 	fcf_callback_game(game_buffer, length);
 }
 
@@ -98,7 +99,7 @@ int checkValues(){
 				loser=1;
 			}
 
-			length = sprintf(game_buffer, "\n* Player %d wins matchup! %s beats %s\n\n\n", winner+1, returnValueName(click_val[winner]), returnValueName(click_val[loser]));
+			length = sprintf(game_buffer, "\n* %s wins matchup! %s beats %s\n\n\n", player_names[winner], returnValueName(click_val[winner]), returnValueName(click_val[loser]));
 			fcf_callback_game(game_buffer, length);
 			sleep(1);
 
@@ -121,7 +122,7 @@ int checkValues(){
 
 
 void end_game(int winner, int loser){
-	length = sprintf(game_buffer, "\n\n\n\n********************************\n  Player %d wins game, %d to %d! \n********************************\n\n\n\n\n\n", winner+1, score[winner], score[loser]);
+	length = sprintf(game_buffer, "\n\n\n\n********************************\n  %s defeats %s, %d to %d! \n********************************\n\n\n\n\n\n", player_names[winner], player_names[loser], score[winner], score[loser]);
 	fcf_callback_game(game_buffer, length);
 	resetAll();
 }
@@ -132,7 +133,7 @@ void resetTurn(){
 	device_click[1] = false;
 	click_val[0] = 0;
 	click_val[1] = 0;
-	length = sprintf(game_buffer, "[Score: P1: %d | P2: %d] Ready... Go!\n", score[0], score[1]);
+	length = sprintf(game_buffer, "[Score: %s: %d | %s: %d] Ready... Go!\n", player_names[0], score[0], player_names[1], score[1]);
 	fcf_callback_game(game_buffer, length);
 }
 
@@ -145,6 +146,8 @@ void resetAll(){
 
 
 void init_game(){
+	player_names[0] = "Jamey";
+	player_names[1] = "Theo";
 	system ( "clear" );
 	length = sprintf(game_buffer, "\n======================================================\n   WELCOME TO ROCK, PAPER, SCISSORS!!1!one!\n======================================================\n\n");
 	fcf_callback_game(game_buffer, length);
