@@ -33,7 +33,8 @@ struct fcffd {
 static struct pollfd fds[100];
 static struct fcffd fdx[100];
 static int nfds = 0;
-7
+
+void fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
 	fds[nfds].fd = fd;
 	fds[nfds].events = events;
 	fdx[nfds].token = token;
