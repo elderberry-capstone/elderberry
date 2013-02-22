@@ -126,6 +126,13 @@ libusb_device * find_device(libusb_device ** devices, int cnt){
 				return devices[i];
 			}
 		}
+		if(desc.idVendor==0x046D){
+			if(desc.idProduct==0xC03E){
+				//ID 046d:c03e Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
+				libusb_set_debug(context, 3);
+				return devices[i];
+			}
+		}
 	}
 	return NULL;
 }

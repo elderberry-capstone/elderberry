@@ -125,6 +125,13 @@ libusb_device * find_device2(libusb_device ** devices, int cnt){
 				return devices[i];
 			}
 		}
+		if(desc.idVendor==0x045E){
+			if(desc.idProduct==0x00E1){
+				//ID 045e:00e1 Microsoft Corp. Wireless Laser Mouse 6000 Reciever
+				libusb_set_debug(context2, 3);
+				return devices[i];
+			}
+		}
 	}
 	return NULL;
 }
