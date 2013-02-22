@@ -1,11 +1,11 @@
 #OPTS := -O3 -ffast-math $(call cc-option,-flto -fwhole-program)
 #WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings -Wno-missing-field-initializers -Wno-unused-parameter
 #CFLAGS := -g -MD -std=gnu99 $(OPTS) $(WARNINGS) -fno-strict-aliasing $(shell pkg-config --cflags glib-2.0 libusb-1.0)
-#LDLIBS := -lrt $(shell pkg-config --libs glib-2.0 libusb-1.0)
+LDLIBS := -lrt $(shell pkg-config --libs glib-2.0 libusb-1.0) -pg
 
 CC := gcc 
 WARNINGS := -Wall
-CFLAGS := -g -std=c99  $(pkg-config --cflags libusb-1.0) $(WARNINGS)
+CFLAGS := -g -std=c99  $(pkg-config --cflags libusb-1.0) $(WARNINGS) -pg
 LIBS := 
 
 
