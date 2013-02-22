@@ -33,6 +33,7 @@ struct fcffd {
 static struct pollfd fds[100];
 static struct fcffd fdx[100];
 static int nfds = 0;
+static int run_fc = 0;	//< main loop is running true/false
 
 void fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
 	fds[nfds].fd = fd;
@@ -85,11 +86,22 @@ struct pollfd *fcf_get_fd(int idx){
 }
 
 
+void fcf_stop_main_loop() {
+	run_fc = 0;
+}
+
+
+static void fcf_start_main_loop() {
+	run_fc = 1;
+}
+
+
 int fcf_run_poll_loop(void){
 	int rc;
 	int timeout = -1 * 1000;	// in ms
 
-	for (;;)
+	fcf_start_main_loop();
+	while (run_fc)
 	{
 		/**
 		*	Call poll() and wait for it to complete.
