@@ -27,5 +27,8 @@ int main(int argc, char *argv[]) {
 	fcf_init();
 	int rc = fcf_run_poll_loop();
 
-	return EXIT_SUCCESS;
+	if (rc == 0) {
+		return EXIT_SUCCESS;
+	}
+	return EXIT_FAILURE;
 }

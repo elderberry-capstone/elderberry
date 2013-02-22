@@ -35,7 +35,7 @@ static struct fcffd fdx[100];
 static int nfds = 0;
 static int run_fc = 0;	//< main loop is running true/false
 
-void fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
+int fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
 	fds[nfds].fd = fd;
 	fds[nfds].events = events;
 	fdx[nfds].token = token;
