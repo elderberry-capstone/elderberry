@@ -1,3 +1,3 @@
 
-extern int init_mouse();
+extern int init_mouse3();
 
