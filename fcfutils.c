@@ -66,41 +66,30 @@ int fcf_addfd_ppc (const char *token, int fd, short events, pollfd_callback cb)
 }
 
 
-int fcf_remove_all_fd(const char *fd_src) {
-  // Remove all file descriptors that were added under given source token.
-
+int fcf_remove_fd(int fd) {
+ 
 	// If there are no fds, return 0 -- or error code.
 	if(nfds <= 0)
 		return 0;
 
-	int i = 0, removed = 0;
+	int i = 0;
 	
 	for(i=0; i<nfds; i++){
-		// NOTE: if non-null-terminated strings, use strncmp with length
-		if(strcmp(fdx[i].token, fd_src) == 0){
-
-			// If matching fd is last in array.
-			if(nfds - 1 == i){
-				nfds--;
-				removed++;
-				return removed;
-			}
-			
-			// Replace fd at index i with last fd in array.
-			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
-
-			// Replace fcffd at index i with last fcffd in array.
-			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
-			
-			// Decrement number of fds and increment amount removed.
+		if(fds[i].fd == fd && i==(nfds-1)){
 			nfds--;
-			removed++;
-			printf("FD removed at index %d. Total: %d\n", i, nfds);
+			return 1;
+		}
+		else{
+			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
+			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
+			nfds--;
+			return 1;
 		}
 	}
-
-	return removed;
+	
+	return 0;
 }
+
 
 struct pollfd *fcf_get_fd(int idx){
 	return &fds[idx];
