@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-import logging
-import sys
-import os
-import time
+#import logger
+import logging, sys, os, time, subprocess, signal
 
 def print_usage():
     print(
@@ -21,27 +19,34 @@ program_arguments   Arguments to supply to the program program_name.
     )
 
 def main():
-    if (argc != 3):
+    logging.basicConfig(level=logging.DEBUG)
+    if (sys.argv < 3):
         print_usage()
         sys.exit()
         
-    prog_name = argv[2]
-    time_s = argv[1]
-    prog_args = argv[3:]
+    prog_name = sys.argv[2]
+    time_s = sys.argv[1]
+    prog_args = sys.argv[2:]
     
-    time_a = ':'.split(time_s)
-    sleep_time = int(time[2]) + (int(time[1]) * 60) + (int(time[0]) * 60
-        * 60) # number of seconds to sleep
+    time_a = (time_s).split(":")
+    if (len(time_a) != 3):
+        logging.error("Time '%s' in wrong format." % (time_s))
     
-    logger.debug("Will sleep for %d seconds." % (sleep_time))
+    sleep_time = int(time_a[2]) + (int(time_a[1]) * 60) + (int(time_a[0])
+        * 60 * 60) # number of seconds to sleep
+    
+    logging.debug("Will sleep for %d seconds." % (sleep_time))
     
     pid = os.fork()
     if (pid == 0): # child
-        execvp(prog_name, prog_args)
-    else:   # parent
+        call_args = ["sudo"] + prog_args
+        logging.debug("Executing arguments: %s" % (call_args))
+        subprocess.call(call_args)
+        
+    else: #parent
         time.sleep(sleep_time)
-        os.kill(pid)
-        logger.info("Killed process %d" % pid)
+        os.kill(pid, signal.SIG_DFL)
+        logging.info("Killed process %d" % pid)
     
 if __name__=="__main__":
     main()
