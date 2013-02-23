@@ -46,7 +46,6 @@ void acc_handler(int idx) {
  *  @details Starts by removing all file descriptors that were added under the "IMU" source token [place code snippet here].  After removing the file descriptors, we add the fild descriptors from socket 8081, and 8082 with the IMU token.
  */
 void init_theo_imu() {
-	fcf_remove_all_fd("IMU");
 	short tevents = 0;
 
 	printf ("probing gyro: (waiting for connection localhost:8081)\n");

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  *  @file testLoggerDisk.c
  *  @brief Logs all info to a file on disk
@@ -7,14 +6,6 @@
  *  @date February 8th, 2013
  */
 
-
-=======
->>>>>>> 7890465c3e3d2b37b87354337013ee759c0ab4e7
-/***
-*  testLoggerDisk.c
-*  Test Module to Log data to Disk
-*
-*/
 
 #include <stdio.h>
 

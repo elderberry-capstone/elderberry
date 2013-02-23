@@ -11,7 +11,7 @@ LIBS :=
 
 all: fc
 
-fc: fc.o fcfutils.o fcfmain.o testIMU.o testLoggerDisk.o testLoggerScreen.o mouse.o mouse2.o -lusb-1.0
+fc: fcfutils.o fcfmain.o testIMU.o testLoggerDisk.o testLoggerScreen.o mouse.o mouse2.o -lusb-1.0
 
 %.o: %.c $(DEPS)
 	$(CC) -c $< -o $@ $(CFLAGS) 
