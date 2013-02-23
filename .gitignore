@@ -11,4 +11,4 @@ logs
 .project
 .project.ori
 .cproject
-
+*.kdev4

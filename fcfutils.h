@@ -13,9 +13,12 @@
 #define FALSE            0
 
 typedef void (*pollfd_callback)(int fd_idx);
-extern void fcf_add_fd(const char*, int, short, pollfd_callback);
-extern int fcf_remove_all_fd(const char*);
+extern int fcf_add_fd(const char*, int, short, pollfd_callback);
+extern int fcf_remove_fd(int);
 extern struct pollfd * fcf_get_fd(int);
 extern int fcf_run_poll_loop(void);
+extern int init_fcf(void);
+void fcf_stop_main_loop(void);
+extern void fcf_init();
 
 #endif
