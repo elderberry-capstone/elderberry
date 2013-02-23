@@ -29,7 +29,7 @@ void fcf_init() {
 	init_fcf();
 	init_diskLogger();
 	init_mouse();
-	init_mouse3();
+	//init_mouse3();
 	//init_theo_imu();
 	
 }
