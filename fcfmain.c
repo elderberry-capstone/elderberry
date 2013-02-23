@@ -25,10 +25,12 @@
 
 void fcf_init() {
 	// Calls all init functions
-	init_mouse();
-	init_mouse2();
-	//init_theo_imu();
+	init_fcf();
 	init_diskLogger();
+	init_mouse();
+	//init_mouse2();
+	//init_theo_imu();
+	
 }
 
 void fcf_callback_gyr(char *buff, int length) {

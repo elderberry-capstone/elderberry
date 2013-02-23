@@ -16,39 +16,93 @@
 #include <string.h>
 #include <errno.h>
 #include <libusb-1.0/libusb.h>
+#include <signal.h>
 #include "fcfutils.h"
+
+#define FDS_INIT_SIZE 1
+#define FDS_EXPANSION_FACTOR 2
 
 
 /**
-*	\struct fcffd
 *	
 *	This struct holds the callback functions and souce tokens of the devices.
 */
 struct fcffd {
 	const char *token;	/**< The short name of the device. */
 	pollfd_callback callback;
+	char cb_cat;
 };
 
-static const char standard = 0;	///< standard callback
-static const char ppc = 1;		///< per poll cycle callback
+static const char standard = 0;	//< Standard callback
+static const char ppc = 1;		//< Per poll cycle callback
 
 //static int MAXFD = 100;
-static struct pollfd fds[100];
-static struct fcffd fdx[100];
-static char cbCat[100];			///< the type (i.e. category) of the callback (standard, ppc)
-static int nfds = 0;
-static int run_fc = 0;	//< main loop is running true/false
+static struct pollfd * fds;		//< File descriptor array
+static struct fcffd  * fdx;		//< File description array
+static int nfds;				//< Number of file descriptors in arrays
+static int fd_array_size;		//< Allocated size of file descriptor array, fds
+static int run_fc;				//< Main loop is running true/false
 
 
 static void debug_fd (const char *msg, int i, struct pollfd *pfd);
 
+/**
+*
+* Initialization for fcf data structures
+*
+*/
+int init_fcf(){
+	fd_array_size = FDS_INIT_SIZE;
+	fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
+	fdx = (struct fcffd *) malloc(fd_array_size * sizeof(struct fcffd));
+	// TODO: Need error checking code here for malloc calls
+	
+	nfds = 0;
+	run_fc = 0;
+
+	return 0;
+}
+
+
+/**
+*
+*	Increases size of the file desciptor and file description arrays
+*
+*/
+int expand_arrays(){
+	struct pollfd * fds_temp;
+	struct fcffd * fdx_temp;
+
+	fd_array_size *= FDS_EXPANSION_FACTOR; // Expand array by pre-defined factor
+
+	fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
+	if(fds_temp == NULL){
+		// TODO: Add necessary logging/abort codes
+		return -1;
+	}
+	fds = fds_temp;
+	
+	fdx_temp = realloc(fdx, fd_array_size * sizeof(struct fcffd));
+	if(fdx_temp == NULL){
+		// TODO: Add necessary logging/abort codes
+		return -1;
+	}
+	fdx = fdx_temp;
+
+	return 0;
+}
 
 int fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
+	// Checks to see if fd arrays are full
+	if(fd_array_size == nfds){
+		expand_arrays();
+	}
+
 	fds[nfds].fd = fd;
 	fds[nfds].events = events;
 	fdx[nfds].token = token;
 	fdx[nfds].callback = cb;
-	cbCat[nfds] = standard;
+	fdx[nfds].cb_cat = standard;
 	nfds++;
 	printf("Added %s fd: %d. FD count: %d\n", token, fd, nfds);
 	return nfds-1;
@@ -60,7 +114,7 @@ int fcf_addfd_ppc (const char *token, int fd, short events, pollfd_callback cb)
 {
 	int i = fcf_add_fd (token, fd, events, cb);
 	if (i >= 0) {
-		cbCat[i] = ppc;
+		fdx[i].cb_cat = ppc;
 	}
 	return i;
 }
@@ -146,7 +200,7 @@ int fcf_run_poll_loop() {
 				if(fds[i].revents != 0) {
 					debug_fd("\n active fd ", i, &fds[i]);
 					rc--;
-					if (cbCat[i] == standard) {
+					if (fdx[i].cb_cat == standard) {
 						//callback for this active fd is a standard callback
 						fdx[i].callback(i);
 					} else {
@@ -191,4 +245,28 @@ static void debug_fd (const char *msg, int i, struct pollfd *pfd) {
 	if (re & POLLHUP) printf("\nPOLLHUP - Hang up");
 	if (re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
 	fflush (stdout);
+}
+
+
+static void signalhandler(int signum) {
+    printf ("\n **signal handler: signum = %d", signum);
+
+    if (signum == SIGINT)  {
+    	fcf_stop_main_loop ();
+    }
+}
+
+
+int main(int argc, char *argv[]) {
+
+	puts("FC");
+	signal (SIGINT, signalhandler);
+
+	fcf_init();
+	int rc = fcf_run_poll_loop();
+
+	if (rc == 0) {
+		return EXIT_SUCCESS;
+	}
+	return EXIT_FAILURE;
 }
