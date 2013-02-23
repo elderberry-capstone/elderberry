@@ -13,7 +13,25 @@
 static const int g_dev_IN_EP = 0x81;
 static int g_packet_size = 4;
 
+//Is device first USB mouse yes/no.
+static int is_mouse(libusb_device * device){
+	struct libusb_device_descriptor descr;
+	int retErr = libusb_get_device_descriptor(device, &descr);
+	if(retErr){
+		print_libusb_error(retErr,"is_imu libusb_get_device_descriptor");
+		return 0;
+	}
+	if(descr.idVendor == 0x046D && descr.idProduct == 0xC03E) {
+		//ID 046d:c03e Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
+		return 1;
+	}
+	//add your IDs here
+	if(descr.idVendor == 0xFFFF && descr.idProduct == 0xFFFF){
+		return 1;
+	}
 
+	return 0;
+}
 
 
 static void common_cb(struct libusb_transfer *transfer, uint32_t fourcc){
@@ -106,9 +124,9 @@ static int start_mouse_transfer(libusb_device_handle * handle,
     return 0;
 }
 
-void init_mouse(){
+void init_mouse(libusbSource * usb_source){
 	int iface_nums[1] = {0};
-	libusb_device_handle * handle = open_usb_device_handle(is_mouse, iface_nums, 1);
+	libusb_device_handle * handle = open_usb_device_handle(usb_source, is_mouse, iface_nums, 1);
 	if(!handle) {
 		return;
 	}

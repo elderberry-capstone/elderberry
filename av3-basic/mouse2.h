@@ -9,6 +9,6 @@
 
 #include "usbutils.h"
 
-void init_mouse2();
+void init_mouse2(libusbSource * usb_source);
 
 #endif

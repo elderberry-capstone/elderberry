@@ -26,9 +26,7 @@ debug: LDFLAGS += $(OPTSDEV)
 debug: fc
 	@echo "** compile: DEBUG / $(MIML)"
 
-#fc: fc.o fcfutils.o logging.o usbutils.o theo-imu.o adis-imu.o gps.o mouse.o mouse2.o netutils.o virtdevsrv.o miml.o profile.o
-
-fc: fc.o fcfutils.o logging.o usbutils.o  mouse.o netutils.o virtdevsrv.o miml.o profile.o
+fc: fc.o fcfutils.o logging.o usbutils.o theo-imu.o adis-imu.o gps.o mouse.o mouse2.o netutils.o virtdevsrv.o miml.o profile.o
 
 #miml.h miml.c: $(MIML)
 #	@echo "running code generator with MIML=$(MIML)"

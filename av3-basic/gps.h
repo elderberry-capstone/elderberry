@@ -9,6 +9,6 @@
 #include "usbutils.h"
 
 void set_gps_devicepath (const char *dev);
-void init_gps();
+void init_gps(libusbSource * src);
 
 #endif /* GPS_H_ */

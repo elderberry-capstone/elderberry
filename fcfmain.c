@@ -15,7 +15,6 @@
 
 #include "mouse.h"
 #include "mouse2.h"
-#include "mouse3.h"
 #include "testIMU.h"
 #include "testLoggerDisk.h"
 #include "testLoggerScreen.h"
@@ -29,7 +28,7 @@ void fcf_init() {
 	init_fcf();
 	init_diskLogger();
 	init_mouse();
-	//init_mouse3();
+	//init_mouse2();
 	//init_theo_imu();
 	
 }

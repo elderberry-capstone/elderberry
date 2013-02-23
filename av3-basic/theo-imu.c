@@ -163,9 +163,10 @@ static int start_bulk_transfer(libusb_device_handle * handle,
     return 0;
 }
 
-void init_theo_imu(){
+void init_theo_imu(libusbSource * usb_source){
     int iface_nums[1] = {0};
-    libusb_device_handle * imu = open_usb_device_handle(is_imu, iface_nums, 1);
+    libusb_device_handle * imu = open_usb_device_handle(usb_source, is_imu,
+            iface_nums, 1);
     if(!imu)
         return;
 

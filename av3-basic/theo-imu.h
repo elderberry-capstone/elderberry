@@ -10,6 +10,6 @@
 
 #include "usbutils.h"
 
-void init_theo_imu();
+void init_theo_imu(libusbSource * usb_source);
 
 #endif /* THEO_IMU_H_ */

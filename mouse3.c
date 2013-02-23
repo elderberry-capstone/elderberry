@@ -6,13 +6,13 @@
 #include <libusb-1.0/libusb.h>
 #include <unistd.h>
 
-#include "mouse.h"
+#include "mouse3.h"
 #include "utils_libusb-1.0.h"
 
 /**	START DATA */
 
-#define VID 0x046d
-#define PID 0xc52b
+#define VID 0x1532
+#define PID 0x000a
 
 extern void fcf_callback_mouse(unsigned char *, int);
 extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);

@@ -1,0 +1,69 @@
+%YAML 1.2
+---
+error: errorHandler  # manditory function for handling errors, arguments to be determined...
+includes:
+  # We do not care what order includes appear, so no dash.
+  moduleA.h
+  moduleB.h
+  logger.h
+initialize:
+  # ordered list, in this example logger gets initialized first.
+  - initLogger()
+  - initA()
+  - initB()
+finalize:
+  # ordered list, same scenario as initialize.
+  - closeLogger()
+  - closeB()
+  - closeA()
+functions: 
+  messageFromA:  # name of function, as a map key it 'contains' all its relevant data.
+    params:      # params used when defining/calling messageFromA. Order not important since position provided.
+      buffer: 
+        position: 1
+        type: char*
+      length: 
+        position: 2
+        type: int
+    functions:   # ordered list of functions to call inside of messageFromA. Order important!
+      - sendToB: 
+          params: 
+            buffer: 
+              position: 1
+              type: char*
+            length: 
+              position: 2
+              type: int
+      - sendToLogger: 
+          params: 
+            buffer: 
+              position: 1
+              type: char*
+            length: 
+              position: 2
+              type: int
+  messageFromB:  # second function defined in example, same structure as above example.
+    params:
+      buffer: 
+        position: 1
+        type: char*
+      length: 
+        position: 2
+        type: int
+    functions: 
+      - sendToA: 
+          params: 
+            buffer: 
+              position: 1
+              type: char*
+            length: 
+              position: 2
+              type: int
+      - sendToLogger: 
+          params: 
+            buffer: 
+              position: 1
+              type: char*
+            length: 
+              position: 2
+              type: int

@@ -10,6 +10,6 @@
 
 #include "usbutils.h"
 
-void init_adis_imu();
+void init_adis_imu(libusbSource * usb_source);
 
 #endif /* ADIS_IMU_H_ */

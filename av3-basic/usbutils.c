@@ -15,7 +15,13 @@
 #include "logging.h"
 #include "miml.h"
 
-static libusb_context *context = NULL;	//current solution to make libUSB context available for libusb_cb
+static libusb_context *gcontext = NULL;	//current solution to make libUSB context available for libusb_cb
+
+struct libusbSource {
+	int timeout_error;
+	int handle_events_error;
+	libusb_context * context;
+};
 
 
 static struct timeval nonblocking = {
@@ -26,11 +32,11 @@ static struct timeval nonblocking = {
 
 //active fd
 static int libusb_cb(struct pollfd *pfd) {
-	libusb_handle_events_timeout(context, &nonblocking);
+	libusb_handle_events_timeout(gcontext, &nonblocking);
 	return 0;
 }
 
-/*static void usb_fd_added_cb(int fd, short events, void * source){
+static void usb_fd_added_cb(int fd, short events, void * source){
 	printf_tagged_message(FOURCC('L', 'O', 'G', 'S'), "\n usb_fd_added_cb");
 	flush_buffers();
 
@@ -42,32 +48,61 @@ static void usb_fd_removed_cb(int fd, void* source){
 	flush_buffers();
 
 	fcf_removefd (fd);
-}*/
+}
 
-/*static int init_usb_fds(){
+static int init_usb_fds(libusbSource * usb_source){
 	int numfds = 0;
-	const struct libusb_pollfd ** usb_fds = libusb_get_pollfds(context);
+	const struct libusb_pollfd ** usb_fds = libusb_get_pollfds(usb_source->context);
 	if(!usb_fds)
 		return -1;
 
 	for(numfds = 0; usb_fds[numfds] != NULL; ++numfds){
-		usb_fd_added_cb(usb_fds[numfds]->fd, usb_fds[numfds]->events, NULL);
+		usb_fd_added_cb(usb_fds[numfds]->fd, usb_fds[numfds]->events, usb_source);
 	}
 
 	free(usb_fds);
-	libusb_set_pollfd_notifiers(context, usb_fd_added_cb, usb_fd_removed_cb, NULL);
+	libusb_set_pollfd_notifiers(usb_source->context, usb_fd_added_cb, usb_fd_removed_cb, usb_source);
 	return 0;
-}*/
+}
+
+libusbSource * libusbSource_new(void){
+	libusb_context * context;
+	int usbErr = libusb_init(&context);
+	if(usbErr){
+		print_libusb_error(usbErr, "libusb_init");
+		return NULL;
+	}
+	libusb_set_debug(context, 3);
+
+	if(!libusb_pollfds_handle_timeouts(context)){
+		//not implemented
+		libusb_exit(context);
+		return NULL;
+	}
+
+	gcontext = context;		//save context
+
+	libusbSource * usb_source = malloc (sizeof(libusbSource));
+	usb_source->context = context;
+	usb_source->timeout_error = 0;
+	usb_source->handle_events_error = 0;
+
+	if(init_usb_fds(usb_source)){
+		free (usb_source);
+		return NULL;
+	}
+
+	return usb_source;
+}
 
 
-
-static libusb_device * find_usb_device(is_device is_device){
+static libusb_device * find_usb_device(libusbSource * usb_source, is_device is_device){
 	libusb_device **list = NULL;
 	libusb_device *found = NULL;
 	ssize_t num_usb_dev = 0;
 	ssize_t i = 0;
 
-	num_usb_dev = libusb_get_device_list(context, &list);
+	num_usb_dev = libusb_get_device_list(usb_source->context, &list);
 	if(num_usb_dev < 0){
 		print_libusb_error(num_usb_dev, "Could not get device list");
 		return NULL;
@@ -89,7 +124,7 @@ static libusb_device * find_usb_device(is_device is_device){
 }
 
 
-static libusb_device_handle * open_device_interface(libusb_device * dev, int * iface_num, int num_ifaces){
+static libusb_device_handle * open_device_interface(libusbSource * usb_source, libusb_device * dev, int * iface_num, int num_ifaces){
 	libusb_device_handle *handle = NULL;
 	int i = 0;
 	int retErr = 0;
@@ -128,15 +163,17 @@ static libusb_device_handle * open_device_interface(libusb_device * dev, int * i
 		}
 	}
 
+	//TODO usb_source->devices = g_slist_prepend(usb_source->devices, handle);
 	return handle;
 }
 
-libusb_device_handle * open_usb_device_handle(is_device is_device, int * iface_num, int num_ifaces){
-	libusb_device * dev = find_usb_device(is_device);
-	return open_device_interface(dev, iface_num, num_ifaces);
+libusb_device_handle * open_usb_device_handle(libusbSource * usb_source,
+	is_device is_device, int * iface_num, int num_ifaces)
+{
+	libusb_device * dev = find_usb_device(usb_source, is_device);
+	return open_device_interface(usb_source, dev, iface_num, num_ifaces);
 
 }
-
 
 void print_libusb_error(int libusberrno, const char* str) {
 	switch(libusberrno) {

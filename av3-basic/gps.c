@@ -105,7 +105,7 @@ static int read_gps_cb (struct pollfd *pfd) {
 }
 
 
-void init_gps()	//TODO FCF struct must not be part of libusbSource
+void init_gps(libusbSource * src)	//TODO FCF struct must not be part of libusbSource
 {
 	if(!device)
 		device = "/dev/usbserial";
