@@ -1,8 +1,51 @@
 #!/usr/bin/python3
 
 import yaml
+from collections import defaultdict
 
-output_document = []
+class ErrorReporter:
+    def __init__(self):
+        self.errors = []
+
+    def new_error(self, message):
+        self.errors.append[message]
+
+    def append_error(self, message):
+        self.errors.append(self.errors.pop() + message)
+
+    def display(self):
+        return self.errors
+
+
+class OutputGenerator:
+
+    def __init__(self):
+        self.output = defaultdict(list)
+
+    def append(self, level, data):
+        self.output[level].append(data)
+
+    def getOut(self):
+        print (self.output)
+
+    def parse_error(self, data):
+        print ("Func parse_error:", data, "\n")
+    
+    def parse_finalize(self, data):
+        print ("Func parse_finalize:", data, "\n")
+
+    def parse_functions(self, data):
+        print ("Func parse_functions:", data, "\n")
+
+    def parse_includes(self, data):
+        print ("Func parse_includes:", data, "\n")
+
+    def parse_initialize(self, data):
+        print ("Func parse_initialize:", data, "\n")
+
+    def parse_params(self, data):
+        print ("Func parse_params:", data, "\n")
+
 
 class ParsePath:
 
@@ -23,45 +66,29 @@ class ParseRouter:
     def __init__(self, filename):
         self.parse_handlers = yaml.load(open(filename))
         self.path = ParsePath()
+        self.output = OutputGenerator()
 
-    def parse(self, s):
-        if type(s).__name__=='dict':
-            for key in s.keys():
+    def parse(self, data):
+        if type(data).__name__=='dict':
+            for key in data.keys():
                 self.path.append(key)
-                if self.matchpath(s[key]) == False:
-                    self.parse (s[key])
+                if self.matchpath(data[key]) == False:
+                    self.parse (data[key])
                 self.path.pop()
-        elif type(s).__name__=='list':
-            for element in s:
+        elif type(data).__name__=='list':
+            for element in data:
                 if self.matchpath(element) == False:
                     self.parse (element)            
         else:
-            self.matchpath(s)
+            self.matchpath(data)
 
-    def matchpath(self, s):
+    def matchpath(self, data):
         for key in self.parse_handlers.keys():
             if self.path.getPath() == self.parse_handlers[key]['path']:
-                eval(key)(s)
+                eval('self.output.' + key)(data)
                 return True
         return False
 
-def parse_error(s):
-    print ("Func parse_error", s)
-    
-def parse_finalize(s):
-    print ("Func parse_finalize", s)
-
-def parse_functions(s):
-    print ("Func parse_functions", s)
-
-def parse_includes(s):
-    print ("Func parse_includes", s)
-
-def parse_initialize(s):
-    print ("Func parse_initialize", s)
-
-def parse_params(s):
-    print ("Func parse_params", s)
-
 parser = ParseRouter('./cg.conf')
 parser.parse(yaml.load(open('./test.miml')))
+parser.output.getOut()
