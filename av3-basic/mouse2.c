@@ -131,9 +131,9 @@ static int start_mouse_transfer(libusb_device_handle * handle,
 }
 
 
-void init_mouse2(libusbSource * usb_source){
+void init_mouse2(){
 	int iface_nums[1] = {0};
-	libusb_device_handle * handle = open_usb_device_handle(usb_source, is_mouse2, iface_nums, 1);
+	libusb_device_handle * handle = open_usb_device_handle(is_mouse2, iface_nums, 1);
 	if(!handle) {
 		return;
 	}
