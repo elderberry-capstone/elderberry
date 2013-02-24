@@ -6,22 +6,21 @@
 #include <libusb-1.0/libusb.h>
 #include <unistd.h>
 
-#include "mouse3.h"
 #include "utils_libusb-1.0.h"
 
 /**	START DATA */
 
 static const int VID = 0x1532;
 static const int PID = 0x000a;
+static const int EPT = 0x81;
 
 extern void fcf_callback_mouse3(unsigned char *, int);
 extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
 
+
 /**	START FUNCTIONS */
 
-
 static void data_callback(struct libusb_transfer *transfer){
-	printf("***********************	TOTALLY CALLING HERE!!!! *******************************\n");	
 	unsigned char *buf = NULL;
     int act_len;
     int retErr;
@@ -36,7 +35,10 @@ static void data_callback(struct libusb_transfer *transfer){
             //print_libusb_transfer_error(transfer->status, "common_cb resub");
         }
 
-		// Call to CGS mouse handler.
+		/**
+		*	Data handler:
+		*	Place call into code generated space here.
+		*/
 		fcf_callback_mouse3(buf, act_len);
 
         break;
@@ -53,7 +55,7 @@ static void data_callback(struct libusb_transfer *transfer){
 
 
 int init_mouse3(){
-	init_device("mouse3", VID, PID, 0x81, data_callback);
+	init_device("mouse3", VID, PID, EPT, data_callback);
 	return 0;
 }
 

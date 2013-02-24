@@ -6,13 +6,13 @@
 #include <libusb-1.0/libusb.h>
 #include <unistd.h>
 
-#include "mouse.h"
 #include "utils_libusb-1.0.h"
 
 /**	START DATA */
 
 static const int VID = 0x045e;
 static const int PID = 0x0053;
+static const int EPT = 0x81;
 
 extern void fcf_callback_mouse(unsigned char *, int);
 extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
@@ -21,8 +21,6 @@ extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
 
 
 static void data_callback(struct libusb_transfer *transfer){
-	printf("***********************	TOTALLY CALLING HERE: MOUSE 1 *******************************\n");	
-
 	unsigned char *buf = NULL;
     int act_len;
     int retErr;
@@ -57,7 +55,7 @@ static void data_callback(struct libusb_transfer *transfer){
 
 
 int init_mouse(){
-	init_device("mouse", VID, PID, 0x81, data_callback);
+	init_device("mouse", VID, PID, EPT, data_callback);
 	return 0;
 }
 

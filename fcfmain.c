@@ -23,37 +23,32 @@ void fcf_init() {
 	init_fcf();			//< Special FCF init that sets up fd structures
 
 	// User module inits
-	//init_diskLogger();
+	init_diskLogger();
 	init_mouse3();
 	init_mouse();
 	//init_theo_imu();
-	
 }
+
 
 void fcf_callback_gyr(char *buff, int length) {
 	screenLogger_getMessage("gyr", buff, length);
-	//diskLogger_getMessage("gyr", buff, length);
+	diskLogger_getMessage("gyr", buff, length);
 }
+
 
 void fcf_callback_acc(char *buff, int length) {
 	screenLogger_getMessage("acc", buff, length);
-	//diskLogger_getMessage("acc", buff, length);
+	diskLogger_getMessage("acc", buff, length);
 }
+
 
 void fcf_callback_mouse(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse", buff, length);
 }
 
-void fcf_callback_mouse2(unsigned char *buff, int length){
-	screenLogger_getMouseMessage("mouse2", buff, length);
-}
 
 void fcf_callback_mouse3(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse3", buff, length);
-}
-
-void fcf_callback_mouse4(unsigned char *buff, int length){
-	screenLogger_getMouseMessage("mouse4", buff, length);
 }
 
 
