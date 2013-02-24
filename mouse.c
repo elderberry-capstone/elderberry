@@ -11,8 +11,8 @@
 
 /**	START DATA */
 
-#define VID 0x045e
-#define PID 0x0053
+static const int VID = 0x045e;
+static const int PID = 0x0053;
 
 extern void fcf_callback_mouse(unsigned char *, int);
 extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
@@ -20,7 +20,9 @@ extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
 /**	START FUNCTIONS */
 
 
-void data_callback(struct libusb_transfer *transfer){
+static void data_callback(struct libusb_transfer *transfer){
+	printf("***********************	TOTALLY CALLING HERE: MOUSE 1 *******************************\n");	
+
 	unsigned char *buf = NULL;
     int act_len;
     int retErr;
