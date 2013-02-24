@@ -9,14 +9,14 @@
 #include "fcfutils.h"
 
 /**		User Modules	*/
-#include "mouse.h"
-#include "mouse2.h"
-#include "mouse3.h"
-#include "mouse4.h"
-#include "testIMU.h"
-#include "testLoggerDisk.h"
-#include "testLoggerScreen.h"
-#include "test_framework.h"
+#include "module_mouse.h"
+#include "module_mouse2.h"
+#include "module_mouse3.h"
+#include "module_mouse4.h"
+#include "module_testIMU.h"
+#include "module_testLoggerDisk.h"
+#include "module_testLoggerScreen.h"
+#include "module_test_framework.h"
 
 
 

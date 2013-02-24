@@ -296,10 +296,10 @@ int main(int argc, char *argv[]) {
 	signal (SIGINT, signalhandler);
 
 	fcf_init();
-	/*int rc = fcf_run_poll_loop();
+	int rc = fcf_run_poll_loop();
 
 	if (rc == 0) {
 		return EXIT_SUCCESS;
-	}*/
+	}
 	return EXIT_FAILURE;
 }

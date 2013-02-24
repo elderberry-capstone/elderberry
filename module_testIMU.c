@@ -19,7 +19,7 @@
 #include <unistd.h>
 
 #include "fcfutils.h"
-#include "testIMU.h"
+#include "module_testIMU.h"
 
 extern void fcf_callback_gyr(char *, int);
 extern void fcf_callback_acc(char *, int);
