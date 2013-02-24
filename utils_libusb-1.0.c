@@ -17,7 +17,6 @@ static struct timeval nonblocking = {
 
 //active fd
 void libusb_cb(int idx) {
-	printf("In the callback.\n");
 	libusb_handle_events_timeout(context, &nonblocking);
 }
 
@@ -185,7 +184,8 @@ int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_tr
 
 	handle = get_handle(dev_name, devs, device);
 	if(handle == NULL){
-		// FAIL
+		printf("[%s] Error: Invalid handle returned by get_handle().\n", dev_name);
+		return -1;
 	}
 
 	fds = libusb_get_pollfds(context);

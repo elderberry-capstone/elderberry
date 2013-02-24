@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "fcfutils.h"
+
+/**		User Modules	*/
 #include "mouse.h"
 #include "mouse2.h"
 #include "mouse3.h"
@@ -13,7 +16,8 @@
 #include "testIMU.h"
 #include "testLoggerDisk.h"
 #include "testLoggerScreen.h"
-#include "fcfutils.h"
+#include "test_framework.h"
+
 
 
 /***************	CODE GENERATED SPACE	**************/
@@ -23,10 +27,11 @@ void fcf_init() {
 	init_fcf();			//< Special FCF init that sets up fd structures
 
 	// User module inits
-	init_diskLogger();
-	init_mouse3();
-	init_mouse();
+	//init_diskLogger();
+	//init_mouse3();
+	//init_mouse();
 	//init_theo_imu();
+	init_test();
 }
 
 

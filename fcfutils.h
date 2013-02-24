@@ -16,6 +16,7 @@
 typedef void (*pollfd_callback)(int fd_idx);
 extern int fcf_add_fd(const char*, int, short, pollfd_callback);
 extern int fcf_remove_fd(int);
+extern int fcf_remove_fd_by_token(const char *);
 extern struct pollfd * fcf_get_fd(int);
 extern int init_fcf(void);
 extern void fcf_stop_main_loop(void);

@@ -72,7 +72,10 @@ static int expand_arrays(){
 	struct pollfd * fds_temp;
 	struct fcffd * fdx_temp;
 
+	printf("** Expanding arrays from %d to ", fd_array_size);
 	fd_array_size *= FDS_EXPANSION_FACTOR; // Expand array by pre-defined factor
+	printf("%d\n", fd_array_size);
+	
 
 	fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
 	if(fds_temp == NULL){
@@ -129,10 +132,12 @@ int fcf_remove_fd(int fd) {
 	
 	for(i=0; i<nfds; i++){
 		if(fds[i].fd == fd && i==(nfds-1)){
+			printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
 			nfds--;
 			return 1;
 		}
-		else{
+		else if(fds[i].fd == fd){
+			printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
 			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
 			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
 			nfds--;
@@ -141,6 +146,33 @@ int fcf_remove_fd(int fd) {
 	}
 	
 	return 0;
+}
+
+int fcf_remove_fd_by_token(const char *token) {
+	int count = 0, i = 0, total;
+ 
+	// If there are no fds, return 0 -- or error code.
+	if(nfds <= 0)
+		return 0;
+
+	total = nfds;
+	
+	for(i=0; i<total; i++){
+		if(strcmp(fdx[i].token, token)==0 && i==(nfds-1)){
+			printf("Removed by token %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
+			nfds--;
+			count++;
+		}
+		else if(strcmp(fdx[i].token, token)==0){
+			printf("Removed by token %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
+			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
+			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
+			nfds--;
+			count++;
+		}
+	}
+	
+	return count;
 }
 
 
@@ -264,10 +296,10 @@ int main(int argc, char *argv[]) {
 	signal (SIGINT, signalhandler);
 
 	fcf_init();
-	int rc = fcf_run_poll_loop();
+	/*int rc = fcf_run_poll_loop();
 
 	if (rc == 0) {
 		return EXIT_SUCCESS;
-	}
+	}*/
 	return EXIT_FAILURE;
 }
