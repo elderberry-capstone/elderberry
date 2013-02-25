@@ -19,13 +19,13 @@ static void data_callback(struct libusb_transfer *transfer){
     int act_len;
     int retErr;
 
-	switch(transfer[0]->status){
+	switch(transfer->status){
     case LIBUSB_TRANSFER_COMPLETED:
 
-        buf = transfer[0]->buffer;
-        act_len = transfer[0]->actual_length;
+        buf = transfer->buffer;
+        act_len = transfer->actual_length;
 
-        retErr = libusb_submit_transfer(transfer[0]);
+        retErr = libusb_submit_transfer(transfer);
 		//printf("Data from mouse: %02x \n", (char)buf[0]);
 
 		if(retErr){
