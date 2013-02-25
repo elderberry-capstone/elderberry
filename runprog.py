@@ -21,35 +21,23 @@ program_arguments   Arguments to supply to the program program_name.
     )
 
 def run_for_time(t, args):
-    if (len(sys.argv) < 3):
-        print_usage()
-        sys.exit()
-    
-    time_a = (t).split(":")
-    if (len(time_a) != 3):
-        logging.error("Time '%s' in wrong format." % (time_s))
-    
-    sleep_time = int(time_a[2]) + (int(time_a[1]) * 60) + (int(time_a[0])
-        * 60 * 60) # number of seconds to sleep
-    
-    logging.debug("Will sleep for %d seconds." % (sleep_time))
+    t2 = (int(t[0]) * 3600) + (int(t[1]) * 60) + int(t[2])
+    logging.info("Running program:")
+    logging.info("\t%s" % (" ".join(args)))
+    logging.info("Time: %d seconds" % (t2))
     
     proc = subprocess.Popen(args)
     
-    time.sleep(sleep_time)
+    time.sleep(t2)
     
-    try:
-        proc = subprocess.Popen(['sudo', 'kill', '-9', str(proc.pid)])
-        logging.debug("Successfully kill process %d." % (proc.pid))
-        for pa in args:
-            if (pa not in sys_reserved):
-                subprocess.Popen(['sudo', 'killall', '-9', pa])
-                logging.debug("Also killing process '%s'..." % (pa))
-            else:
-                logging.warn("Process '%s' is a system-reserved word."
-                    % (pa))
-    except e:
-        logging.error(e)
+    logging.debug("Killing process '%d'" % (proc.pid))
+    subprocess.call(["sudo", "kill -9", str(proc.pid)])
+    for ar in args:
+        if (ar not in sys_reserved):
+            logging.debug("Also killing '" + ar + "'")
+            subprocess.Popen("sudo killall -9 " + ar)
+    
+    #os.kill(proc.pid, 9)
         
 ##
 # Human-readable utility function for declaring which test
@@ -65,6 +53,15 @@ def print_test_header(arg_time, iter):
     logging.info(border)
     logging.info(init_header)    
     logging.info(border)
+    
+def choose_new_gmon(i = 0):
+    if (not os.path.exists("gmon.out")):
+        pexpect.run('touch gmon.out')
+    elif (os.path.exists("gmon." + str(i) + ".out")):
+        return choose_new_gmon(i+1)
+    else:
+        return "gmon." + str(i) + ".out"
+    
 
 def main():
     # First check for the gmon.out file.
@@ -88,20 +85,22 @@ def main():
     arg_args = sys.argv[2:]
     
     # Generate a new gmon.out file, bumping up the last file index.
-    file_index = 1
-    while (os.path.isfile("gmon.%d.out" % (file_index))):
-        ++file_index
-    new_gmon = "gmon.%d.out" % (file_index)
     
     # Start a loop in case we have a time list
     loop = 0
     for at in arg_time.split(","):
-        print_test_header(at, ++loop)
-        run_for_time(at, arg_args)
-        logging.info("Moving 'gmon.out' to '%s'..." % (new_gmon))
-        shutil.copyfileobj(file("gmon.out"), file(new_gmon))
+        new_gmon = choose_new_gmon()
+        loop += 1
+        print_test_header(at.split(":"), loop)
+        run_for_time(at.split(":"), arg_args)
+        if (new_gmon != None):
+            logging.debug("Copying 'gmon.out' to '" + new_gmon + "'")
+            shutil.copy("gmon.out", new_gmon)
+            
     sys.exit()
     
 if __name__=="__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(
+        format="%(levelname)s\t[%(asctime)s]\t%(msg)s",
+        level=logging.DEBUG)
     main()
