@@ -6,7 +6,6 @@
 #include <libusb-1.0/libusb.h>
 #include <unistd.h>
 
-#include "mouse2.h"
 #include "fcfutils.h"
 
 

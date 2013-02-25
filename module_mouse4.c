@@ -6,7 +6,6 @@
 #include <libusb-1.0/libusb.h>
 #include <unistd.h>
 
-#include "mouse.h"
 #include "fcfutils.h"
 
 
@@ -16,12 +15,11 @@
 #define PID 0x0053
 
 static const int g_dev_IN_EP = 0x81;
-
-libusb_context *context;
-struct libusb_transfer * transfer[1];
+static libusb_context *context;
+static struct libusb_transfer * transfer[1];
 static int packet_size;
 
-extern void fcf_callback_mouse(unsigned char *, int);
+extern void fcf_callback_mouse4(unsigned char *, int);
 
 static struct timeval nonblocking = {
 		.tv_sec = 0,
@@ -31,13 +29,13 @@ static struct timeval nonblocking = {
 
 /**	START FUNCTIONS */
 
-void mouse_handler(int idx){
+void mouse4_handler(int idx){
 	//printf("Callback function for fd %d\n", idx);
 	libusb_handle_events_timeout(context, &nonblocking);
 }
 
 
-int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_transfer_cb_fn cb, void * data, unsigned int timeout){
+ static int start_usb_transfer(libusb_device_handle * hand, unsigned int ep, libusb_transfer_cb_fn cb, void * data, unsigned int timeout){
 	
 	unsigned char * buf;
 	int usb_err;
@@ -55,7 +53,7 @@ int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_tr
 		return -1;
 	}
 
-	libusb_fill_interrupt_transfer(transfer[0], handle, ep, buf, packet_size, cb, data, timeout);
+	libusb_fill_interrupt_transfer(transfer[0], hand, ep, buf, packet_size, cb, data, timeout);
 
 	transfer[0]->flags = LIBUSB_TRANSFER_FREE_BUFFER;
 	usb_err = libusb_submit_transfer(transfer[0]);
@@ -72,7 +70,7 @@ int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_tr
 }
 
 
-void data_callback(){
+static void data_callback4(){
 	unsigned char *buf = NULL;
     int act_len;
     int retErr;
@@ -91,7 +89,7 @@ void data_callback(){
         }
 
 		// Call to CGS mouse handler.
-		fcf_callback_mouse(buf, act_len);
+		fcf_callback_mouse4(buf, act_len);
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:
@@ -100,13 +98,13 @@ void data_callback(){
         break;
     default:
         //print_libusb_transfer_error(transfer->status, "common_cb");
-		printf("data_callback() error\n");
+		printf("data_callback4() error\n");
         break;
     }
 }
 
 
-libusb_device * find_device(libusb_device ** devices, int cnt){
+static libusb_device * find_device(libusb_device ** devices, int cnt){
 	
 	struct libusb_device_descriptor desc;
 	int i, error;
@@ -126,9 +124,9 @@ libusb_device * find_device(libusb_device ** devices, int cnt){
 				return devices[i];
 			}
 		}
-		if(desc.idVendor==0x046D){
-			if(desc.idProduct==0xC03E){
-				//ID 046d:c03e Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
+		if(desc.idVendor==0x045E){
+			if(desc.idProduct==0x00E1){
+				//ID 045e:00e1 Microsoft Corp. Wireless Laser Mouse 6000 Reciever
 				libusb_set_debug(context, 3);
 				return devices[i];
 			}
@@ -144,12 +142,13 @@ libusb_device * find_device(libusb_device ** devices, int cnt){
 	return NULL;
 }
 
-int init_mouse(){
+
+int init_mouse4(){
 	
 	int error, cnt;
-	libusb_device_handle *handle;
-	libusb_device **devs, *device;
-	const struct libusb_pollfd ** fds;
+	libusb_device **devs, *device2; // Can be local.
+	libusb_device_handle *handle2;
+	const struct libusb_pollfd ** fds2;
 	
 	error = libusb_init(&context);
 	if(error){
@@ -165,8 +164,8 @@ int init_mouse(){
     }
 
 	// Find device in list of USB device. Return on error.
-	device = find_device(devs, cnt);
-	if(!device){
+	device2 = find_device(devs, cnt);
+	if(!device2){
 		printf("No device with matching vid/pid found.\n");
 		return -1;
 	}
@@ -178,7 +177,7 @@ int init_mouse(){
 		operator. When I changed it ot this, it worked, or at least
 		stopped the segfaults.
 	*/
-	error = libusb_open(device, &handle);
+	error = libusb_open(device2, &handle2);
 	if(error!=0){
 		printf("Error code on open: %s.\n", libusb_error_name(error)); 
 		return -1;
@@ -186,7 +185,7 @@ int init_mouse(){
 
 	// Although handle shouldn't be NULL at this point, this will release
 	// libusb device list and exit.
-	if (handle==NULL) {
+	if (handle2==NULL) {
 		printf("No handle found.\n");
         libusb_free_device_list(devs, 1);
         libusb_exit(NULL);
@@ -197,36 +196,36 @@ int init_mouse(){
 	// the kernal driver so we can claim interface. I commented out
 	// the error code since it will error when already having been 
 	// previsouly detached on earlier run of program.
-	error = libusb_detach_kernel_driver(handle, 0);
+	error = libusb_detach_kernel_driver(handle2, 0);
 	if(error!=0){
-		//printf("Error code on open: %s.\n", libusb_error_name(error)); 
+		printf("Error code on kernel detach: %s.\n", libusb_error_name(error)); 
 		//return -1;
 	}
 
 	// Tries setting the configuration
-	error = libusb_set_configuration(handle, 1);
+	error = libusb_set_configuration(handle2, 1);
 	if(error!=0){
-		printf("Error code on open: %s.\n", libusb_error_name(error)); 
+		printf("Error code on set config: %s.\n", libusb_error_name(error)); 
 		return -1;
 	}
   
-	if(libusb_claim_interface(handle, 0) < 0){ 
+	if(libusb_claim_interface(handle2, 0) < 0){ 
 		printf("Could not claim interface\n"); 
-		libusb_close(handle); 
+		libusb_close(handle2); 
 		return 1; 
 	} 
   
 	
   
-	fds = libusb_get_pollfds(context);
+	fds2 = libusb_get_pollfds(context);
 	
 	int num = 0;
-	for(num=0; fds[num] != NULL; num++){
-		fcf_add_fd("mouse", fds[num]->fd, fds[num]->events, mouse_handler);
+	for(num=0; fds2[num] != NULL; num++){
+		fcf_add_fd("mouse4", fds2[num]->fd, fds2[num]->events, mouse4_handler);
 	}
 
-	packet_size = libusb_get_max_packet_size (libusb_get_device (handle), g_dev_IN_EP);
-	start_usb_transfer(handle, g_dev_IN_EP, data_callback, NULL, 0);
+	packet_size = libusb_get_max_packet_size (libusb_get_device (handle2), g_dev_IN_EP);
+	start_usb_transfer(handle2, g_dev_IN_EP, data_callback4, NULL, 0);
 
 	return 0;
 }

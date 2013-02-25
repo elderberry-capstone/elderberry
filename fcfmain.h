@@ -9,5 +9,7 @@ extern void fcf_callback_gyr(char *buff, int length);
 extern void fcf_callback_acc(char *buff, int length);
 extern void fcf_callback_mouse(unsigned char *buff, int length);
 extern void fcf_callback_mouse2(unsigned char *buff, int length);
+extern void fcf_callback_mouse3(unsigned char *buff, int length);
+extern void fcf_callback_mouse4(unsigned char *buff, int length);
 
 #endif

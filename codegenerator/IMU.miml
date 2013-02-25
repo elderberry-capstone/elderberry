@@ -7,25 +7,25 @@ final: imuFinalize();
 
 senders: {
   sendIMUData: {
-    source: {pos: 1, type: int32_t}
-    x: {pos: 2, type: int}
-    y: {pos: 3, type: int}
+    source: {pos: 1, type: int32_t},
+    x: {pos: 2, type: int},
+    y: {pos: 3, type: int},
     z: {pos: 4, type: int}
-  }
+  },
   sendGPSData: {
-    source: {pos: 1, type: int32_t}
-    x: {pos: 2, type: int}
-    y: {pos: 3, type: int}
+    source: {pos: 1, type: int32_t},
+    x: {pos: 2, type: int},
+    y: {pos: 3, type: int},
     z: {pos: 4, type: int}
-  }
+  },
   sendALTData: {
-    source: {pos: 1, type: int32_t}
-    x: {pos: 2, type: int}
-    y: {pos: 3, type: int}
+    source: {pos: 1, type: int32_t},
+    x: {pos: 2, type: int},
+    y: {pos: 3, type: int},
     z: {pos: 4, type: int}
-  }
+  },
   sendIMULogMessage: {
-    source: {pos: 1, type: int32_t}
+    source: {pos: 1, type: int32_t},
     buffer: {pos: 2, type: char*}
   }
 }
