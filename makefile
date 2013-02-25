@@ -5,7 +5,7 @@
 
 CC := gcc 
 WARNINGS := -Wall
-CFLAGS := -g -std=c99  $(pkg-config --cflags libusb-1.0) $(WARNINGS)
+CFLAGS := -g -std=c99  $(pkg-config --cflags libusb-1.0) $(WARNINGS) -pg
 LIBS := 
 
 
