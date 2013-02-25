@@ -16,7 +16,7 @@
 #include "module_testIMU.h"
 #include "module_testLoggerDisk.h"
 #include "module_testLoggerScreen.h"
-#include "module_test_framework.h"
+//#include "module_test_framework.h"
 
 
 
@@ -28,10 +28,10 @@ void fcf_init() {
 
 	// User module inits
 	//init_diskLogger();
-	//init_mouse3();
-	//init_mouse();
-	//init_theo_imu();
-	init_test();
+	init_mouse3();
+	init_mouse();
+	init_theo_imu();
+	//init_test();
 }
 
 
