@@ -6,22 +6,22 @@ init: sensorFusionInit();
 
 senders: {
   sendSFPositionData: {
-    source: {pos: 1, type: int32_t}
-    x: {pos: 2, type: int}
-    y: {pos: 3, type: int}
+    source: {pos: 1, type: int32_t},
+    x: {pos: 2, type: int},
+    y: {pos: 3, type: int},
     z: {pos: 4, type: int}
-  }
+  },
   sendSFLogMessage: {
-    source: {pos: 1, type: int32_t}
+    source: {pos: 1, type: int32_t},
     buffer: {pos: 2, type: char*}
   }
 }
 
 receivers: {
   getIMUPositionData: {
-    source: {pos: 1, type: int32_t}
-    x: {pos: 2, type: int}
-    y: {pos: 3, type: int}
+    source: {pos: 1, type: int32_t},
+    x: {pos: 2, type: int},
+    y: {pos: 3, type: int},
     z: {pos: 4, type: int}
   }
 }

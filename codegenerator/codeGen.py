@@ -49,6 +49,7 @@ class ErrorReporter:
                 print (warning)
 
 class OutputGenerator:
+    # Tested. Still needs to put data into files.
 
     # What we want here is:
     #    RootDictionary { ModeDictionary { LevelDictionary { OutputList [] }}}
@@ -66,15 +67,17 @@ class OutputGenerator:
         self.output[mode][level].append(data)
 
     def display(self):
-        pass
+        for mode in self.output.keys():
+            for level in self.output[mode].keys():
+                for message in self.output[mode][level]:
+                    print (mode, "->", level, "->", message)
 
 class ArgumentChecker:
 
     def __init__(self, err):
         if len(sys.argv) > 3 or len(sys.argv) < 2:
-            err.new_error(
-              "Illegal number of arguments! Expected 1 or 2, received: ",
-              len(sys.argv) -1)
+            err.new_error("Illegal number of arguments! Expected 1 or 2, received: "
+            + str(len(sys.argv) -1))
         else:
             self.modes = {'code': False, 'make': False, 'header': False}
             if len(sys.argv) == 2:
@@ -86,11 +89,11 @@ class ArgumentChecker:
     def set_modes(self, modes, err):
         match = re.match(r"^-[cmh]+$", modes)
         if match:
-            if re.match(r"(?=.*c)", modes):
+            if re.match(r"(.*c)", modes):
                 self.modes['code'] = True
-            if re.match(r"(?=.*m)", modes):
+            if re.match(r"(.*m)", modes):
                 self.modes['make'] = True
-            if re.match(r"(?=.*h)", modes):
+            if re.match(r"(.*h)", modes):
                 self.modes['header'] = True
         else:
             err.new_error("Illegal mode usage, expecting -[chm]. Given : " + modes)
@@ -101,25 +104,12 @@ class ArgumentChecker:
         elif access(filename, R_OK) == False:
             err.new_error("Main MIML file: '" + filename + "' cannot be opened for reading!")
 
-class ParsePath:
+class Parser:
 
-    def __init__(self):
-        self.path = ['']
-
-    def append(self, token):
-        self.path.append(token)
-
-    def pop(self):
-        self.path.pop()
-
-    def getPath(self):
-        return '/'.join(self.path)
-
-class ParseRouter:
-
-    def __init__(self, filename):
+    def __init__(self, filename, err):
+        self.err = err
         self.parse_handlers = yaml.load(open(filename))
-        self.path = ParsePath()
+        self.path = ['']
         self.output = OutputGenerator()
 
     def parse(self, data):
@@ -138,15 +128,15 @@ class ParseRouter:
 
     def matchpath(self, data):
         for key in self.parse_handlers.keys():
-            if self.path.getPath() == self.parse_handlers[key]['path']:
+            if '/'.join(self.path) == self.parse_handlers[key]['path']:
                 eval('self.output.' + key)(data)
                 return True
         return False
 
-
 errors = ErrorReporter()
 args = ArgumentChecker(errors)
-
 if errors.has_errors() == True:
     errors.display()
     sys.exit(0)
+parser = Parser('./cg.conf', errors)
+

@@ -52,4 +52,5 @@ messages: {
 
   CTL.sendCTLLogMessage:
     - LOG.getLogMessage
+}
 
