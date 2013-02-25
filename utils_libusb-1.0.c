@@ -21,6 +21,25 @@ void libusb_cb(int idx) {
 }
 
 
+static void usb_fd_added_cb(int fd, short events, void * source){
+	
+	// NOTE: possible solution to token problem
+	/*static int offset = 1;
+	if(source==NULL){
+		char * dev_name;
+		sprintf(dev_name, "dev_%d", offset);
+		source = dev_name;
+		offset++;
+	}*/
+
+	fcf_add_fd(source, fd, events, libusb_cb);
+}
+
+
+static void usb_fd_removed_cb(int fd, void* source){
+	fcf_remove_fd (fd);
+}
+
 
 int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_transfer_cb_fn cb, void * data, int packet_size, unsigned int timeout){
 	
@@ -57,6 +76,7 @@ int start_usb_transfer(libusb_device_handle * handle, unsigned int ep, libusb_tr
     return 0;
 }
 
+
 libusb_device_handle * get_handle(char *dev_name, libusb_device ** devs, libusb_device * device){
 	int iface_num[1] = {0}, rc;
 	libusb_device_handle *handle;
@@ -81,7 +101,7 @@ libusb_device_handle * get_handle(char *dev_name, libusb_device ** devs, libusb_
 		libusb_close(handle);
 		return NULL;
 	}
-	if(rc > 0){ //the kernel driver is active (kd_stat = 1)
+	if(rc > 0){ 
 		rc = libusb_detach_kernel_driver(handle, iface_num[0]);
 		if(rc){
 			printf("[%s] libusb: Could not detach kernel driver.\n", dev_name);
@@ -140,10 +160,12 @@ int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_tr
 	libusb_device **devs, *device;
 	const struct libusb_pollfd ** fds;
 
-	rc = libusb_init(&context);
-	if(rc){
-		printf("[%s] libusb: init failed.\n", dev_name);
-		return -1;
+	if(context==NULL){
+		rc = libusb_init(&context);
+		if(rc){
+			printf("[%s] libusb: init failed.\n", dev_name);
+			return -1;
+		}
 	}
 
 	// Get a list of all the devices. Return on error.
@@ -162,7 +184,8 @@ int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_tr
 
 	handle = get_handle(dev_name, devs, device);
 	if(handle == NULL){
-		// FAIL
+		printf("[%s] Error: Invalid handle returned by get_handle().\n", dev_name);
+		return -1;
 	}
 
 	fds = libusb_get_pollfds(context);
@@ -171,8 +194,13 @@ int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_tr
 		fcf_add_fd(dev_name, fds[cnt]->fd, fds[cnt]->events, libusb_cb);
 	}
 
+	free(fds);
+
 	packet_size = libusb_get_max_packet_size (libusb_get_device(handle), endpoint);
 	start_usb_transfer(handle, endpoint, cb, NULL, packet_size, 0);
+
+	libusb_set_pollfd_notifiers(context, usb_fd_added_cb, usb_fd_removed_cb, NULL);
+
 
 	return 0;
 }
