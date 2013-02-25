@@ -112,7 +112,7 @@ int fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
 
 
 //add per poll cycle file descriptor
-int fcf_addfd_ppc (const char *token, int fd, short events, pollfd_callback cb)
+int fcf_add_fd_ppc (const char *token, int fd, short events, pollfd_callback cb)
 {
 	int i = fcf_add_fd (token, fd, events, cb);
 	if (i >= 0) {

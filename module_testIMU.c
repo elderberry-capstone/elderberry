@@ -24,21 +24,21 @@
 extern void fcf_callback_gyr(char *, int);
 extern void fcf_callback_acc(char *, int);
 
-static int readsocket(int fd, char *buffer, int bufsize);
+static int readsocket(int fd, char *buffer, int bufsize, const char *);
 static int getsocket(int serverport);
 
 static char _buffer [1024];
 
 void gyr_handler(int idx) {
 	struct pollfd *fd = fcf_get_fd(idx);
-	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
+	int length = readsocket(fd->fd, _buffer, sizeof(_buffer), "gyr");
 	fcf_callback_gyr(_buffer, length);
 }
 
 
 void acc_handler(int idx) {
 	struct pollfd *fd = fcf_get_fd(idx);
-	int length = readsocket(fd->fd, _buffer, sizeof(_buffer));
+	int length = readsocket(fd->fd, _buffer, sizeof(_buffer), "acc");
 	fcf_callback_acc(_buffer, length);
 }
 /**
@@ -48,50 +48,13 @@ void acc_handler(int idx) {
 void init_theo_imu() {
 	printf ("probing gyro: (waiting for connection localhost:8081)\n");
 	int fd1 = getsocket(8081);
-	fcf_add_fd ("gyr", fd1, POLLIN, gyr_handler);
+	fcf_add_fd("gyr", fd1, POLLIN, gyr_handler);
 
 	printf ("probing acc: (waiting for connection localhost:8082)\n");
 	int fd2 = getsocket(8082);
-	fcf_add_fd ("acc", fd2, POLLIN, acc_handler);
+	fcf_add_fd("acc", fd2, POLLIN, acc_handler);
 }
 
-
-int fileA_handler(int fd, char *buffer, int bufsize) {
-  /***
-*  In this function we point buffer at a message from device.
-*  This function handles a particular message type (fileA).
-*/
-	// allocate memory for message, perhaps one static buffer for life or app?
-	// change the pointer that points to buffer to point to this data.
-	// This function hides all the ugly work of getting "The Message" off of the
-	// hardware device. Every hardware interfacing module that sends messages will
-	// have specific callback functions for each message type to send.
-
-	return readsocket(fd, buffer, bufsize);
-}
-
-/**
- *  @brief This function handles a particular message type (fileB)
- *  @details This function hides all of the ugly work of getting "The Message" off of the hardware device. Every hardware interfacing module that sends messages will have specific callback functionsfor each message type to send.
- *  @param fd File Descriptor
- *  @param buffer Contents of character buffer
- *  @param bufsize Size/length of buffer
- */
-int fileB_handler(int fd, char *buffer, int bufsize) {
-/***
-*  In this function we point buffer at a message from device.
-*  This function handles a particular message type (fileB).
-*/
-  // allocate memory for message, perhaps one static bufffer for life or app?
-  // change the pointer that points to buffer to point to this data.
-  // This function hides all the ugly work of getting "The Message" off of the
-  // hardware device. Every hardware interfacting module that sends messages will
-  // have specific callback functions for each message type to send.
-
-	return readsocket(fd, buffer, bufsize);
-}
-
-// Other private functions to do stuff.
 
 
 /**
@@ -101,7 +64,7 @@ int fileB_handler(int fd, char *buffer, int bufsize) {
  *  @param buffer Contents of character buffer
  *  @param bufsize Size/length of buffer
  */
-static int readsocket(int fd, char *buffer, int bufsize) {
+static int readsocket(int fd, char *buffer, int bufsize, const char * src) {
 	/*****************************************************/
 	/* Receive data on this connection until the         */
 	/* recv fails with EWOULDBLOCK. If any other        */
@@ -127,6 +90,7 @@ static int readsocket(int fd, char *buffer, int bufsize) {
 	if (rc == 0)
 	{
 		printf("  Connection closed\n");
+		fcf_remove_fd_by_token(src);
 		return -1;
 	}
 

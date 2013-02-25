@@ -27,9 +27,9 @@ void fcf_init() {
 	init_fcf();			//< Special FCF init that sets up fd structures
 
 	// User module inits
-	//init_diskLogger();
-	init_mouse3();
-	init_mouse();
+	init_diskLogger();
+	//init_mouse3();
+	//init_mouse();
 	init_theo_imu();
 	//init_test();
 }
