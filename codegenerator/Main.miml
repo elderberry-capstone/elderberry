@@ -1,60 +1,55 @@
 %YAML 1.2
 ---
 sources: {
-  IMU: ./IMU.miml
-  SF: ./SensorFusion.miml
-  CTL: ./Control.miml
+  IMU: ./IMU.miml,
+  SF: ./SensorFusion.miml,
+  CTL: ./Control.miml,
   LOG: ./Logger.miml
 }
 
-initalize: {
+initalize:
   - LOG
   - IMU
   - CTL
   - SF
-}
 
-finalize: {
+finalize:
   - SF
   - IMU
   - CTL
   - LOG
-}
 
 messages: {
   # IMU Messages
-  IMU.sendIMUData: {
+  IMU.sendIMUData:
     - SF.getIMUPositionData
     - LOG.getPositionMessage
-  }
-  IMU.sendGPSData: {
+
+  IMU.sendGPSData:
     - SF.getIMUPositionData
     - LOG.getPositionMessage
-  }
-  IMU.sendALTData: {
+
+  IMU.sendALTData:
     - SF.getIMUPositionData
     - LOG.getPositionMessage
-  }
-  IMU.sendIMULogMessage: {
+
+  IMU.sendIMULogMessage:
     - LOG.getLogMessage
-  }
 
   # Sensor Fusion Messages
-  SF.sendSFPositionData: {
+  SF.sendSFPositionData:
     - CTL.getSFPositionData
     - LOG.getPositionMessage
-  }
-  SF.sendSFLogMessage: {
+
+  SF.sendSFLogMessage:
     - LOG.getLogMessage
-  }
 
   # Control Messages
-  CTL.sendRollControlAdjustment: {
+  CTL.sendRollControlAdjustment:
     # I did not define the next module in this example but this
     # would be the receiver for altering roll control hardware.
     - LOG.getPositionMessage
-  }
-  CTL.sendCTLLogMessage: {
+
+  CTL.sendCTLLogMessage:
     - LOG.getLogMessage
-  }
-}
+
