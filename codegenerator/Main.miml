@@ -1,5 +1,3 @@
-%YAML 1.2
----
 sources: {
   IMU: ./IMU.miml,
   SF: ./SensorFusion.miml,
@@ -7,7 +5,7 @@ sources: {
   LOG: ./Logger.miml
 }
 
-initalize:
+initialize:
   - LOG
   - IMU
   - CTL
@@ -19,7 +17,7 @@ finalize:
   - CTL
   - LOG
 
-messages: {
+messages:
   # IMU Messages
   IMU.sendIMUData:
     - SF.getIMUPositionData
@@ -52,5 +50,3 @@ messages: {
 
   CTL.sendCTLLogMessage:
     - LOG.getLogMessage
-}
-
