@@ -8,6 +8,8 @@
 
 #include "utils_libusb-1.0.h"
 
+extern void fcf_callback_mouse(unsigned char *, int);
+
 /**	START DATA */
 
 static const int VID = 0x045e;
