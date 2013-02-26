@@ -16,7 +16,7 @@ class ParserStates:
     # Actual output writting happens when all these phases are complete and is not part of "parsing".
     Expand, Validate, Parse = range(3)
 
-class ErrorReporter:
+class ErrorLogger:
     # Class Implementation complete and tested - RA
     def __init__(self):
         self.errors = []
@@ -81,8 +81,9 @@ class OutputGenerator:
     # This way different Handlers can be invoked for different purposes 
     #   and order their output as they wish.
 
-    def __init__(self):
+    def __init__(self, mode_flags):
         self.output = defaultdict(lambda: defaultdict(list))
+        self.mode_flags = mode_flags
 
     def append(self, mode, level, data):
         self.output[mode][level].append(data)
@@ -93,70 +94,35 @@ class OutputGenerator:
                 for message in self.output[mode][level]:
                     print (mode, "->", level, "->", message)
 
-class ArgumentChecker:
-
-    def __init__(self, err):
-        if len(sys.argv) > 3 or len(sys.argv) < 2:
-            err.new_error("Illegal number of arguments! Expected 1 or 2, received: "
-            + str(len(sys.argv) -1))
-        else:
-            self.modes = {'code': False, 'make': False, 'header': False}
-            if len(sys.argv) == 2:
-                self.set_modes("-cmh", err)
-            else:
-                self.set_modes(sys.argv[1], err)
-            self.check_config(sys.argv[len(sys.argv) - 1], err)
-        err.check()
-            
-    def set_modes(self, modes, err):
-        match = re.match(r"^-[cmh]+$", modes)
-        if match:
-            if re.match(r"(.*c)", modes):
-                self.modes['code'] = True
-            if re.match(r"(.*m)", modes):
-                self.modes['make'] = True
-            if re.match(r"(.*h)", modes):
-                self.modes['header'] = True
-        else:
-            err.new_error("Illegal mode usage, expecting -[chm]. Given : " + modes)
-
-    def check_config(self, filename, err):
-        if err.check_file(filename):
-            self.miml_file = filename
-
 class Parser:
 
-    def __init__(self, filename, err):
-        self.errors = err
+    def __init__(self, filename):
+        self.errors = ErrorLogger()
+        if self.argument_check():
+            self.errors.check_file(filename)
+        self.errors.check()
         try:
             self.parse_handlers = yaml.load(open(filename, 'r'))
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
         self.errors.check()
         self.path = ['']
-        self.output = OutputGenerator()
-        self.handler_functions = ParseHandlers(self.output, self.errors)
+        self.output = OutputGenerator(self.modes)
 
-    def parse(self, miml):
+    def parse(self):
         # top level 'public' function. Since we have external MIML docs we need to pull those in
         # before we crawl, so order of processing matters even though order of MIML elements does not.
         try:
-            self.root = yaml.load(open(miml, 'r'))
+            self.root = yaml.load(open(self.miml_file, 'r'))
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
             self.errors.check()
-        #  Expand
-        self.mode = ParserStates.Expand
-        self.crawl(self.root)
-        self.errors.check()
-        #  Validate
-        self.mode = ParserStates.Validate
-        self.crawl(self.root)
-        self.errors.check()
-        #  Expand
-        self.mode = ParserStates.Parse
-        self.crawl(self.root)
-        self.errors.check()
+        # Do Expand, Validate, Parse
+        self.handler_functions = ParseHandlers(self.root, self.output, self.errors)
+        for state in [ParserStates.Expand, ParserStates.Validate, ParserStates.Parse]:
+            self.mode = state
+            self.crawl(self.root)
+            self.errors.check()
         # Output
         self.output.display()
 
@@ -183,16 +149,44 @@ class Parser:
         # the data it handles, for the mode it is in.
         return_value = False
         for key in self.parse_handlers.keys():
-            if '/'.join(self.path) == self.parse_handlers[key]['path']:
+            if self.wildcard_match_path(self.parse_handlers[key]['path']):
                 return_value = return_value | getattr(self.handler_functions, key)(self.mode, data)
         return return_value
+
+    def wildcard_match_path(self, path):
+        if '/'.join(self.path) == path:
+            return True
+        return False
+
+    def argument_check(self):
+
+        if len(sys.argv) > 3 or len(sys.argv) < 2:
+            self.errors.new_error("Illegal number of arguments! Expected 1 or 2, received: "
+            + str(len(sys.argv) -1))
+            return False
+        self.modes = {'code': False, 'make': False, 'header': False}
+        self.miml_file = sys.argv[len(sys.argv) - 1]
+        mode_flags = "-cmh" if len(sys.argv) == 2 else self.set_modes(sys.argv[1])
+        match = re.match(r"^-[cmh]+$", mode_flags)
+        if match:
+            if re.match(r"(.*c)", mode_flags):
+                self.modes['code'] = True
+            if re.match(r"(.*m)", mode_flags):
+                self.modes['make'] = True
+            if re.match(r"(.*h)", mode_flags):
+                self.modes['header'] = True
+            return True
+        else:
+            self.errors.new_error("Illegal mode usage, expecting -[chm]. Given : " + mode_flags)
+        return False
 
     def debug(self):
         print (yaml.dump(self.root))
 
 class ParseHandlers:
 
-    def __init__(self, output, err):
+    def __init__(self, root, output, err):
+        self.root = root
         self.output = output
         self.errors = err
 
@@ -210,14 +204,30 @@ class ParseHandlers:
         if mode == ParserStates.Validate:
             # Check that each token in Initialize has a defined init function, and that is Cish....
             for token in data:
-                
-                print ("Validate Initialize")
+                if not token in self.root['sources']:
+                    self.errors.new_error("Token: '" + token + "' exists in initialize but has no source.")
+                elif not "init" in self.root['sources'][token]:
+                    self.errors.new_error("Source: '" + token + "' exists in initialize but has no init.")
         if mode == ParserStates.Parse:
-            print ("Parsing Initialize")
+            self.output.append("code", 2, "void initialize() {")
+            for token in data:
+                self.output.append("code", 2, "    " + self.root['sources'][token]['init'])
+            self.output.append("code", 2, "}")
         return True
 
     def parse_finalize(self, mode, data):
-        print ("finalize")
+        if mode == ParserStates.Validate:
+            # Check that each token in Finalize has a defined final function, and that is Cish....
+            for token in data:
+                if not token in self.root['sources']:
+                    self.errors.new_error("Token: '" + token + "' exists in finalize but has no source.")
+                elif not "final" in self.root['sources'][token]:
+                    self.errors.new_error("Source: '" + token + "' exists in finalize but has no final.")
+        if mode == ParserStates.Parse:
+            self.output.append("code", 3, "void finalize() {")
+            for token in data:
+                self.output.append("code", 3, "    " + self.root['sources'][token]['final'])
+            self.output.append("code", 3, "}")
         return True
 
     def parse_messages(self, mode, data):
@@ -248,11 +258,8 @@ class ParseHandlers:
         print ("receivers")
         return True
 
-errors = ErrorReporter()
-args = ArgumentChecker(errors)
-
-parser = Parser('./cg.conf', errors)
-parser.parse(args.miml_file)
+parser = Parser('./cg.conf')
+parser.parse()
 parser.debug()
 
 
