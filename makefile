@@ -5,13 +5,13 @@
 
 CC := gcc 
 WARNINGS := -Wall
-CFLAGS := -g -std=c99  $(pkg-config --cflags libusb-1.0) $(WARNINGS) -pg
+CFLAGS := -g -std=gnu99  $(pkg-config --cflags libusb-1.0) $(WARNINGS) -pg
 LIBS := 
 
 
 all: fc
 
-fc: fcfutils.o fcfmain.o module_testIMU.o module_testLoggerDisk.o module_testLoggerScreen.o module_mouse.o module_mouse3.o module_test_framework.o utils_libusb-1.0.o -lusb-1.0
+fc: fcfutils.o fcfmain.o module_testIMU.o module_testLoggerDisk.o module_testLoggerScreen.o module_mouse.o module_mouse3.o module_profile.o utils_libusb-1.0.o -lusb-1.0
 
 %.o: %.c $(DEPS)
 	$(CC) -c $< -o $@ $(CFLAGS) 
