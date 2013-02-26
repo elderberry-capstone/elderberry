@@ -90,6 +90,7 @@ class OutputGenerator:
 
     def display(self):
         for mode in self.output.keys():
+            print ("\n")
             for level in self.output[mode].keys():
                 for message in self.output[mode][level]:
                     print (mode, "->", level, "->", message)
@@ -181,7 +182,7 @@ class Parser:
         return False
 
     def debug(self):
-        print (yaml.dump(self.root))
+        print ("\n\n" + yaml.dump(self.root))
 
 class ParseHandlers:
 
@@ -197,7 +198,25 @@ class ParseHandlers:
                     try:
                         sources[token] = yaml.load(open(sources[token], 'r'))
                     except Exception as e:
-                        self.err.new_error("YAML parsing error: " + str(e))
+                        self.errors.new_error("YAML parsing error: " + str(e))
+        if mode == ParserStates.Validate:
+            for token in sources.keys():
+                if not "include" in sources[token]:
+                    self.errors.new_error("Token: '" + token + "' does not have an include file defined.")
+                if not "object" in sources[token]:
+                    self.errors.new_error("Token: '" + token + "' does not have an object file defined.")
+        if mode == ParserStates.Parse:
+            for token in sources.keys():
+                self.output.append("code", 1, "#include '" + sources[token]['include'] + "'")
+                self.output.append("make", 1, "ObjectFile: '" + sources[token]['object'] + "'")
+                if "senders" in sources[token]:
+                    for sender in sources[token]['senders']:
+                        prototype = "void " + sender + '('
+                        params = []
+                        for param in sources[token]['senders'][sender]:
+                            params.append(param[1])
+                        prototype += ", ".join(params)
+                        self.output.append("header", 1, prototype + ");") 
         return True
 
     def parse_initialize(self, mode, data):
@@ -231,7 +250,6 @@ class ParseHandlers:
         return True
 
     def parse_messages(self, mode, data):
-        print ("messages")
         return True
 
     def parse_include(self, mode, data):

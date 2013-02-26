@@ -5,15 +5,12 @@ object: logger.o
 init: loggerInit();
 final: loggerFinal();
 
-receivers: {
-  getLogMessage: {
-    source: {pos: 1, type: int32_t},
-    buffer: {pos: 2, type: char*}
-  },
-  getPositionMessage: {
-    source: {pos: 1, type: int32_t},
-    x: {pos: 2, type: int},
-    y: {pos: 3, type: int},
-    z: {pos: 4, type: int}
-  }
-}
+receivers:
+  getLogMessage:
+  - [source, int32_t]
+  - [buffer, char*]
+  getPositionMessage:
+  - [source, int32_t]
+  - [x, int]
+  - [y, int]
+  - [z, int]
