@@ -22,17 +22,20 @@ void libusb_cb(int idx) {
 
 
 static void usb_fd_added_cb(int fd, short events, void * source){
+	printf("Adding this fd after the fact: %d\n", fd);
 	
-	// NOTE: possible solution to token problem
-	/*static int offset = 1;
-	if(source==NULL){
-		char * dev_name;
-		sprintf(dev_name, "dev_%d", offset);
-		source = dev_name;
-		offset++;
-	}*/
+	if(fd){
+		// NOTE: possible solution to token problem
+		static int offset = 1;
+		if(source==NULL){
+			char dev_name[1024];
+			sprintf(dev_name, "dev_%d", offset);
+			source = dev_name;
+			offset++;
+		}
 
-	fcf_add_fd(source, fd, events, libusb_cb);
+		fcf_add_fd(source, fd, events, libusb_cb);
+	}
 }
 
 

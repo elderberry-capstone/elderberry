@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <limits.h>
 
 
 void init_screenLogger () {
@@ -25,6 +26,21 @@ void screenLogger_getMessage(const char *src, char *buffer, int len) {
 		char c = buffer[i];
 		printf ("%X(%c) ", c, c < 32 ? '.': c);
 	}
+	printf("\n");
+}
+
+void screenLogger_getTemp(const char *src, char *buffer, int len) {
+	// some data has been passed into this function for consumption.
+	unsigned char msb = buffer[3];
+	unsigned char lsb = buffer[2];
+	unsigned short ret = msb<<CHAR_BIT|lsb;
+
+	int offset = 18;
+
+	double celc = ret/128;
+	int fahr = (int)((celc * (9/5)) + 32 + offset);
+
+	printf("\nTemp: %d F\n", fahr);
 	printf("\n");
 }
 

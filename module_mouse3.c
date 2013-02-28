@@ -10,8 +10,8 @@
 
 /**	START DATA */
 
-static const int VID = 0x1532;
-static const int PID = 0x000a;
+static const int VID = 0x046d;
+static const int PID = 0xc03e;
 static const int EPT = 0x81;
 
 extern void fcf_callback_mouse3(unsigned char *, int);

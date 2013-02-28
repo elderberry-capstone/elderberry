@@ -14,8 +14,10 @@
 #include "module_mouse3.h"
 #include "module_mouse4.h"
 #include "module_testIMU.h"
+#include "module_temp.h"
 #include "module_testLoggerDisk.h"
 #include "module_testLoggerScreen.h"
+#include "module_profile.h"
 //#include "module_test_framework.h"
 
 
@@ -27,11 +29,13 @@ void fcf_init() {
 	init_fcf();			//< Special FCF init that sets up fd structures
 
 	// User module inits
-	init_diskLogger();
-	//init_mouse3();
-	//init_mouse();
-	init_theo_imu();
+	//init_diskLogger();
+	init_mouse3();
+	//init_temp();
+	init_mouse();
+	//init_theo_imu();
 	//init_test();
+	//init_profiling();
 }
 
 
@@ -46,6 +50,9 @@ void fcf_callback_acc(char *buff, int length) {
 	diskLogger_getMessage("acc", buff, length);
 }
 
+void fcf_callback_temp(char *buff, int length){
+	screenLogger_getTemp("temp", buff, length);
+}
 
 void fcf_callback_mouse(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse", buff, length);
@@ -54,6 +61,10 @@ void fcf_callback_mouse(unsigned char *buff, int length){
 
 void fcf_callback_mouse3(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse3", buff, length);
+}
+
+void fcf_callback_profile(unsigned char *buff, int length){
+	profile_getMessage(buff, length);
 }
 
 

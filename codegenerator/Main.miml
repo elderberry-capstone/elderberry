@@ -12,7 +12,6 @@ initialize:
   - SF
 
 finalize:
-  - SF
   - IMU
   - CTL
   - LOG

@@ -5,24 +5,20 @@ object: control.o
 init: controlInit();
 final: controlFinal();
 
-senders: {
-  sendRollControlAdjustment: {
-    source: {pos: 1, type: int32_t},
-    x: {pos: 2, type: int},
-    y: {pos: 3, type: int},
-    z: {pos: 4, type: int}
-  },
-  sendCTLLogMessage: {
-    source: {pos: 1, type: int32_t},
-    buffer: {pos: 2, type: char*}
-  }
-}
+senders:
+  sendRollControlAdjustment:
+  - [source, int32_t]
+  - [x, int]
+  - [y, int]
+  - [z, int]
+  sendCTLLogMessage:
+  - [source, int32_t]
+  - [buffer, char*]
 
-receivers: {
-  getSFPosisitionData: {
-    source: {pos: 1, type: int32_t},
-    x: {pos: 1, type: int},
-    y: {pos: 2, type: int},
-    z: {pos: 3, type: int}
-  }
-}
+receivers:
+  getSFPosisitionData:
+  - [source, int32_t]
+  - [x, int]
+  - [y, int]
+  - [z, int]
+
