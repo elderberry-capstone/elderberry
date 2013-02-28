@@ -4,24 +4,20 @@ include: sensorfusion.h
 object: sensorfusion.o
 init: sensorFusionInit();
 
-senders: {
-  sendSFPositionData: {
-    source: {pos: 1, type: int32_t}
-    x: {pos: 2, type: int}
-    y: {pos: 3, type: int}
-    z: {pos: 4, type: int}
-  }
-  sendSFLogMessage: {
-    source: {pos: 1, type: int32_t}
-    buffer: {pos: 2, type: char*}
-  }
-}
+senders:
+  sendSFPositionData:
+  - [source, int32_t]
+  - [x, int]
+  - [y, int]
+  - [z, int]
+  sendSFLogMessage:
+  - [source, int32_t]
+  - [buffer, char*]
 
-receivers: {
-  getIMUPositionData: {
-    source: {pos: 1, type: int32_t}
-    x: {pos: 2, type: int}
-    y: {pos: 3, type: int}
-    z: {pos: 4, type: int}
-  }
-}
+receivers:
+  getIMUPositionData:
+  - [source, int32_t]
+  - [x, int]
+  - [y, int]
+  - [z, int]
+
