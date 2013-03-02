@@ -20,6 +20,12 @@ program_arguments   Arguments to supply to the program program_name.
 """
     )
 
+
+##
+# Run the program for the specified number of times.
+# @param t: how long to run the program.
+# @param args: The program arguments.
+#
 def run_for_time(t, args):
     t2 = (int(t[0]) * 3600) + (int(t[1]) * 60) + int(t[2])
     logging.info("Running program:")

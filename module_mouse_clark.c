@@ -12,8 +12,8 @@ extern void fcf_callback_mouse_clark(unsigned char *, int);
 
 /**	START DATA */
 // Microsoft Corp. Optical Mouse
-static const int VID = 0x045e;
-static const int PID = 0x0053;
+static const int VID = 0x062a;
+static const int PID = 0x0252;
 static const int EPT = 0x81;
 
 static void data_callback(struct libusb_transfer *transfer){
