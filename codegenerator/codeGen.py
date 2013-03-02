@@ -3,6 +3,7 @@
 import sys
 import re
 import yaml
+import copy
 from os import path, access, R_OK
 from collections import defaultdict
 
@@ -107,23 +108,26 @@ class Parser:
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
         self.errors.check()
+        for handler in self.parse_handlers.keys():
+            self.parse_handlers[handler]['path'] = self.parse_handlers[handler]['path'].split("/")
+        print (yaml.dump(self.parse_handlers))
         self.path = ['']
+        self.state = None
         self.output = OutputGenerator(self.modes)
 
     def parse(self):
         # top level 'public' function. Since we have external MIML docs we need to pull those in
         # before we crawl, so order of processing matters even though order of MIML elements does not.
         try:
-            self.root = yaml.load(open(self.miml_file, 'r'))
+            self.master = yaml.load(open(self.miml_file, 'r'))
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
             self.errors.check()
         # Do Expand, Validate, Parse
-        self.handler_functions = ParseHandlers(self.root, self.output, self.errors)
-        for state in [ParserStates.Expand, ParserStates.Validate, ParserStates.Parse]:
-            self.mode = state
-            self.crawl(self.root)
-            self.errors.check()
+        self.handler_functions = ParseHandlers(self)
+        while self.transition() == True:
+            print ("Starting Mode: " + str(self.state))
+            self.crawl(self.master)
         # Output
         self.output.display()
 
@@ -141,23 +145,60 @@ class Parser:
                     self.crawl (element) 
                 self.path.pop()           
         else:
-            print ('/'.join(self.path))
-            print (data)
             self.matchpath(data)
+
+    def transition(self):
+        return_value = True
+        if self.state == None:
+            # Set new buffer, copy master to unhandled.
+            self.buffer = {}
+            self.unhandled = copy.copy(self.master)
+            self.state = ParserStates.Expand
+        elif self.state == ParserStates.Expand:
+            # Make buffer contents master. 
+            self.master = self.buffer
+            self.buffer = {}
+            print(yaml.dump(self.unhandled))
+            self.unhandled = copy.copy(self.master)
+            self.state = ParserStates.Validate
+        elif self.state == ParserStates.Validate:
+            self.state = ParserStates.Parse
+        else:
+            return_value = False
+        self.errors.check()
+        return return_value
+        
 
     def matchpath(self, data):
         # This method returns True if a handler decides no other parsing is required for
         # the data it handles, for the mode it is in.
+        # 
+        # Goal: Flexible not complicated!!! We could support all kinds of crazy, but we won't!
+        #    '*' means single position wildcard, not arbitrary number of elements.
+        #    handler paths that do not begin with '/' should not contain any '/'.
+        #      They represent single token matches for the immediate point.
+        #
+        # Possible Match Cases: self.path = a / self.parse_handlers[key]['path'] = b
+        # 1 - len(a) == len(b) and ( a[x] == b[x] or b[x] == '*' )
+        # 2 - len(a) != len(b) && len(b) == 1
+        #
+        # Someone may put '*' for path, not sure if I want to make that illegal.
+
         return_value = False
         for key in self.parse_handlers.keys():
-            if self.wildcard_match_path(self.parse_handlers[key]['path']):
-                return_value = return_value | getattr(self.handler_functions, key)(self.mode, data)
+            if len(self.path) == len(self.parse_handlers[key]['path']):
+                match = True
+                for position in range(0, len(self.path)):
+                    if (not self.path[position] == self.parse_handlers[key]['path'][position] and
+                            not self.parse_handlers[key]['path'][position] == '*'):
+                        match = False
+                if match == True:
+                    print ("Match: " + str(self.path) + " | " + str(self.parse_handlers[key]['path']))          
+                    return_value = return_value | getattr(self.handler_functions, key)(data)
+            if len(self.parse_handlers[key]['path']) == 1 and self.parse_handlers[key]['path'][0] == self.path[-1]:
+                print ("Match: " + str(self.path) + " | " + str(self.parse_handlers[key]['path']))          
+                return_value = return_value | getattr(self.handler_functions, key)(data)
         return return_value
-
-    def wildcard_match_path(self, path):
-        if '/'.join(self.path) == path:
-            return True
-        return False
 
     def argument_check(self):
 
@@ -182,102 +223,39 @@ class Parser:
         return False
 
     def debug(self):
-        print ("\n\n" + yaml.dump(self.root))
+        print ("\n\n" + yaml.dump(self.buffer))
 
 class ParseHandlers:
 
-    def __init__(self, root, output, err):
-        self.root = root
-        self.output = output
-        self.errors = err
+    def __init__(self, parser):
+        self.parser = parser
+        self.num_sources = 0
 
-    def parse_sources(self, mode, sources):
-        if mode == ParserStates.Expand:
-            for token in sources.keys():
-                if (self.errors.check_file(sources[token])):
+    def parse_sources(self, sources):
+        if self.parser.state == ParserStates.Expand:
+            # Pull in external file data, place in buffer
+            del(self.parser.unhandled['sources'])
+            self.parser.buffer['modules'] = {}
+            for source in sources:
+                self.num_sources += 1                
+                if (self.parser.errors.check_file(source[1])):
                     try:
-                        sources[token] = yaml.load(open(sources[token], 'r'))
+                        self.parser.buffer['modules'][source[0]] = yaml.load(open(source[1], 'r'))
                     except Exception as e:
-                        self.errors.new_error("YAML parsing error: " + str(e))
-        if mode == ParserStates.Validate:
-            for token in sources.keys():
-                if not "include" in sources[token]:
-                    self.errors.new_error("Token: '" + token + "' does not have an include file defined.")
-                if not "object" in sources[token]:
-                    self.errors.new_error("Token: '" + token + "' does not have an object file defined.")
-        if mode == ParserStates.Parse:
-            for token in sources.keys():
-                self.output.append("code", 1, "#include '" + sources[token]['include'] + "'")
-                self.output.append("make", 1, "ObjectFile: '" + sources[token]['object'] + "'")
-                if "senders" in sources[token]:
-                    for sender in sources[token]['senders']:
-                        prototype = "void " + sender + '('
-                        params = []
-                        for param in sources[token]['senders'][sender]:
-                            params.append(param[1])
-                        prototype += ", ".join(params)
-                        self.output.append("header", 1, prototype + ");") 
-        return True
+                        self.parser.errors.new_error("YAML parsing error: " + str(e))
 
-    def parse_initialize(self, mode, data):
-        if mode == ParserStates.Validate:
-            # Check that each token in Initialize has a defined init function, and that is Cish....
-            for token in data:
-                if not token in self.root['sources']:
-                    self.errors.new_error("Token: '" + token + "' exists in initialize but has no source.")
-                elif not "init" in self.root['sources'][token]:
-                    self.errors.new_error("Source: '" + token + "' exists in initialize but has no init.")
-        if mode == ParserStates.Parse:
-            self.output.append("code", 2, "void initialize() {")
-            for token in data:
-                self.output.append("code", 2, "    " + self.root['sources'][token]['init'])
-            self.output.append("code", 2, "}")
-        return True
+            return True
+        self.parser.errors.new_error("Call to sources handler outside of Expansion state.")
+        return False # Maybe we got here because of someone adding new features and another handler...
 
-    def parse_finalize(self, mode, data):
-        if mode == ParserStates.Validate:
-            # Check that each token in Finalize has a defined final function, and that is Cish....
-            for token in data:
-                if not token in self.root['sources']:
-                    self.errors.new_error("Token: '" + token + "' exists in finalize but has no source.")
-                elif not "final" in self.root['sources'][token]:
-                    self.errors.new_error("Source: '" + token + "' exists in finalize but has no final.")
-        if mode == ParserStates.Parse:
-            self.output.append("code", 3, "void finalize() {")
-            for token in data:
-                self.output.append("code", 3, "    " + self.root['sources'][token]['final'])
-            self.output.append("code", 3, "}")
-        return True
-
-    def parse_messages(self, mode, data):
-        return True
-
-    def parse_include(self, mode, data):
-        print ("include")
-        return True
-
-    def parse_object(self, mode, data):
-        print ("object")
-        return True
-
-    def parse_init(self, mode, data):
-        print ("init")
-        return True
-
-    def parse_final(self, mode, data):
-        print ("final")
-        return True
-
-    def parse_senders(self, mode, data):
-        print ("senders")
-        return True
-
-    def parse_receivers(self, mode, data):
-        print ("receivers")
-        return True
+    def parse_messages(self, data):
+        if self.parser.state == ParserStates.Expand:
+            # Nothing to expand, but buffer messages for later passes.
+            del(self.parser.unhandled['messages'])
+            self.parser.buffer['messages'] = data
+            return True
+        
 
 parser = Parser('./cg.conf')
 parser.parse()
 parser.debug()
-
-
