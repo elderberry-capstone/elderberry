@@ -13,7 +13,7 @@
 
 #include "fcfutils.h"
 
-libusb_context *context;
+static libusb_context *context;
 
 static struct timeval nonblocking = {
 		.tv_sec = 0,
