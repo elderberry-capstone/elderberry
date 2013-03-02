@@ -16,3 +16,4 @@ logs
 *.swo
 *.swp
 *.project
+gmon.*

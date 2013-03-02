@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 #import logger
-import logging, sys, os, time, subprocess, signal, shutil, pexpect
+import logging, sys, os, time, shutil, pexpect, subprocess
 
 sys_reserved = ["sudo"]
+SIG_PROF_KILL = 2929
+SIGQUIT = 3
 
 def print_usage():
     print(
@@ -27,25 +29,16 @@ program_arguments   Arguments to supply to the program program_name.
 # @param args: The program arguments.
 #
 def run_for_time(t, args):
-    t2 = (int(t[0]) * 3600) + (int(t[1]) * 60) + int(t[2])
-    logging.info("Running program:")
-    logging.info("\t%s" % (" ".join(args)))
-    logging.info("Time: %d seconds" % (t2))
-    
-    proc = subprocess.Popen(args)
-    
-    time.sleep(t2)
-    
-    logging.debug("Killing process '%d'" % (proc.pid))
-    subprocess.call(["sudo", "kill -9", str(proc.pid)])
-    for ar in args:
-        if (ar not in sys_reserved):
-            logging.debug("Also killing '" + ar + "'")
-            subprocess.Popen("sudo killall -9 " + ar)
-    
-    #os.kill(proc.pid, 9)
+    pid = os.fork()
+    if (pid == 0):   # We're the child
+        logging.info("The child prcess is %d" % (os.getpid()))
+        os.execvp(args[0], args)
+    else:           # We're the parent.
+        time.sleep(float(t[0])*3600 + float(t[1])*60 + float(t[2]))
+        time.sleep(10)
+        subprocess.call(["sudo", "kill", "-9", str(pid)])
         
-##
+#
 # Human-readable utility function for declaring which test
 # is running
 # @param list arg_time A list consisting of
@@ -66,8 +59,7 @@ def choose_new_gmon(i = 0):
     elif (os.path.exists("gmon." + str(i) + ".out")):
         return choose_new_gmon(i+1)
     else:
-        return "gmon." + str(i) + ".out"
-    
+        return "gmon." + str(i) + ".out"    
 
 def main():
     # First check for the gmon.out file.

@@ -21,6 +21,7 @@
 
 #define FDS_INIT_SIZE 1
 #define FDS_EXPANSION_FACTOR 2
+#define SIG_PROF_KILL 2929
 
 
 /**
@@ -261,6 +262,9 @@ static void signalhandler(int signum) {
 
     if (signum == SIGINT)  {
     	fcf_stop_main_loop ();
+    }else if (signum == SIGQUIT){
+        fcf_stop_main_loop();
+        _exit(EXIT_SUCCESS);
     }
 }
 
@@ -269,6 +273,7 @@ int main(int argc, char *argv[]) {
 
 	printf("\nFlight Control Framework v0.1\n\n");
 	signal (SIGINT, signalhandler);
+    signal (SIGQUIT, signalhandler);
 
 	fcf_init();
 	int rc = fcf_run_poll_loop();
