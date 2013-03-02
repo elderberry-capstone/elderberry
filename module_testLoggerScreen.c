@@ -49,28 +49,28 @@ void screenLogger_getMouseMessage(const char *src, unsigned char *buffer, int le
 	
 	switch((int)but){
 		case 1:
-			printf("Mouse button(s): [X][0][0]\n");
+			printf("\n[%s] Mouse button(s): [X][0][0]\n", src);
 			break;
 		case 2:
-			printf("Mouse button(s): [0][0][X]\n");
+			printf("\n[%s] Mouse button(s): [0][0][X]\n", src);
 			break;
 		case 3:
-			printf("Mouse button(s): [X][0][X]\n");
+			printf("\n[%s] Mouse button(s): [X][0][X]\n", src);
 			break;
 		case 4:
-			printf("Mouse button(s): [0][X][0]\n");
+			printf("\n[%s] Mouse button(s): [0][X][0]\n", src);
 			break;
 		case 5:
-			printf("Mouse button(s): [X][X][0]\n");
+			printf("\n[%s] Mouse button(s): [X][X][0]\n", src);
 			break;
 		case 6:
-			printf("Mouse button(s): [0][X][X]\n");
+			printf("\n[%s] Mouse button(s): [0][X][X]\n", src);
 			break;
 		case 7:
-			printf("Mouse button(s): [X][X][X]\n");
+			printf("\n[%s] Mouse button(s): [X][X][X]\n", src);
 			break;
 		default: 
-			printf("---------\n");
+			printf("\n[%s] ---------\n", src);
 			break;
 		
 	}

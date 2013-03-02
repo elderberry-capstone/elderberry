@@ -1,3 +1,9 @@
+/***
+*
+*	utils_libusb-1.0.c
+*
+*/
+
 #include <sys/time.h>
 #include <sys/poll.h>
 #include <stdlib.h>
@@ -16,7 +22,11 @@ static struct timeval nonblocking = {
 
 
 
-//active fd
+/**
+*
+*	libusb callback function to handle events
+*
+*/
 void libusb_cb(struct pollfd * fd) {
 	libusb_handle_events_timeout(context, &nonblocking);
 }
@@ -151,18 +161,27 @@ libusb_device * find_device(libusb_device ** devices, int cnt, int vid, int pid)
 
 static void init_libusb(){
 	static int initialized = 0;
+	int cnt = 0;
 
 	if(!initialized){
 		libusb_set_pollfd_notifiers(context, usb_fd_added_cb, usb_fd_removed_cb, NULL);
+		
+		const struct libusb_pollfd **fds;
+		fds = libusb_get_pollfds(context);
+		for(cnt=0; fds[cnt] != NULL; cnt++){
+			usb_fd_added_cb(fds[cnt]->fd, fds[cnt]->events, NULL);
+		}
+		free(fds);
+
 		initialized = 1;
 	}
 }
+
 
 int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_transfer_cb_fn cb){
 	int rc, cnt, packet_size;
 	libusb_device_handle *handle;
 	libusb_device **devs, *device;
-	const struct libusb_pollfd ** fds;
 
 	if(context==NULL){
 		rc = libusb_init(&context);
@@ -192,13 +211,6 @@ int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_tr
 		return -1;
 	}
 
-	fds = libusb_get_pollfds(context);
-
-	for(cnt=0; fds[cnt] != NULL; cnt++){
-		usb_fd_added_cb(fds[cnt]->fd, fds[cnt]->events, NULL);
-	}
-
-	free(fds);
 
 	packet_size = libusb_get_max_packet_size (libusb_get_device(handle), endpoint);
 	start_usb_transfer(handle, endpoint, cb, NULL, packet_size, 0);

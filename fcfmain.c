@@ -9,18 +9,14 @@
 #include "fcfutils.h"
 
 /**		User Modules	*/
+
 #include "module_mouse_clark.h"
+#include "module_mouse_clark2.h"
 #include "module_testLoggerScreen.h"
 #include "module_profile.h"
-/*#include "module_mouse_clark2.h"
-#include "module_mouse_clark3.h"
-#include "module_mouse_clark4.h"
-#include "module_testIMU.h"
 #include "module_temp.h"
+#include "module_testIMU.h"
 #include "module_testLoggerDisk.h"
-
-*/
-//#include "module_test_framework.h"
 
 
 
@@ -31,10 +27,10 @@ void fcf_init() {
 	init_fcf();			//< Special FCF init that sets up fd structures
 
 	// User module inits
-	//init_diskLogger();
-	//init_mouse3();
+	//init_diskLogger();	// This should be listed first.
 	//init_temp();
-	init_mouse();
+	//init_mouse_clark();
+	//init_mouse_clark2();
 	//init_theo_imu();
 	//init_test();
 	//init_profiling();
@@ -56,13 +52,13 @@ void fcf_callback_temp(char *buff, int length){
 	screenLogger_getTemp("temp", buff, length);
 }
 
-void fcf_callback_mouse(unsigned char *buff, int length){
-	screenLogger_getMouseMessage("mouse", buff, length);
+void fcf_callback_mouse_clark(unsigned char *buff, int length){
+	screenLogger_getMouseMessage("mouse_clark", buff, length);
 }
 
 
-void fcf_callback_mouse3(unsigned char *buff, int length){
-	screenLogger_getMouseMessage("mouse3", buff, length);
+void fcf_callback_mouse_clark2(unsigned char *buff, int length){
+	screenLogger_getMouseMessage("mouse_clark2", buff, length);
 }
 
 void fcf_callback_profile(unsigned char *buff, int length){
