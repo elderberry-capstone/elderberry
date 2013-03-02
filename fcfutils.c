@@ -28,7 +28,7 @@
 *	This struct holds the callback functions and souce tokens of the devices.
 */
 struct fcffd {
-	const char *token;	/**< The short name of the device. */
+	//const char *token;	/**< The short name of the device. */
 	pollfd_callback callback;
 	char cb_cat;
 };
@@ -94,7 +94,7 @@ static int expand_arrays(){
 	return 0;
 }
 
-int fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
+int fcf_add_fd(int fd, short events, pollfd_callback cb){
 	// Checks to see if fd arrays are full
 	if(fd_array_size == nfds){
 		expand_arrays();
@@ -102,19 +102,20 @@ int fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
 
 	fds[nfds].fd = fd;
 	fds[nfds].events = events;
-	fdx[nfds].token = token;
+	//fdx[nfds].token = token;
 	fdx[nfds].callback = cb;
 	fdx[nfds].cb_cat = STANDARD;
 	nfds++;
-	printf("Added %s\tfd: %d\tevents: %d\tFD count: %d\n", token, fd, events, nfds);
+	printf("Added fd: %d\tevents: %d\tFD count: %d\n", fd, events, nfds);
+	//printf("Added %s\tfd: %d\tevents: %d\tFD count: %d\n", token, fd, events, nfds);
 	return nfds-1;
 }
 
 
 //add per poll cycle file descriptor
-int fcf_add_fd_ppc (const char *token, int fd, short events, pollfd_callback cb)
+int fcf_add_fd_ppc (/*const char *token,*/ int fd, short events, pollfd_callback cb)
 {
-	int i = fcf_add_fd (token, fd, events, cb);
+	int i = fcf_add_fd (/*token,*/ fd, events, cb);
 	if (i >= 0) {
 		fdx[i].cb_cat = PPC;
 	}
@@ -132,12 +133,12 @@ int fcf_remove_fd(int fd) {
 	
 	for(i=0; i<nfds; i++){
 		if(fds[i].fd == fd && i==(nfds-1)){
-			printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
+			//printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
 			nfds--;
 			return 1;
 		}
 		else if(fds[i].fd == fd){
-			printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
+			//printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
 			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
 			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
 			nfds--;
@@ -148,32 +149,6 @@ int fcf_remove_fd(int fd) {
 	return 0;
 }
 
-int fcf_remove_fd_by_token(const char *token) {
-	int count = 0, i = 0, total;
- 
-	// If there are no fds, return 0 -- or error code.
-	if(nfds <= 0)
-		return 0;
-
-	total = nfds;
-	
-	for(i=0; i<total; i++){
-		if(strcmp(fdx[i].token, token)==0 && i==(nfds-1)){
-			printf("Removed by token %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
-			nfds--;
-			count++;
-		}
-		else if(strcmp(fdx[i].token, token)==0){
-			printf("Removed by token %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
-			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
-			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
-			nfds--;
-			count++;
-		}
-	}
-	
-	return count;
-}
 
 
 struct pollfd *fcf_get_fd(int idx){
@@ -234,7 +209,7 @@ static int fcf_run_poll_loop() {
 					rc--;
 					if (fdx[i].cb_cat == STANDARD) {
 						//callback for this active fd is a standard callback
-						fdx[i].callback(i);
+						fdx[i].callback(&fds[i]);
 					} 
 					else {
 						//callback for this active fd is a "per poll cycle" callback
@@ -259,7 +234,7 @@ static int fcf_run_poll_loop() {
 				//is expected to know the indices into the fds array
 				//i.e., module must store return values it gets from fcf_addfdPpc
 				printf ("\n calling ppc callback [%d]", j);
-				ppc[j](-1);	//we cannot pass in one value here
+				ppc[j](NULL);	//we cannot pass in one value here
 			}
 
 			break;
@@ -272,7 +247,7 @@ static int fcf_run_poll_loop() {
 }
 
 static void debug_fd (const char *msg, int i, struct pollfd *pfd) {
-	printf("%s fd[%d]: fd=%d events=%X revents=%X [%s]", msg, i, pfd->fd, pfd->events, pfd->revents, fdx[i].token);
+	//printf("%s fd[%d]: fd=%d events=%X revents=%X [%s]", msg, i, pfd->fd, pfd->events, pfd->revents, fdx[i].token);
 	int re = pfd->revents;
 	if (re & POLLERR) printf("\nPOLLERR - Error condition");
 	if (re & POLLHUP) printf("\nPOLLHUP - Hang up");

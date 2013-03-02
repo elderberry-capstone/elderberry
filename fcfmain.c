@@ -9,15 +9,17 @@
 #include "fcfutils.h"
 
 /**		User Modules	*/
-#include "module_mouse.h"
-#include "module_mouse2.h"
-#include "module_mouse3.h"
-#include "module_mouse4.h"
+#include "module_mouse_clark.h"
+#include "module_testLoggerScreen.h"
+#include "module_profile.h"
+/*#include "module_mouse_clark2.h"
+#include "module_mouse_clark3.h"
+#include "module_mouse_clark4.h"
 #include "module_testIMU.h"
 #include "module_temp.h"
 #include "module_testLoggerDisk.h"
-#include "module_testLoggerScreen.h"
-#include "module_profile.h"
+
+*/
 //#include "module_test_framework.h"
 
 
@@ -30,7 +32,7 @@ void fcf_init() {
 
 	// User module inits
 	//init_diskLogger();
-	init_mouse3();
+	//init_mouse3();
 	//init_temp();
 	init_mouse();
 	//init_theo_imu();
@@ -41,13 +43,13 @@ void fcf_init() {
 
 void fcf_callback_gyr(char *buff, int length) {
 	screenLogger_getMessage("gyr", buff, length);
-	diskLogger_getMessage("gyr", buff, length);
+	//diskLogger_getMessage("gyr", buff, length);
 }
 
 
 void fcf_callback_acc(char *buff, int length) {
 	screenLogger_getMessage("acc", buff, length);
-	diskLogger_getMessage("acc", buff, length);
+	//diskLogger_getMessage("acc", buff, length);
 }
 
 void fcf_callback_temp(char *buff, int length){

@@ -28,7 +28,7 @@ static struct itimerspec t;
  * @param None
  * @return None
  */
-static void profiling1_cb (int fd_idx) {
+static void profiling1_cb (struct pollfd * pfd) {
 	fcf_callback_profile (NULL, 0);	//send messages
 }
 
@@ -39,8 +39,7 @@ static void profiling1_cb (int fd_idx) {
  * @param None
  * @return None
  */
-static void profiling2_cb (int fd_idx) {
-	struct pollfd *pfd = fcf_get_fd(fd_idx);
+static void profiling2_cb (struct pollfd * pfd) {
 	int act_len = read (pfd->fd, buf, sizeof(buf));
 	fcf_callback_profile (buf, act_len);	//send messages
 	timerfd_settime(fd, 0, &t, NULL);	//set up next timer
@@ -67,10 +66,10 @@ void init_profiling() {
 		cb = profiling2_cb;
 		break;
 	default:
-		printf ("\nno profiling");
+		printf ("\nno profiling\n");
 		return;
 	}
-	fcf_add_fd ("", fd, POLLIN, cb);
+	fcf_add_fd (fd, POLLIN, cb);
 	printf ("\nprofile fd : %d", fd);
 }
 

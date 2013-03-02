@@ -15,26 +15,18 @@ static struct timeval nonblocking = {
 };
 
 
+
 //active fd
-void libusb_cb(int idx) {
+void libusb_cb(struct pollfd * fd) {
 	libusb_handle_events_timeout(context, &nonblocking);
 }
 
 
 static void usb_fd_added_cb(int fd, short events, void * source){
-	printf("Adding this fd after the fact: %d\n", fd);
+	//printf("Adding this fd after the fact: %d\n", fd);
 	
 	if(fd){
-		// NOTE: possible solution to token problem
-		static int offset = 1;
-		if(source==NULL){
-			char dev_name[1024];
-			sprintf(dev_name, "dev_%d", offset);
-			source = dev_name;
-			offset++;
-		}
-
-		fcf_add_fd(source, fd, events, libusb_cb);
+		fcf_add_fd(fd, events, libusb_cb);
 	}
 }
 
@@ -157,6 +149,15 @@ libusb_device * find_device(libusb_device ** devices, int cnt, int vid, int pid)
 }
 
 
+static void init_libusb(){
+	static int initialized = 0;
+
+	if(!initialized){
+		libusb_set_pollfd_notifiers(context, usb_fd_added_cb, usb_fd_removed_cb, NULL);
+		initialized = 1;
+	}
+}
+
 int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_transfer_cb_fn cb){
 	int rc, cnt, packet_size;
 	libusb_device_handle *handle;
@@ -194,7 +195,7 @@ int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_tr
 	fds = libusb_get_pollfds(context);
 
 	for(cnt=0; fds[cnt] != NULL; cnt++){
-		fcf_add_fd(dev_name, fds[cnt]->fd, fds[cnt]->events, libusb_cb);
+		usb_fd_added_cb(fds[cnt]->fd, fds[cnt]->events, NULL);
 	}
 
 	free(fds);
@@ -202,7 +203,7 @@ int init_device(char * dev_name, int vid, int pid, const int endpoint, libusb_tr
 	packet_size = libusb_get_max_packet_size (libusb_get_device(handle), endpoint);
 	start_usb_transfer(handle, endpoint, cb, NULL, packet_size, 0);
 
-	libusb_set_pollfd_notifiers(context, usb_fd_added_cb, usb_fd_removed_cb, NULL);
+	init_libusb();
 
 
 	return 0;
