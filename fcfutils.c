@@ -170,7 +170,7 @@ static void fcf_start_main_loop() {
 static int fcf_run_poll_loop() {
 	pollfd_callback ppc[nfds];
 	int nppc= 0;
-	int count = 0;
+	//int count = 0;
 	int ret = 0;
 
 	fcf_start_main_loop();
