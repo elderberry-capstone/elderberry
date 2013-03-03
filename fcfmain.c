@@ -16,7 +16,6 @@
 #include "module_mouse_jm2.h"
 #include "module_testLoggerScreen.h"
 #include "module_profile.h"
-#include "module_testIMU.h"
 #include "module_testLoggerDisk.h"
 #include "module_gps.h"
 #include "module_theo-imu.h"
@@ -36,7 +35,6 @@ void fcf_init() {
 	//init_mouse_clark();
 	//init_mouse_jm();
 	//init_mouse_jm2();
-	//init_theo_imu();
 	//init_test();
 	//init_gps();
 	//init_theo_imu();
@@ -50,19 +48,6 @@ void fcf_callback_virtdev(const char * src, unsigned char *buff, int length) {
 	screenLogger_getMessage(src, buff, length);
 }
 
-
-
-void fcf_callback_gyr(char *buff, int length) {
-	screenLogger_getMessage("gyr", (unsigned char *)buff, length);
-	//diskLogger_getMessage("gyr", buff, length);
-}
-
-
-void fcf_callback_acc(char *buff, int length) {
-	screenLogger_getMessage("acc", (unsigned char *)buff, length);
-	//diskLogger_getMessage("acc", buff, length);
-}
-
 void fcf_callback_temp(char *buff, int length){
 	screenLogger_getTemp("temp", buff, length);
 }
@@ -73,6 +58,14 @@ void fcf_callback_mouse_clark(unsigned char *buff, int length){
 
 void fcf_callback_mouse_clark2(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse_clark2", buff, length);
+}
+
+void fcf_callback_mouse_jm(unsigned char *buff, int length){
+	screenLogger_getMouseMessage("mouse_jm", buff, length);
+}
+
+void fcf_callback_mouse_jm2(unsigned char *buff, int length){
+	screenLogger_getMouseMessage("mouse_jm2", buff, length);
 }
 
 void fcf_callback_profile(unsigned char *buff, int length){
