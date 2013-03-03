@@ -13,5 +13,6 @@ extern void fcf_callback_mouse3(unsigned char *buff, int length);
 extern void fcf_callback_mouse4(unsigned char *buff, int length);
 extern void fcf_callback_temp(char *buff, int length);
 extern void fcf_callback_gps(unsigned char, unsigned char *, int);
+extern void fcf_callback_theo_imu(const char *, unsigned char *, int);
 
 #endif

@@ -20,6 +20,7 @@
 #include "module_testIMU.h"
 #include "module_testLoggerDisk.h"
 #include "module_gps.h"
+#include "module_theo-imu.h"
 
 
 
@@ -38,6 +39,7 @@ void fcf_init() {
 	//init_theo_imu();
 	//init_test();
 	//init_gps();
+	//init_theo_imu();
 	init_profiling();
 }
 
@@ -70,6 +72,9 @@ void fcf_callback_profile(unsigned char *buff, int length){
 }
 
 void fcf_callback_gps(unsigned char ret, unsigned char * buff, int length){
+}
+
+void fcf_callback_theo_imu(const char * src, unsigned char * buff, int length){
 }
 
 
