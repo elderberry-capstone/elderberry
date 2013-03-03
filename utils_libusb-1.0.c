@@ -13,7 +13,7 @@
 
 #include "fcfutils.h"
 
-libusb_context *context;
+static libusb_context *context;
 
 static struct timeval nonblocking = {
 		.tv_sec = 0,
@@ -142,15 +142,6 @@ libusb_device * find_device(libusb_device ** devices, int cnt, int vid, int pid)
 		// Conditional for finding specific device.
 		if(desc.idVendor==vid){
 			if(desc.idProduct==pid){
-				return devices[i];
-			}
-		}
-
-		// TODO: Remove this from final code...
-		if(desc.idVendor==0x046D){
-			if(desc.idProduct==0xC03E){
-				//ID 046d:c03e Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
-				libusb_set_debug(context, 3);
 				return devices[i];
 			}
 		}

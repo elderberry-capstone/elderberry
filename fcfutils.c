@@ -234,7 +234,7 @@ static int fcf_run_poll_loop() {
 				//is expected to know the indices into the fds array
 				//i.e., module must store return values it gets from fcf_addfdPpc
 				printf ("\n calling ppc callback [%d]", j);
-				ppc[j](NULL);	//we cannot pass in one value here
+				ppc[j](fds);
 			}
 
 			break;

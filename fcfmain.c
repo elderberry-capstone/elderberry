@@ -12,9 +12,11 @@
 
 #include "module_mouse_clark.h"
 #include "module_mouse_clark2.h"
+#include "module_mouse_jm.h"
+#include "module_mouse_jm2.h"
 #include "module_testLoggerScreen.h"
 #include "module_profile.h"
-#include "module_temp.h"
+//#include "module_temp.h"
 #include "module_testIMU.h"
 #include "module_testLoggerDisk.h"
 #include "module_gps.h"
@@ -31,7 +33,8 @@ void fcf_init() {
 	//init_diskLogger();	// This should be listed first.
 	//init_temp();
 	//init_mouse_clark();
-	//init_mouse_clark2();
+	//init_mouse_jm();
+	//init_mouse_jm2();
 	//init_theo_imu();
 	//init_test();
 	//init_gps();
