@@ -179,13 +179,13 @@ static int fcf_run_poll_loop() {
 		/*for (int i = 0; i < nfds; i++) {
 			debug_fd("\nbefore poll<<< ", i, &fds[i]);
 		}*/
-		printf("\nwaiting");
+		//printf("\nwaiting");
 		fflush (stdout);
 
 		errno = 0;
 		int rc = poll(fds, nfds, -1);
 
-		printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
+		//printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
 		/*for (int i = 0; i < nfds; i++) {
 			debug_fd("\n   after poll>>> ", i, &fds[i]);
 		}*/

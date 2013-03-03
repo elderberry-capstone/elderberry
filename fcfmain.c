@@ -17,6 +17,7 @@
 #include "module_temp.h"
 #include "module_testIMU.h"
 #include "module_testLoggerDisk.h"
+#include "module_gps.h"
 
 
 
@@ -33,7 +34,8 @@ void fcf_init() {
 	//init_mouse_clark2();
 	//init_theo_imu();
 	//init_test();
-	//init_profiling();
+	//init_gps();
+	init_profiling();
 }
 
 
@@ -56,13 +58,15 @@ void fcf_callback_mouse_clark(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse_clark", buff, length);
 }
 
-
 void fcf_callback_mouse_clark2(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse_clark2", buff, length);
 }
 
 void fcf_callback_profile(unsigned char *buff, int length){
 	profile_getMessage(buff, length);
+}
+
+void fcf_callback_gps(unsigned char ret, unsigned char * buff, int length){
 }
 
 
