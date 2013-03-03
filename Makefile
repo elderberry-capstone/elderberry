@@ -31,10 +31,10 @@ fc: $(OBJECTS)
 
 
 miml:
-	codeGen.py -m $(MIML)		#generates Miml.mk
+	codeGen.py -m $(MAINMIML)		#generates Miml.mk
 
 
 clean:
 	rm -f *.o *.d fc core
-	# rm $(MIMLMK)
+	# rm $(MIMLMK) fcfmain.c fcfmain.h #also remove auto-generated files
 
