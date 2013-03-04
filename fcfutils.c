@@ -171,7 +171,7 @@ static void fcf_start_main_loop() {
 static int fcf_run_poll_loop() {
 	pollfd_callback ppc[nfds];
 	int nppc= 0;
-	int count = 0;
+	//int count = 0;
 	int ret = 0;
 
 	fcf_start_main_loop();
@@ -180,13 +180,13 @@ static int fcf_run_poll_loop() {
 		/*for (int i = 0; i < nfds; i++) {
 			debug_fd("\nbefore poll<<< ", i, &fds[i]);
 		}*/
-		printf("\nwaiting");
+		//printf("\nwaiting");
 		fflush (stdout);
 
 		errno = 0;
 		int rc = poll(fds, nfds, -1);
 
-		printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
+		//printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
 		/*for (int i = 0; i < nfds; i++) {
 			debug_fd("\n   after poll>>> ", i, &fds[i]);
 		}*/
@@ -235,7 +235,7 @@ static int fcf_run_poll_loop() {
 				//is expected to know the indices into the fds array
 				//i.e., module must store return values it gets from fcf_addfdPpc
 				printf ("\n calling ppc callback [%d]", j);
-				ppc[j](NULL);	//we cannot pass in one value here
+				ppc[j](fds);
 			}
 
 			break;

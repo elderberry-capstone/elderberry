@@ -18,7 +18,7 @@ void init_screenLogger () {
 // buffer... message
 // len... length of data in buffer
 
-void screenLogger_getMessage(const char *src, char *buffer, int len) {
+void screenLogger_getMessage(const char *src, unsigned char *buffer, int len) {
 	// some data has been passed into this function for consumption.
 	
 	printf("%s sends: \n", src);

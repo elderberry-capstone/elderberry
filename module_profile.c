@@ -3,6 +3,7 @@
  *
  */
 #include <sys/timerfd.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <poll.h>
@@ -19,6 +20,8 @@ static int count = 0; //!< The number of times the loop has run.
 static unsigned char buf[1024];
 static int fd;	//!< timer fd
 static struct itimerspec t;
+static struct timeval start;
+static struct timeval end;
 
 
 /**
@@ -51,6 +54,8 @@ static void profiling2_cb (struct pollfd * pfd) {
  * @return None
  */
 void init_profiling() {
+	gettimeofday(&start,NULL);
+
 	pollfd_callback cb = NULL;
 	t.it_interval.tv_sec = 0;
 	t.it_interval.tv_nsec = 0;
@@ -84,6 +89,8 @@ void profile_getMessage (unsigned char *buf, int len) {
 	count++;
 	//printf("\nReceived %d out of %d messages.", count, MAX_COUNT);
 	if (count == MAX_COUNT) {
+		gettimeofday(&end, NULL);
+		printf("\n\nFinsished with count: %d in %d.%d03 sec\n\n", count, (int)(end.tv_sec - start.tv_sec), (int)(end.tv_usec - start.tv_usec));
 		fcf_stop_main_loop();
 	}
 }

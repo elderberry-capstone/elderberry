@@ -7,10 +7,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <libusb.h>
-#include "usbutils.h"
-#include "theo-imu.h"
-#include "miml.h"
+#include <libusb-1.0/libusb.h>
+#include "fcfutils.h"
+#include "fcfmain.h"
+#include "utils_libusb-1.0.h"
 
 
 #define BULK0_IN_EP 0x82
@@ -40,21 +40,11 @@
 #define IMU_PACKET_SIZE 13
 #define SENSOR_DATA_OFFSET 6
 
-static int is_imu(libusb_device * device){
-    struct libusb_device_descriptor descr;
-    int retErr = libusb_get_device_descriptor(device, &descr);
-    if(retErr){
-        print_libusb_error(retErr,"is_imu libusb_get_device_descriptor");
-        return 0;
-    }
-    if(descr.idVendor == 0xFFFF && descr.idProduct == 0x0005){
-        //todo: more ID methods
-        return 1;
-    }
-    return 0;
-}
+static const int VID = 0xFFFF;
+static const int PID = 0x0005;
 
-static void common_cb(struct libusb_transfer *transfer, uint32_t fourcc){
+
+static void data_callback(struct libusb_transfer *transfer, const char * src){
     unsigned char *buf = NULL;
     unsigned int act_len;
     int retErr;
@@ -64,63 +54,43 @@ static void common_cb(struct libusb_transfer *transfer, uint32_t fourcc){
         buf = transfer->buffer;
 
         act_len = transfer->actual_length;
-        if(act_len != IMU_PACKET_SIZE){
-            FCF_Log(fourcc, buf, act_len);
-        }else{
-            if(IMU_ADDR(buf[0]) == ADDR_GYR){
-                FCF_Log(fourcc, buf, act_len);
-            }else{
-                FCF_Log(fourcc, buf, act_len - 1);
-            }
-        }
+        
+		fcf_callback_theo_imu(src, buf, act_len);
+
         retErr = libusb_submit_transfer(transfer);
         if(retErr){
-            print_libusb_transfer_error(transfer->status, "imu_cb resub");
+            //print_libusb_transfer_error(transfer->status, "imu_cb resub");
         }
         break;
     case LIBUSB_TRANSFER_CANCELLED:
         //do nothing.
         break;
     default:
-        print_libusb_transfer_error(transfer->status, "imu_cb");
+        //print_libusb_transfer_error(transfer->status, "imu_cb");
         break;
     }
 }
 
 static void mag_cb(struct libusb_transfer *transfer){
-    if(transfer->actual_length != IMU_PACKET_SIZE){
-        common_cb(transfer, FOURCC('M','A','G','E'));
-    }else{
-        common_cb(transfer, FOURCC('M','A','G','N'));
-    }
+	data_callback(transfer, "theo_imu_mag");
 }
 static void acc_cb(struct libusb_transfer *transfer){
-    if(transfer->actual_length != IMU_PACKET_SIZE){
-        common_cb(transfer, FOURCC('A','C','C','E'));
-    }else{
-        common_cb(transfer, FOURCC('A','C','C','L'));
-    }
+    data_callback(transfer, "theo_imu_acc");
 }
 static void gyr_cb(struct libusb_transfer *transfer){
-    if(transfer->actual_length != IMU_PACKET_SIZE){
-        common_cb(transfer, FOURCC('G','Y','R','E'));
-    }else{
-        common_cb(transfer, FOURCC('G','Y','R','O'));
-    }
+    data_callback(transfer, "theo_imu_gyr");
 }
 static void cac_cb(struct libusb_transfer *transfer){
-    if(transfer->actual_length != IMU_PACKET_SIZE){
-        common_cb(transfer, FOURCC('C','A','C','E'));
-    }else{
-        common_cb(transfer, FOURCC('C','A','C','C'));
-    }
+   data_callback(transfer, "theo_imu_cac");
 }
+
+/*	Clark: Shouldn't need these, but holding onto them just in case.
 
 static void ctrl_cb(struct libusb_transfer *transfer){
 
 }
 
-static int start_bulk_transfer(libusb_device_handle * handle,
+tatic int start_bulk_transfer(libusb_device_handle * handle,
         unsigned int ep, libusb_transfer_cb_fn cb, void * data,
         unsigned int timeout)
 {
@@ -161,26 +131,20 @@ static int start_bulk_transfer(libusb_device_handle * handle,
         }
     }
     return 0;
-}
+}*/
 
-void init_theo_imu(libusbSource * usb_source){
-    int iface_nums[1] = {0};
-    libusb_device_handle * imu = open_usb_device_handle(usb_source, is_imu,
-            iface_nums, 1);
-    if(!imu)
-        return;
+int init_theo_imu(){
+	
+	init_device("theo_imu_mag", VID, PID, MAG_EP, mag_cb);
+	init_device("theo_imu_gyr", VID, PID, GYR_EP, gyr_cb);
+	init_device("theo_imu_acc", VID, PID, ACC_EP, acc_cb);
+	init_device("theo_imu_cac", VID, PID, CAC_EP, cac_cb);
 
-    struct libusb_transfer * ctrl = libusb_alloc_transfer(0);
-    unsigned char * ctrl_buf = calloc(LIBUSB_CONTROL_SETUP_SIZE,
-            sizeof(unsigned char));
-    libusb_fill_control_setup(ctrl_buf, LIBUSB_RECIPIENT_OTHER |
-            LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT,
-            ADDR_ALL | INST_GO, 0, 0, 0);
-    libusb_fill_control_transfer(ctrl, imu, ctrl_buf, ctrl_cb, NULL, 0);
-    libusb_submit_transfer(ctrl);
-
-    start_bulk_transfer(imu, MAG_EP, mag_cb, NULL, 0);
+    /* Clark: Might need these, depends on transfer protocol needed.
+	start_bulk_transfer(imu, MAG_EP, mag_cb, NULL, 0);
     start_bulk_transfer(imu, GYR_EP, gyr_cb, NULL, 0);
     start_bulk_transfer(imu, ACC_EP, acc_cb, NULL, 0);
-    start_bulk_transfer(imu, CAC_EP, cac_cb, NULL, 0);
+    start_bulk_transfer(imu, CAC_EP, cac_cb, NULL, 0);*/
+
+	return 0;
 }

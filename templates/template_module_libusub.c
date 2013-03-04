@@ -33,6 +33,7 @@
 #include <unistd.h>
 
 #include "utils_libusb-1.0.h"
+#include "fcfmain.h"
 
 /**	START DATA */
 
@@ -40,7 +41,6 @@ static const int VID = 0x0000;	//< CHANGE VID
 static const int PID = 0x0000;	//< CHANGE PID
 static const int EPT = 0x81;	//< CHANGE IF NEEDED (Default)
 
-extern void fcf_callback_###DEVTAG###(unsigned char *, int);
 extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
 
 
