@@ -36,7 +36,7 @@ def run_for_time(t, args):
     else:           # We're the parent.
         time.sleep(float(t[0])*3600 + float(t[1])*60 + float(t[2]))
         time.sleep(10)
-        subprocess.call(["sudo", "kill", "-9", str(pid)])
+        subprocess.call(["sudo kill -9", str(pid)])
         
 #
 # Human-readable utility function for declaring which test
