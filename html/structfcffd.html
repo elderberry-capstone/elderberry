@@ -41,6 +41,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -56,13 +57,31 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6ff3b70c6a0fab7febf5417564c9f57f"></a><!-- doxytag: member="fcffd::token" ref="a6ff3b70c6a0fab7febf5417564c9f57f" args="" -->
-const char *&#160;</td><td class="memItemRight" valign="bottom"><b>token</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a37fa29032d524d74d3883b108913100d"></a><!-- doxytag: member="fcffd::callback" ref="a37fa29032d524d74d3883b108913100d" args="" -->
-char *&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfcffd.html#a6ff3b70c6a0fab7febf5417564c9f57f">token</a></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac1a8e9df9ea3fe5e99b10f7501fc1e75"></a><!-- doxytag: member="fcffd::callback" ref="ac1a8e9df9ea3fe5e99b10f7501fc1e75" args="" -->
+pollfd_callback&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6ab682c25d032feb99fadb999dbe582e"></a><!-- doxytag: member="fcffd::cb_cat" ref="a6ab682c25d032feb99fadb999dbe582e" args="" -->
+char&#160;</td><td class="memItemRight" valign="bottom"><b>cb_cat</b></td></tr>
 </table>
+<hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
+<div class="textblock"><p>This struct holds the callback functions and souce tokens of the devices. </p>
+</div><hr/><h2>Member Data Documentation</h2>
+<a class="anchor" id="a6ff3b70c6a0fab7febf5417564c9f57f"></a><!-- doxytag: member="fcffd::token" ref="a6ff3b70c6a0fab7febf5417564c9f57f" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* <a class="el" href="structfcffd.html#a6ff3b70c6a0fab7febf5417564c9f57f">fcffd::token</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>The short name of the device. </p>
+
+</div>
+</div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li><a class="el" href="fcfutils_8c.html">fcfutils.c</a></li>
+<li>fcfutils.c</li>
 </ul>
 </div>
 <!-- window showing the filter options -->
@@ -70,7 +89,7 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b></td></
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -79,7 +98,7 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b></td></
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Fri Feb 8 2013 16:42:15 by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Mon Mar 4 2013 19:00:55 by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.4 </small></address>
 </body>
