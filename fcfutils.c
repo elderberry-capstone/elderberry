@@ -1,10 +1,3 @@
-/**
- *  @file fcfutils.c
- *  @brief Utility functions for the flight control framework
- *  @author Ron Astin
- *  @date February 8th, 2013
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <poll.h>
@@ -23,14 +16,13 @@
 #define FDS_EXPANSION_FACTOR 2
 
 
-/**
-*	
-*	This struct holds the callback functions and souce tokens of the devices.
-*/
-struct fcffd {
-	//const char *token;	/**< The short name of the device. */
-	pollfd_callback callback;
-	char cb_cat;
+/*	
+ *	This struct holds the callback functions and souce tokens of the devices.
+ */
+struct fcffd{
+  const char *token;	/**< The short name of the device. */
+  pollfd_callback callback;
+  char cb_cat;
 };
 
 static const char STANDARD = 0;	//< Standard callback
@@ -45,53 +37,49 @@ static int run_fc;				//< Main loop is running true/false
 
 static void debug_fd (const char *msg, int i, struct pollfd *pfd);
 
-/**
-*
-* Initialization for fcf data structures
-*
-*/
+/*
+ * Initialization for fcf data structures
+ */
 int init_fcf(){
-	fd_array_size = FDS_INIT_SIZE;
-	fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
-	fdx = (struct fcffd *) malloc(fd_array_size * sizeof(struct fcffd));
-	// TODO: Need error checking code here for malloc calls
+  fd_array_size = FDS_INIT_SIZE;
+  fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
+  fdx = (struct fcffd *) malloc(fd_array_size * sizeof(struct fcffd));
+  // TODO: Need error checking code here for malloc calls
 	
-	nfds = 0;
-	run_fc = 0;
+  nfds = 0;
+  run_fc = 0;
 
-	return 0;
+  return 0;
 }
 
 
-/**
-*
-*	Increases size of the file desciptor and file description arrays
-*
-*/
+/*
+ *	Increases size of the file desciptor and file description arrays
+ */
 static int expand_arrays(){
-	struct pollfd * fds_temp;
-	struct fcffd * fdx_temp;
+  struct pollfd * fds_temp;
+  struct fcffd * fdx_temp;
 
-	printf("** Expanding arrays from %d to ", fd_array_size);
-	fd_array_size *= FDS_EXPANSION_FACTOR; // Expand array by pre-defined factor
-	printf("%d\n", fd_array_size);
+  printf("** Expanding arrays from %d to ", fd_array_size);
+  fd_array_size *= FDS_EXPANSION_FACTOR; // Expand array by pre-defined factor
+  printf("%d\n", fd_array_size);
 	
 
-	fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
-	if(fds_temp == NULL){
-		// TODO: Add necessary logging/abort codes
-		return -1;
-	}
-	fds = fds_temp;
+  fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
+  if(fds_temp == NULL){
+    // TODO: Add necessary logging/abort codes
+    return -1;
+  }
+  fds = fds_temp;
 	
-	fdx_temp = realloc(fdx, fd_array_size * sizeof(struct fcffd));
-	if(fdx_temp == NULL){
-		// TODO: Add necessary logging/abort codes
-		return -1;
-	}
-	fdx = fdx_temp;
+  fdx_temp = realloc(fdx, fd_array_size * sizeof(struct fcffd));
+  if(fdx_temp == NULL){
+    // TODO: Add necessary logging/abort codes
+    return -1;
+  }
+  fdx = fdx_temp;
 
-	return 0;
+  return 0;
 }
 
 int fcf_add_fd(int fd, short events, pollfd_callback cb){
@@ -145,22 +133,17 @@ void fcf_remove_fd(int fd) {
 	}
 }
 
-
-
 struct pollfd *fcf_get_fd(int idx){
-	return &fds[idx];
+  return &fds[idx];
 }
 
-
-void fcf_stop_main_loop() {
-	run_fc = 0;
+void fcf_stop_main_loop(){
+  run_fc = 0;
 }
 
-
-static void fcf_start_main_loop() {
-	run_fc = 1;
+static void fcf_start_main_loop(){
+  run_fcc = 1;
 }
-
 
 //currently returns -1 on error; 0 on success
 static int fcf_run_poll_loop() {
@@ -252,19 +235,23 @@ static void debug_fd (const char *msg, int i, struct pollfd *pfd) {
 }
 
 
-static void signalhandler(int signum) {
-    printf ("\n **signal handler: signum = %d", signum);
+static void signalhandler(int signum){
+  printf ("\n **signal handler: signum = %d", signum);
 
-    if (signum == SIGINT)  {
-    	fcf_stop_main_loop ();
-    }
+  if (signum == SIGINT){
+    fcf_stop_main_loop ();
+  }
 }
 
 
-int main(int argc, char *argv[]) {
-
-	printf("\nFlight Control Framework v0.1\n\n");
-	signal (SIGINT, signalhandler);
+int main(int argc, char *argv[]){
+  
+  printf("Flight Control Framework v0.1  Copyright (C) 2013\n"
+	 "Team Elderberry [Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]\n"
+	 "This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n"
+	 "This is free software, and you are welcome to redistribute it\n"
+	 "under certain conditions; type `show c' for details.\n");
+  signal (SIGINT, signalhandler);
 
 	fcf_init();
 	int rc = fcf_run_poll_loop();
