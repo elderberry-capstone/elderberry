@@ -32,14 +32,14 @@ void fcf_init() {
 	// User module inits
 	//init_diskLogger();	// This should be listed first.
 	//init_temp();
-	//init_mouse_clark();
-	//init_mouse_jm();
-	//init_mouse_jm2();
+	init_mouse_clark();
+	init_mouse_jm();
+	init_mouse_jm2();
 	//init_test();
 	//init_gps();
 	//init_theo_imu();
-	init_virtgyr();
-	init_virtacc();
+	//init_virtgyr();
+	//init_virtacc();
 	//init_profiling();
 }
 

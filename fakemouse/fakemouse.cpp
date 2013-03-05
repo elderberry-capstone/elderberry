@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdlib>
 #include <cstring>
+#include <boost/lexical_cast.hpp>
 using namespace std;
 
 #define ERROR cerr << "\033[31;1mERROR:\t"
@@ -13,11 +14,13 @@ using namespace std;
 #define DEBUG cout << "\033[37mDEBUG:\t"
 #define ENDL "\033[0m" << endl
 
+const unsigned int MY_TIMEOUT = 10000;
+
 
 int main(int argc, char **argv){
-    if (argc != 3){
-        ERROR << argv[0] << " requires 2 arguments. " << (argc-1) << " given."
-            << ENDL;
+    if (!(argc == 3 || argc == 2)){
+        ERROR << argv[0] << " requires 2 or 3 arguments. " << (argc-1) <<
+            " given." << ENDL;
         exit(EXIT_FAILURE);
         return 0;
     }
@@ -36,10 +39,34 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     }
 
-    endpoint = libusb_get_device(handle);
-    libusb_interrupt_transfer(handle, endpoint, data, length, transferred,
-        timeout)
+    libusb_device *endpoint = libusb_get_device(handle);
+    int err = libusb_claim_interface(handle, 0);
+    if (err != 0){
+        ERROR << libusb_error_name(err) << ENDL;
+    }else{
+        DEBUG << "Claimed interface." << ENDL;
+    }
+
+    unsigned char data[8] = "";
+
+    uint8_t addr1 = libusb_get_device_address(endpoint);
+    // Convert addr1 to a character array (yuck!)
+    stringstream out;
+    out << addr1;
+    const char *addr = out.str().c_str();
+
+    int length = sizeof(data);
+    int *transferred;
+    unsigned int timeout = MY_TIMEOUT;
+    libusb_interrupt_transfer(handle, 0x1, data, length, transferred,
+        timeout);
     
+    err = libusb_release_interface(handle, 0);
+    if (err != 0){
+        ERROR << libusb_error_name(err) << ENDL;
+    }else{
+        DEBUG << "Released interface." << ENDL;
+    }
 
     libusb_close(handle);
     libusb_exit(ctx);
