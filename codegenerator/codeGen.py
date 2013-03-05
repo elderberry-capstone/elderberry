@@ -110,12 +110,13 @@ class Parser:
             self.errors.check_file(filename)
         self.errors.check()
         try:
-            self.parse_handlers = yaml.load(open(filename, 'r'))
+            self.config = yaml.load(open(filename, 'r'))
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
         self.errors.check()
-        for handler in self.parse_handlers.keys():
-            self.parse_handlers[handler]['path'] = self.parse_handlers[handler]['path'].split("/")
+        # Make paths lists for easier parsing
+        for handler in self.config.keys():
+            self.config[handler]['path'] = self.config[handler]['path'].split("/")
         self.path = ['']
         self.state = None
         self.output = OutputGenerator(self.modes)
@@ -131,7 +132,7 @@ class Parser:
         # Do Expand, Validate, Parse
         self.handler_functions = ParseHandlers(self)
         while self.transition() == True:
-#            print (yaml.dump(self.master))
+            print (yaml.dump(self.master))
             self.crawl(self.master)
         # Output
         self.output.display()
@@ -161,10 +162,12 @@ class Parser:
             # Set new buffer, copy master to unhandled.
             self.buffer = {}
             self.unhandled = copy.copy(self.master)
+            print(yaml.dump(self.master))
             self.state = ParserStates.Expand
         elif self.state == ParserStates.Expand:
             # Make buffer contents master. 
             self.master = self.buffer
+            print(yaml.dump(self.buffer))
             self.buffer = {}
 	    # Necessary to check unhandled from Expand or we will miss problems during buffer transfer
             if not self.unhandled == {}:
@@ -175,6 +178,7 @@ class Parser:
             if not self.unhandled == {}:
                 self.errors.new_error("Unhandled MIML content at end of Validate state! " + str(self.unhandled))
             # Make buffer contents master. 
+            print(yaml.dump(self.buffer))
             self.master = self.buffer
 #            self.buffer = {}
             self.state = ParserStates.Parse
@@ -196,31 +200,30 @@ class Parser:
         #    handler paths that do not begin with '/' should not contain any '/'.
         #      They represent single token matches for the immediate point.
         #
-        # Possible Match Cases: self.path = a / self.parse_handlers[key]['path'] = b
+        # Possible Match Cases: self.path = a / self.config[key]['path'] = b
         # 1 - len(a) == len(b) and ( a[x] == b[x] or b[x] == '*' )
         # 2 - len(a) != len(b) && len(b) == 1
         #
         # Someone may put '*' for path, not sure if I want to make that illegal.        
 
         return_value = False
-        for key in self.parse_handlers.keys():
-            if len(self.path) == len(self.parse_handlers[key]['path']):
+        for key in self.config.keys():
+            if len(self.path) == len(self.config[key]['path']):
                 match = True
                 for position in range(0, len(self.path)):
-                    if (not self.path[position] == self.parse_handlers[key]['path'][position] and
-                            not self.parse_handlers[key]['path'][position] == '*'):
+                    if (not self.path[position] == self.config[key]['path'][position] and
+                            not self.config[key]['path'][position] == '*'):
                         match = False
                 if match == True:
                     return_value = return_value | self.call_handler_function(key, data)
-            if len(self.parse_handlers[key]['path']) == 1 and self.parse_handlers[key]['path'][0] == self.path[-1]:       
+            if len(self.config[key]['path']) == 1 and self.config[key]['path'][0] == self.path[-1]:       
                 return_value = return_value | self.call_handler_function(key, data)
         return return_value
 
     def call_handler_function(self, key, data):
         # NOTE: This is where the handler functions get called!!!
-        if not type(data).__name__ == self.parse_handlers[key]['type']:
-            self.errors.new_error("Handler type mismatch. " + key + " expects " + 
-                self.handler_functions[key]['type'] + " received " + type(data).__name__)
+        if not type(data).__name__ == self.config[key]['type']:
+            self.errors.new_error("Handler type mismatch. " + key + " expects " + self.config[key]['type'] + " received " + type(data).__name__)
             return False
         else:
             return getattr(self.handler_functions, key)(data)
@@ -269,15 +272,29 @@ class ParseHandlers:
             # Pull in external file data, place in buffer
             del(self.parser.unhandled['sources'])
             self.parser.buffer['modules'] = {}
+            self.parser.buffer['make_miml'] = []
             for source in sources:             
                 if (self.parser.errors.check_file(source[1])):
                     try:
                         self.parser.buffer['modules'][source[0]] = yaml.load(open(source[1], 'r'))
+                        self.parser.buffer['make_miml'].append(source[1])
                     except Exception as e:
                         self.parser.errors.new_error("YAML parsing error: " + str(e))
             return True
         self.parser.errors.new_error("Call to sources handler outside of Expansion state.")
         return False # Maybe we got here because of someone adding new features and another handler...
+
+    def make_miml(self, data):
+        p = self.parser
+        o = p.output
+        if p.state == ParserStates.Validate:
+            p.buffer['make_miml'] = data
+            del(p.unhandled['make_miml'])
+        if p.state == ParserStates.Parse:
+            o.append("make", 10, o.code_filename + " " + o.header_filename + ": " + p.miml_file + " " + ' '.join(data))
+            o.append("make", 10, "    ./codeGen.py -ch " + p.miml_file)
+        return True
+            
 
     def parse_messages(self, data):
         if self.parser.state == ParserStates.Expand:
