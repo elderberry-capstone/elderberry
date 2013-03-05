@@ -123,11 +123,11 @@ int fcf_add_fd_ppc (/*const char *token,*/ int fd, short events, pollfd_callback
 }
 
 
-int fcf_remove_fd(int fd) {
+void fcf_remove_fd(int fd) {
  
 	// If there are no fds, return 0 -- or error code.
 	if(nfds <= 0)
-		return 0;
+		return;
 
 	int i = 0;
 	
@@ -135,18 +135,14 @@ int fcf_remove_fd(int fd) {
 		if(fds[i].fd == fd && i==(nfds-1)){
 			//printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
 			nfds--;
-			return 1;
 		}
 		else if(fds[i].fd == fd){
 			//printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
 			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
 			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
 			nfds--;
-			return 1;
 		}
 	}
-	
-	return 0;
 }
 
 
