@@ -9,12 +9,12 @@
 #include "utils_libusb-1.0.h"
 
 /**	START DATA */
-
-static const int VID = 0x046d;
-static const int PID = 0xc03e;
+// Razer USA, Ltd Mamba
+static const int VID = 0x1532;
+static const int PID = 0x000a;
 static const int EPT = 0x81;
 
-extern void fcf_callback_mouse3(unsigned char *, int);
+extern void fcf_callback_mouse_clark2(unsigned char *, int);
 extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
 
 
@@ -39,7 +39,7 @@ static void data_callback(struct libusb_transfer *transfer){
 		*	Data handler:
 		*	Place call into code generated space here.
 		*/
-		fcf_callback_mouse3(buf, act_len);
+		fcf_callback_mouse_clark2(buf, act_len);
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:
@@ -54,8 +54,8 @@ static void data_callback(struct libusb_transfer *transfer){
 }
 
 
-int init_mouse3(){
-	init_device("mouse3", VID, PID, EPT, data_callback);
+int init_mouse_clark2(){
+	init_device("mouse_clark_2", VID, PID, EPT, data_callback);
 	return 0;
 }
 

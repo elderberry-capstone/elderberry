@@ -1,20 +1,8 @@
-sources: {
-  IMU: ./IMU.miml,
-  SF: ./SensorFusion.miml,
-  CTL: ./Control.miml,
-  LOG: ./Logger.miml
-}
-
-initialize:
-  - LOG
-  - IMU
-  - CTL
-  - SF
-
-finalize:
-  - IMU
-  - CTL
-  - LOG
+sources:
+- [LOG, ./Logger.miml]
+- [IMU, ./IMU.miml]
+- [SF, ./SensorFusion.miml]
+- [CTL, ./Control.miml]
 
 messages:
   # IMU Messages

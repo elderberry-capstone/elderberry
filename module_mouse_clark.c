@@ -8,10 +8,10 @@
 
 #include "utils_libusb-1.0.h"
 
-extern void fcf_callback_mouse(unsigned char *, int);
+extern void fcf_callback_mouse_clark(unsigned char *, int);
 
 /**	START DATA */
-
+// Microsoft Corp. Optical Mouse
 static const int VID = 0x045e;
 static const int PID = 0x0053;
 static const int EPT = 0x81;
@@ -35,7 +35,7 @@ static void data_callback(struct libusb_transfer *transfer){
         }
 
 		// Call to CGS mouse handler.
-		fcf_callback_mouse(buf, act_len);
+		fcf_callback_mouse_clark(buf, act_len);
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:
@@ -51,8 +51,8 @@ static void data_callback(struct libusb_transfer *transfer){
 
 
 
-int init_mouse(){
-	init_device("mouse", VID, PID, EPT, data_callback);
+int init_mouse_clark(){
+	init_device("mouse_clark", VID, PID, EPT, data_callback);
 	return 0;
 }
 

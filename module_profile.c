@@ -3,6 +3,7 @@
  *
  */
 #include <sys/timerfd.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <poll.h>
@@ -19,6 +20,8 @@ static int count = 0; //!< The number of times the loop has run.
 static unsigned char buf[1024];
 static int fd;	//!< timer fd
 static struct itimerspec t;
+static struct timeval start;
+static struct timeval end;
 
 
 /**
@@ -28,7 +31,7 @@ static struct itimerspec t;
  * @param None
  * @return None
  */
-static void profiling1_cb (int fd_idx) {
+static void profiling1_cb (struct pollfd * pfd) {
 	fcf_callback_profile (NULL, 0);	//send messages
 }
 
@@ -39,8 +42,7 @@ static void profiling1_cb (int fd_idx) {
  * @param None
  * @return None
  */
-static void profiling2_cb (int fd_idx) {
-	struct pollfd *pfd = fcf_get_fd(fd_idx);
+static void profiling2_cb (struct pollfd * pfd) {
 	int act_len = read (pfd->fd, buf, sizeof(buf));
 	fcf_callback_profile (buf, act_len);	//send messages
 	timerfd_settime(fd, 0, &t, NULL);	//set up next timer
@@ -52,6 +54,8 @@ static void profiling2_cb (int fd_idx) {
  * @return None
  */
 void init_profiling() {
+	gettimeofday(&start,NULL);
+
 	pollfd_callback cb = NULL;
 	t.it_interval.tv_sec = 0;
 	t.it_interval.tv_nsec = 0;
@@ -67,10 +71,10 @@ void init_profiling() {
 		cb = profiling2_cb;
 		break;
 	default:
-		printf ("\nno profiling");
+		printf ("\nno profiling\n");
 		return;
 	}
-	fcf_add_fd ("", fd, POLLIN, cb);
+	fcf_add_fd (fd, POLLIN, cb);
 	printf ("\nprofile fd : %d", fd);
 }
 
@@ -85,6 +89,8 @@ void profile_getMessage (unsigned char *buf, int len) {
 	count++;
 	//printf("\nReceived %d out of %d messages.", count, MAX_COUNT);
 	if (count == MAX_COUNT) {
+		gettimeofday(&end, NULL);
+		printf("\n\nFinsished with count: %d in %d.%d03 sec\n\n", count, (int)(end.tv_sec - start.tv_sec), (int)(end.tv_usec - start.tv_usec));
 		fcf_stop_main_loop();
 	}
 }
