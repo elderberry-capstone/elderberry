@@ -16,7 +16,7 @@
 struct pollfd;
 typedef void (*pollfd_callback)(struct pollfd *);
 extern int fcf_add_fd(int, short, pollfd_callback);
-extern int fcf_remove_fd(int);
+extern void fcf_remove_fd(int);
 //extern int fcf_remove_fd_by_token(const char *);
 extern struct pollfd * fcf_get_fd(int);
 extern int init_fcf(void);
