@@ -82,7 +82,7 @@ class OutputGenerator:
     # This way different Handlers can be invoked for different purposes 
     #   and order their output as they wish.
 
-    def __init__(self, mode_flags):
+    def __init__(self, mode_flags, code_filename, header_filename, make_filename):
         self.output = defaultdict(lambda: defaultdict(list))
         self.mode_flags = mode_flags
         self.code_filename = "fcfmain.c"
@@ -106,6 +106,7 @@ class Parser:
 
     def __init__(self, filename):
         self.errors = ErrorLogger()
+        self.modes = {'code': False, 'make': False, 'header': False}
         if self.argument_check():
             self.errors.check_file(filename)
         self.errors.check()
@@ -114,12 +115,18 @@ class Parser:
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
         self.errors.check()
+        code_file = self.config['code_filename']
+        header_file = self.config['header_filename']
+        make_file = self.config['make_filename']
+        del(self.config['code_filename'])
+        del(self.config['header_filename'])
+        del(self.config['make_filename'])
         # Make paths lists for easier parsing
         for handler in self.config.keys():
             self.config[handler]['path'] = self.config[handler]['path'].split("/")
         self.path = ['']
         self.state = None
-        self.output = OutputGenerator(self.modes)
+        self.output = OutputGenerator(self.modes, code_file, header_file, make_file)
 
     def parse(self):
         # top level 'public' function. Since we have external MIML docs we need to pull those in
@@ -234,7 +241,6 @@ class Parser:
             self.errors.new_error("Illegal number of arguments! Expected 1 or 2, received: "
             + str(len(sys.argv) -1))
             return False
-        self.modes = {'code': False, 'make': False, 'header': False}
         self.miml_file = sys.argv[len(sys.argv) - 1]
         mode_flags = "-cmh" if len(sys.argv) == 2 else sys.argv[1]
         match = re.match(r"^-[cmh]+$", mode_flags)
@@ -265,7 +271,7 @@ class ParseHandlers:
     def purge(self):
         # Called after Parsing phase, allows handlers to stage data and then commit to OutputGenerator after parse stage.
         if len(self.objects) > 0:
-            self.parser.output.append("make", 5, "OBJECTS += " + ', '.join(self.objects))
+            self.parser.output.append("make", 5, "OBJECTS += " + ' '.join(self.objects))
 
     def parse_sources(self, sources):
         if self.parser.state == ParserStates.Expand:
@@ -292,7 +298,7 @@ class ParseHandlers:
             del(p.unhandled['make_miml'])
         if p.state == ParserStates.Parse:
             o.append("make", 10, o.code_filename + " " + o.header_filename + ": " + p.miml_file + " " + ' '.join(data))
-            o.append("make", 10, "    ./codeGen.py -ch " + p.miml_file)
+            o.append("make", 10, "\t./codeGen.py -ch " + p.miml_file)
         return True
             
 
