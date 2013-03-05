@@ -1,8 +1,8 @@
 sources:
+- [LOG, ./Logger.miml]
 - [IMU, ./IMU.miml]
 - [SF, ./SensorFusion.miml]
 - [CTL, ./Control.miml]
-- [LOG, ./Logger.miml]
 
 messages:
   # IMU Messages

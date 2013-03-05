@@ -31,11 +31,17 @@ void fcf_init() {
 	init_fcf();			//< Special FCF init that sets up fd structures
 
 	// User module inits
+<<<<<<< Updated upstream
 	//init_diskLogger();	// This should be listed first.
 	//init_temp();
 	//init_mouse_clark();
 	//init_mouse_jm();
 	//init_mouse_jm2();
+=======
+	//init_diskLogger();
+	//init_mouse3();
+	init_mouse();
+>>>>>>> Stashed changes
 	//init_theo_imu();
 	//init_test();
 	//init_gps();
@@ -59,8 +65,15 @@ void fcf_callback_temp(char *buff, int length){
 	screenLogger_getTemp("temp", buff, length);
 }
 
+<<<<<<< Updated upstream
 void fcf_callback_mouse_clark(unsigned char *buff, int length){
 	screenLogger_getMouseMessage("mouse_clark", buff, length);
+=======
+void fcf_callback_mouse(unsigned char *buff, int length){
+	static int count = 0;
+	if (++count == 10000) fcf_stop_main_loop();
+	screenLogger_getMouseMessage("mouse", buff, length);
+>>>>>>> Stashed changes
 }
 
 void fcf_callback_mouse_clark2(unsigned char *buff, int length){
