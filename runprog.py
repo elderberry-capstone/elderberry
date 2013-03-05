@@ -35,7 +35,7 @@ def run_for_time(t, args):
     for ar in args:
         if (ar not in sys_reserved):
             logging.debug("Also killing '" + ar + "'")
-            subprocess.Popen("sudo killall -9 " + ar)
+            subprocess.Popen(["sudo", "killall", ar])
     
     #os.kill(proc.pid, 9)
         
