@@ -101,12 +101,12 @@ class OutputGenerator:
     def write_out(self):
         for mode in self.output.keys():
             if self.mode_flags_files[mode]['run'] == True:
-                print (mode + " (" + ": " + self.mode_flags_files[mode]['file'])
+                f = open(self.mode_flags_files[mode]['file'], "w")
                 for level in sorted(self.output[mode].keys()):
                     for message in self.output[mode][level]:
                     #    print (mode, "->", level, "->", message)
-                        print (message)
-                    print ("\n")
+                        f.write(message)
+                        f.write('\n')
 
 
 class Parser:
@@ -156,6 +156,7 @@ class Parser:
             self.crawl(self.master)
         # Output
         self.output.display()
+        self.output.write_out()
 
     def crawl(self, data):
         if type(data).__name__=='dict':
