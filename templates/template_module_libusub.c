@@ -41,9 +41,6 @@ static const int VID = 0x0000;	//< CHANGE VID
 static const int PID = 0x0000;	//< CHANGE PID
 static const int EPT = 0x81;	//< CHANGE IF NEEDED (Default)
 
-extern int init_device(char *, int, int, const int, libusb_transfer_cb_fn);
-
-
 /**	START FUNCTIONS */
 
 static void data_callback(struct libusb_transfer *transfer){
@@ -81,10 +78,11 @@ static void data_callback(struct libusb_transfer *transfer){
 }
 
 
-int init_###DEVTAG###(){
+int ###DEVTAG###_init(){
 	init_device("###DEVTAG###", VID, PID, EPT, data_callback);
 	return 0;
 }
 
-
+void ###DEVTAG###_finalize(){
+}
 
