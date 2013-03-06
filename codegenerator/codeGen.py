@@ -82,30 +82,26 @@ class OutputGenerator:
     # This way different Handlers can be invoked for different purposes 
     #   and order their output as they wish.
 
-    def __init__(self, mode_flags, code_filename, header_filename, make_filename):
+    def __init__(self, mode_flags_files):
         self.output = defaultdict(lambda: defaultdict(list))
-        self.mode_flags = mode_flags
-        self.code_filename = code_filename
-        self.header_filename = header_filename
-        self.make_filename = make_filename
+        self.mode_flags_files = mode_flags_files
 
     def append(self, mode, level, data):
         self.output[mode][level].append(data)
 
     def display(self):
         for mode in self.output.keys():
-            if self.mode_flags[mode] == True:
-                print (mode + ":\n")
+            if self.mode_flags_files[mode]['run'] == True:
+                print (mode + ": " + self.mode_flags_files[mode]['file'])
                 for level in sorted(self.output[mode].keys()):
                     for message in self.output[mode][level]:
-                    #    print (mode, "->", level, "->", message)
-                        print (message)
-                    print ("\n")
+                        print (mode, "->", level, "->", message)
+                    #    print (message)
 
     def write_out(self):
         for mode in self.output.keys():
-            if self.mode_flags[mode] == True:
-                print (mode + " (" + ":\n")
+            if self.mode_flags_files[mode]['run'] == True:
+                print (mode + " (" + ": " + self.mode_flags_files[mode]['file'])
                 for level in sorted(self.output[mode].keys()):
                     for message in self.output[mode][level]:
                     #    print (mode, "->", level, "->", message)
@@ -117,10 +113,10 @@ class Parser:
 
     def __init__(self, filename):
         self.errors = ErrorLogger()
-        self.modes = {'code': False, 'make': False, 'header': False}
+        modes_flags_files = {'code': {'run': False, 'file': None}, 'make': {'run': False, 'file': None}, 'header': {'run': False, 'file': None}}
 
         # Check command line arguments used to invoke codeGen
-        if self.argument_check():
+        if self.argument_check(modes_flags_files):
             self.errors.check_file(filename)
         self.errors.check()
         # Then read config file.
@@ -131,9 +127,9 @@ class Parser:
         self.errors.check()
 
         # get filename configuration data
-        code_file = self.config['code_filename']
-        header_file = self.config['header_filename']
-        make_file = self.config['make_filename']
+        modes_flags_files['code']['file'] = self.config['code_filename']
+        modes_flags_files['header']['file'] = self.config['header_filename']
+        modes_flags_files['make']['file'] = self.config['make_filename']
         # remove filename stuff from config, this makes it so only handler data is left.
         del(self.config['code_filename'])
         del(self.config['header_filename'])
@@ -144,7 +140,7 @@ class Parser:
             self.config[handler]['path'] = self.config[handler]['path'].split("/")
         self.path = ['']
         self.state = None
-        self.output = OutputGenerator(self.modes, code_file, header_file, make_file)
+        self.output = OutputGenerator(modes_flags_files)
 
     def parse(self):
         # top level 'public' function. Since we have external MIML docs we need to pull those in
@@ -157,7 +153,6 @@ class Parser:
         # Do Expand, Validate, Parse
         self.handler_functions = ParseHandlers(self)
         while self.transition() == True:
-        #    print (yaml.dump(self.master))
             self.crawl(self.master)
         # Output
         self.output.display()
@@ -187,12 +182,10 @@ class Parser:
             # Set new buffer, copy master to unhandled.
             self.buffer = {}
             self.unhandled = copy.copy(self.master)
-            print(yaml.dump(self.master))
             self.state = ParserStates.Expand
         elif self.state == ParserStates.Expand:
             # Make buffer contents master. 
             self.master = self.buffer
-            print(yaml.dump(self.buffer))
             self.buffer = {}
 	    # Necessary to check unhandled from Expand or we will miss problems during buffer transfer
             if not self.unhandled == {}:
@@ -202,11 +195,12 @@ class Parser:
         elif self.state == ParserStates.Validate:
             if not self.unhandled == {}:
                 self.errors.new_error("Unhandled MIML content at end of Validate state! " + str(self.unhandled))
-            # Make buffer contents master. 
-            print(yaml.dump(self.buffer))
+            # Let's not do buffers and unhandled structs after this point, saves 'pointless' code in handlers.
+            # Make buffer contents master. Should we allow buffering during Validate? Seems like a no.
             self.master = self.buffer
-#            self.buffer = {}
             self.state = ParserStates.Parse
+            print ("Parse This!")
+            print(yaml.dump(self.master))
         else:
             # purge staged data.
             self.handler_functions.purge()
@@ -253,7 +247,7 @@ class Parser:
         else:
             return getattr(self.handler_functions, key)(data)
 
-    def argument_check(self):
+    def argument_check(self, modes_flags_files):
         # checks command line arguments, configures modes based on flags.
         if len(sys.argv) > 3 or len(sys.argv) < 2:
             self.errors.new_error("Illegal number of arguments! Expected 1 or 2, received: "
@@ -264,11 +258,11 @@ class Parser:
         match = re.match(r"^-[cmh]+$", mode_flags)
         if match:
             if re.match(r"(.*c)", mode_flags):
-                self.modes['code'] = True
+                modes_flags_files['code']['run'] = True
             if re.match(r"(.*m)", mode_flags):
-                self.modes['make'] = True
+                modes_flags_files['make']['run'] = True
             if re.match(r"(.*h)", mode_flags):
-                self.modes['header'] = True
+                modes_flags_files['header']['run'] = True
             return True
         else:
             self.errors.new_error("Illegal mode usage, expecting -[chm]. Given : " + mode_flags)
@@ -284,44 +278,49 @@ class ParseHandlers:
         self.parser = parser
         # to support validate_params
         self.allowed_types = ['int', 'char*', 'int32_t']
+        # objects for single line make file
         self.objects = []
 
     def purge(self):
         # Required function, not part of config-based handlers
         # Called after Parsing phase, allows handlers to stage data and then commit to OutputGenerator after parse stage.
+        # or allows single time setup data, like fcfutils.h include
+        o = self.parser.output
+        o.append("code", 1, "#include \"fcfutils.h\"")
+        o.append("code", 6, "\n")
+        o.append("code", 11, "\n")
+        o.append("code", 16, "\n")
+        o.append("make", 6, "\n")
         if len(self.objects) > 0:
             self.parser.output.append("make", 5, "OBJECTS += " + ' '.join(self.objects))
 
-    def parse_sources(self, sources):
+    def parse_sources(self, data):
+        # SUSPECTED BUG!!! 
         p = self.parser
         e = p.errors
-        if self.parser.state == ParserStates.Expand:
+        o = p.output
+        if p.state == ParserStates.Expand:
             # Pull in external file data, place in buffer
             del(p.unhandled['sources'])
             p.buffer['modules'] = {}
-            p.buffer['make_miml'] = []
-            for source in sources:             
+            p.buffer['sources'] = data
+            for source in data:             
                 if (e.check_file(source[1])):
                     try:
                         p.buffer['modules'][source[0]] = yaml.load(open(source[1], 'r'))
-                        p.buffer['make_miml'].append(source[1])
                     except Exception as e:
                         e.new_error("YAML parsing error: " + str(e))
             return True
-        e.new_error("Call to sources handler outside of Expansion state.")
-        return False # Maybe we got here because of someone adding new features and another handler...
-
-    def make_miml(self, data):
-        p = self.parser
-        o = p.output
         if p.state == ParserStates.Validate:
-            p.buffer['make_miml'] = data
-            del(p.unhandled['make_miml'])
+            del(p.unhandled['sources'])
+            p.buffer['sources'] = data
         if p.state == ParserStates.Parse:
-            o.append("make", 10, o.code_filename + " " + o.header_filename + ": " + p.miml_file + " " + ' '.join(data))
+            module_miml = []
+            for source in data:
+                module_miml.append(source[1])
+            o.append("make", 10, o.mode_flags_files['code']['file'] + " " + o.mode_flags_files['header']['file'] + ": " + p.miml_file + " " + ' '.join(module_miml))
             o.append("make", 10, "\t./codeGen.py -ch " + p.miml_file)
-        return True
-            
+        return True # Nothing responds to data under here, left in so includes/final can figure out what order to stage data.
 
     def parse_messages(self, data):
         p = self.parser
@@ -388,6 +387,7 @@ class ParseHandlers:
         e = p.errors
         o = p.output
         # Must return False or other module matches will not happen.
+        # No need for Expansion code, modules are created during source expansion.
         if p.state == ParserStates.Validate:
             for source in data.keys():
                 for key in data[source]:
@@ -415,6 +415,7 @@ class ParseHandlers:
         return False
 
     def parse_includes(self, data):
+        # handles include files.
         p = self.parser
         e = p.errors
         o = p.output
@@ -426,6 +427,8 @@ class ParseHandlers:
         return True
 
     def parse_objects(self, data):
+        # handles object files for the make file, needs to add 1 row to make file so stages
+        # into (self.objects), purge makes output.
         p = self.parser
         e = p.errors
         if p.state == ParserStates.Validate:
@@ -435,7 +438,8 @@ class ParseHandlers:
             self.objects.append(data)
         return True
 
-    def parse_inits(self, data):
+    def validate_inits(self, data):
+        # validates a modules initialize functions, output is generated via the module handler.
         p = self.parser
         e = p.errors
         if p.state == ParserStates.Validate:
@@ -443,7 +447,8 @@ class ParseHandlers:
                 e.new_error("Illegal initialize function: " + data + " in " + '/'.join(p.path))
         return True
     
-    def parse_finals(self, data):
+    def validate_finals(self, data):
+        # validates a modules finalize functions, output is generated via the module handler.
         p = self.parser
         e = p.errors
         if p.state == ParserStates.Validate:
@@ -452,12 +457,16 @@ class ParseHandlers:
         return True
 
     def validate_senders(self, data):
+        # validate_params wrapper that targets senders
         return self.validate_params(data)
 
     def validate_receivers(self, data):
+        # validate_params wrapper that targets receivers
         return self.validate_params(data)
 
     def validate_params(self, data):
+        # Validate sender and receiver parameters, checks that each parameter has 2 elements
+        # and that the second is an approved type (self.allowed_types)
         p = self.parser
         e = p.errors
         if p.state == ParserStates.Validate:
