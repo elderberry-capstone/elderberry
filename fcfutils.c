@@ -338,7 +338,8 @@ int main(int argc, char *argv[]){
 	 "----------------------------------------------------------------\n\n\n");
   signal (SIGINT, signalhandler);
 
-  fcf_init();
+  init_fcf();			//< FCF init that sets up fd structures
+  fcf_init();			//< fcfmain init function for user modules
   int rc = fcf_run_poll_loop();
 
   if(rc == 0) {
