@@ -273,9 +273,9 @@ int main(int argc, char *argv[]){
   
   printf("Flight Control Framework v0.1  Copyright (C) 2013\n"
 	 "Team Elderberry [Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]\n"
-	 "This program comes with ABSOLUTELY NO WARRANTY; for details please visit ...... .\n"
+	 "This program comes with ABSOLUTELY NO WARRANTY; for details please visit http://www.gnu.org/licenses/gpl.html .\n"
 	 "This is free software, and you are welcome to redistribute it\n"
-	 "under certain conditions; Please visit ........................... for details.\n");
+	 "under certain conditions; Please visit http://www.gnu.org/licenses/gpl.html for details.\n");
   signal (SIGINT, signalhandler);
 
   fcf_init();
