@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>fcfutils.h Source File</title>
+<title>PSAS Flight Control Framework: fcfutils.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
@@ -14,6 +14,17 @@
 var searchBox = new SearchBox("searchBox", "search",false,'Search');
 --></script>
 <div id="top">
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">PSAS Flight Control Framework</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
@@ -58,7 +69,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00030"></a>00030 <span class="keyword">extern</span> <span class="keywordtype">int</span> init_fcf();
 <a name="l00037"></a>00037 <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code" href="fcfutils_8h.html#aa1c613165266b69a81f7d9e229e57e94" title="increases the size of the file descriptor and file description arrays">expand_arrays</a>();
 <a name="l00038"></a>00038 <span class="keyword">typedef</span> void (*pollfd_callback)(<span class="keywordtype">int</span> fd_idx);
-<a name="l00044"></a>00044 <span class="keyword">extern</span> <span class="keywordtype">int</span> fcf_add_fd(<span class="keyword">const</span> <span class="keywordtype">char</span>*, <span class="keywordtype">int</span>, <span class="keywordtype">short</span>, pollfd_callback);
+<a name="l00044"></a>00044 <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code" href="fcfutils_8h.html#a88f56229ca750186a10dac8acd21a377" title="adds file descriptor on tot he end of the array">fcf_add_fd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*, <span class="keywordtype">int</span>, <span class="keywordtype">short</span>, pollfd_callback);
 <a name="l00049"></a>00049 <span class="keyword">extern</span> <span class="keywordtype">int</span> fcf_remove_fd(<span class="keywordtype">int</span>);
 <a name="l00050"></a>00050 <span class="keyword">extern</span> <span class="keywordtype">int</span> fcf_remove_fd_by_token(<span class="keyword">const</span> <span class="keywordtype">char</span> *);
 <a name="l00051"></a>00051 <span class="keyword">extern</span> <span class="keyword">struct </span>pollfd * fcf_get_fd(<span class="keywordtype">int</span>);
@@ -86,7 +97,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Mon Mar 4 2013 19:00:55 by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Tue Mar 5 2013 07:35:00 for PSAS Flight Control Framework by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.4 </small></address>
 </body>
