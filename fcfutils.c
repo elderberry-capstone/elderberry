@@ -29,6 +29,7 @@
 #include <libusb-1.0/libusb.h>
 #include <signal.h>
 #include "fcfutils.h"
+#include "fcfmain.h"
 
 #define FDS_INIT_SIZE 1
 #define FDS_EXPANSION_FACTOR 2
@@ -179,7 +180,7 @@ void fcf_stop_main_loop(){
  *    Starts main poll loop running
  */
 static void fcf_start_main_loop(){
-  run_fcc = 1;
+  run_fc = 1;
 }
 
 /*
@@ -288,12 +289,53 @@ static void signalhandler(int signum){
 
 
 int main(int argc, char *argv[]){
+
+ /*printf("" 
+		"                                                                                \n"
+		"                               `.:/++oooooo+//-.`                               \n"
+		"                           -/oyhhhhhhhhhhhyhhhhhhyo/.                       `   \n"
+		"                       `:ohhhhhhhhhhhhhhhhhhhhyshhhhhyo:                  -+    \n"
+		"                     -ohhhhhhhhhhhhhhhhhsyhyhhoohhhhhhhhh+.             -o+     \n"
+		"                   -shhhhhhhhhhhhhhhhyhhhyhhhhhhhhhhhhhhhhho.         -sy:      \n"
+		"                 .shhhhhhhho/+ooossyhhsyhhhhshhhhohhhhhhhhhhho`    `/yyo.       \n"
+		"                /hhhhhhhhh-+hhhhhhhyssohhhhhhhhhhhhhhhhhhhhhhhy-.:syys:         \n"
+		"               ohhhhhhhhh+/hhhhyh++hhhhysyhhhhhhhhhhhhhhhhhhhhhhyyyy:           \n"
+		"              ohhhhhhhhhh/shhhhhyhhhhhhhhhsshhhhhhhhhhhhhhhhyyyyyy:             \n"
+		"             /hhhhhhhhhhho+hhhhhhhhhhhhhhhhhsshhhhhhhhhhyyyyhhhhhh-             \n"
+		"            .hhhhhhhhhhhhh:hhhhhhhhhhhhhhhhhhhsyhhhhyyyyhhhhhhhhhhy`            \n"
+		"            ohhhhhhhhhhhhhoohhhhhhhhhhhhhhhhhhhyoyyyhhhhhhhhhhhhhhh/            \n"
+		"            hhsossyssyhyooo:ssossysoooyhsoooyoooo+oosyhhoooshyssyyss            \n"
+		"           .hh/`hyy:`hhh`/y``/ shoo s:`h+ o o+ hys/-h+/h:`h.:h/ soyh            \n"
+		"           -hh/ s/h:.hhh`:h-./ /+so +`:ho +`o+ o+ho.: oh/`+ ohh-`shh`           \n"
+		"           .hh- soo-`o+o`-+-so :s++ ++`+/ +`osooo+:`o``o-`s:`sh:`yhh            \n"
+		"      `.....hhhhhhhhhhhhhhhhyhhy/shhhhhhhhhhhhhhhhhhhsshhhhhhhhhhhhs            \n"
+		"   `-:::::::/+yhhhhhhhhhhhhhhhhhho+yhhhhhhhhhhhhhhhhhh+hhhyhho/yhhh/            \n"
+		"  -///:://////+shhhhhhhhhhhhhhhhhhh++hhhhhhhhhhhhhhhhhoshhhyhhyyhhy             \n"
+		" .+++++++++++oooyhhhhhhhyhhohhhyyhhhy++hhhhhhhhhhhhhhys+hhhhhyhhhh-             \n"
+		" -oooooooooossssyhhhhhhhhhyyshyhhhhhhhy -hhhhhhhhhhhhhy+hhhhhhhhh:              \n"
+		" `osssssssyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh+hhhyshhhh:               \n"
+		"  `oyyyyyhhhhhy::hhhhhhhhhhhhhhhyhhhhhshhhhhyhhyyyyysshhhhy+syy-                \n"
+		"    -+yhhhhho:`  .ohhhhhhhhhhhshhshhhhhhhhhhhhhhhhhhhhhhhhhhh+`                 \n"
+		"        ``   `.----+syhhhhhhhho/yhhhhhhhhhhhhhhhhhhhhhhhhhho.                   \n"
+		"           .:::::::://+yhhhhhhyyhhhhhhhhhhhhhhhhhhhhhhhhy+.                     \n"
+		"          -//////////+++oohhhhhhhhhhhhhhhhhhhhhhhhhhhy+-                        \n"
+		"          ++++++++++ooooo  ./oyhhhhhhhhhhhhhhhhhhyo:.                           \n"
+		"          ooooooossssssss       .-:/++oooo++/:-.                                \n"
+		"          :sssyyyyyyyyyy-                                                       \n"
+		"           -syhhhhhhhhs.                                                        \n"
+		"             ./+sss+/.                                                          \n"
+		"");*/
   
-  printf("Flight Control Framework v0.1  Copyright (C) 2013\n"
-	 "Team Elderberry [Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]\n"
-	 "This program comes with ABSOLUTELY NO WARRANTY; for details please visit http://www.gnu.org/licenses/gpl.html .\n"
-	 "This is free software, and you are welcome to redistribute it\n"
-	 "under certain conditions; Please visit http://www.gnu.org/licenses/gpl.html for details.\n");
+  printf("\n FLIGHT CONTROL FRAMEWORK V0.1 \n\n Copyright (C) 2013\n"
+     " Team Elderberry\n Portland State University\n\n"
+	 //"Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]\n"
+	 "----------------------------------------------------------------\n"
+	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
+	 " visit http://www.gnu.org/licenses/gpl.html.\n\n"
+	 " This is free software, and you are welcome to redistribute it\n"
+	 " under certain conditions; For details, please visit\n"
+	 " http://www.gnu.org/licenses/gpl.html.\n"
+	 "----------------------------------------------------------------\n\n\n");
   signal (SIGINT, signalhandler);
 
   fcf_init();
