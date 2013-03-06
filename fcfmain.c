@@ -26,15 +26,13 @@
 /***************	CODE GENERATED SPACE	**************/
 
 void fcf_init() {
-	// System inits
-	init_fcf();			//< Special FCF init that sets up fd structures
-
 	// User module inits
 	//init_diskLogger();	// This should be listed first.
 	//init_temp();
 	init_mouse_clark();
 	init_mouse_jm();
 	init_mouse_jm2();
+	//init_diskLogger();
 	//init_test();
 	//init_gps();
 	//init_theo_imu();

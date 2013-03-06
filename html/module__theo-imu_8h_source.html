@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>PSAS Flight Control Framework: fcffd Struct Reference</title>
+<title>PSAS Flight Control Framework: module_theo-imu.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
@@ -28,8 +28,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
-      <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
-      <li><a href="files.html"><span>Files</span></a></li>
+      <li><a href="annotated.html"><span>Classes</span></a></li>
+      <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li id="searchli">
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -50,48 +50,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
-      <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
-      <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
-      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
+      <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
-</div>
 <div class="header">
-  <div class="summary">
-<a href="#pub-attribs">Public Attributes</a>  </div>
   <div class="headertitle">
-<div class="title">fcffd Struct Reference</div>  </div>
+<div class="title">module_theo-imu.h</div>  </div>
 </div>
 <div class="contents">
-<!-- doxytag: class="fcffd" -->
-<p><a href="structfcffd-members.html">List of all members.</a></p>
-<table class="memberdecls">
-<tr><td colspan="2"><h2><a name="pub-attribs"></a>
-Public Attributes</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfcffd.html#a6ff3b70c6a0fab7febf5417564c9f57f">token</a></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac1a8e9df9ea3fe5e99b10f7501fc1e75"></a><!-- doxytag: member="fcffd::callback" ref="ac1a8e9df9ea3fe5e99b10f7501fc1e75" args="" -->
-pollfd_callback&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6ab682c25d032feb99fadb999dbe582e"></a><!-- doxytag: member="fcffd::cb_cat" ref="a6ab682c25d032feb99fadb999dbe582e" args="" -->
-char&#160;</td><td class="memItemRight" valign="bottom"><b>cb_cat</b></td></tr>
-</table>
-<hr/><h2>Member Data Documentation</h2>
-<a class="anchor" id="a6ff3b70c6a0fab7febf5417564c9f57f"></a><!-- doxytag: member="fcffd::token" ref="a6ff3b70c6a0fab7febf5417564c9f57f" args="" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* <a class="el" href="structfcffd.html#a6ff3b70c6a0fab7febf5417564c9f57f">fcffd::token</a></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>The short name of the device. </p>
-
-</div>
-</div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>fcfutils.c</li>
-</ul>
+<div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
+<a name="l00002"></a>00002 <span class="comment"> * theo-imu.h</span>
+<a name="l00003"></a>00003 <span class="comment"> *</span>
+<a name="l00004"></a>00004 <span class="comment"> * Initializes and automatically starts data transfers from theo-imu, and logs</span>
+<a name="l00005"></a>00005 <span class="comment"> * the recorded data.</span>
+<a name="l00006"></a>00006 <span class="comment"> */</span>
+<a name="l00007"></a>00007 
+<a name="l00008"></a>00008 <span class="preprocessor">#ifndef THEO_IMU_H_</span>
+<a name="l00009"></a>00009 <span class="preprocessor"></span><span class="preprocessor">#define THEO_IMU_H_</span>
+<a name="l00010"></a>00010 <span class="preprocessor"></span>
+<a name="l00011"></a>00011 <span class="keyword">extern</span> <span class="keywordtype">void</span> init_theo_imu();
+<a name="l00012"></a>00012 
+<a name="l00013"></a>00013 <span class="preprocessor">#endif </span><span class="comment">/* THEO_IMU_H_ */</span>
+</pre></div></div>
 </div>
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
@@ -107,7 +88,7 @@ char&#160;</td><td class="memItemRight" valign="bottom"><b>cb_cat</b></td></tr>
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Tue Mar 5 2013 07:36:52 for PSAS Flight Control Framework by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Tue Mar 5 2013 07:35:00 for PSAS Flight Control Framework by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.4 </small></address>
 </body>

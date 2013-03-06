@@ -29,6 +29,7 @@ program_arguments   Arguments to supply to the program program_name.
 # @param args: The program arguments.
 #
 def run_for_time(t, args):
+<<<<<<< HEAD
     pid = os.fork()
     if (pid == 0):   # We're the child
         logging.info("The child prcess is %d" % (os.getpid()))
@@ -37,6 +38,25 @@ def run_for_time(t, args):
         time.sleep(float(t[0])*3600 + float(t[1])*60 + float(t[2]))
         time.sleep(10)
         subprocess.call(["sudo kill -9", str(pid)])
+=======
+    t2 = (int(t[0]) * 3600) + (int(t[1]) * 60) + int(t[2])
+    logging.info("Running program:")
+    logging.info("\t%s" % (" ".join(args)))
+    logging.info("Time: %d seconds" % (t2))
+    
+    proc = subprocess.Popen(args)
+    
+    time.sleep(t2)
+    
+    logging.debug("Killing process '%d'" % (proc.pid))
+    subprocess.call(["sudo", "kill -9", str(proc.pid)])
+    for ar in args:
+        if (ar not in sys_reserved):
+            logging.debug("Also killing '" + ar + "'")
+            subprocess.Popen(["sudo", "killall", ar])
+    
+    #os.kill(proc.pid, 9)
+>>>>>>> 5c2949d2ad65f8422b8fba32026c544b2a90c8fe
         
 #
 # Human-readable utility function for declaring which test

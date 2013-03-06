@@ -58,8 +58,10 @@ int main(int argc, char **argv){
     int length = sizeof(data);
     int *transferred;
     unsigned int timeout = MY_TIMEOUT;
-    libusb_interrupt_transfer(handle, 0x1, data, length, transferred,
-        timeout);
+    while (1){
+        libusb_interrupt_transfer(handle, 0x1, data, length, transferred,
+            timeout);
+    }
     
     err = libusb_release_interface(handle, 0);
     if (err != 0){

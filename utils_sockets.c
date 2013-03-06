@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include "utils_sockets.h"
+#include "fcfutils.h"
 
 int readsocket(int fd, unsigned char *buffer, int bufsize) {
 	/**

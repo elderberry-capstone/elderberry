@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>PSAS Flight Control Framework: File List</title>
+<title>PSAS Flight Control Framework: fcfmain.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
@@ -50,19 +50,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
-      <li class="current"><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="files.html"><span>File&#160;List</span></a></li>
       <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
-</div>
 <div class="header">
   <div class="headertitle">
-<div class="title">File List</div>  </div>
+<div class="title">fcfmain.h</div>  </div>
 </div>
 <div class="contents">
-<div class="textblock">Here is a list of all documented files with brief descriptions:</div><table>
-  <tr><td class="indexkey"><a class="el" href="fcfutils_8h.html">fcfutils.h</a></td><td class="indexvalue">Utility functions for the flight control framework (fcf) </td></tr>
-</table>
+<div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="preprocessor">#ifndef _FCFMAIN_</span>
+<a name="l00002"></a>00002 <span class="preprocessor"></span><span class="preprocessor">#define _FCFMAIN_</span>
+<a name="l00003"></a>00003 <span class="preprocessor"></span>
+<a name="l00004"></a>00004 <span class="preprocessor">#define TRUE             1</span>
+<a name="l00005"></a>00005 <span class="preprocessor"></span><span class="preprocessor">#define FALSE            0</span>
+<a name="l00006"></a>00006 <span class="preprocessor"></span>
+<a name="l00007"></a>00007 
+<a name="l00008"></a>00008 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_mouse_clark(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buff, <span class="keywordtype">int</span> length);
+<a name="l00009"></a>00009 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_mouse_clark2(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buff, <span class="keywordtype">int</span> length);
+<a name="l00010"></a>00010 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_mouse_jm(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buff, <span class="keywordtype">int</span> length);
+<a name="l00011"></a>00011 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_mouse_jm2(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buff, <span class="keywordtype">int</span> length);
+<a name="l00012"></a>00012 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_temp(<span class="keywordtype">char</span> *buff, <span class="keywordtype">int</span> length);
+<a name="l00013"></a>00013 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_gps(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *, <span class="keywordtype">int</span>);
+<a name="l00014"></a>00014 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_theo_imu(<span class="keyword">const</span> <span class="keywordtype">char</span> *, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *, <span class="keywordtype">int</span>);
+<a name="l00015"></a>00015 <span class="keyword">extern</span> <span class="keywordtype">void</span> fcf_callback_virtdev(<span class="keyword">const</span> <span class="keywordtype">char</span> * src, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buff, <span class="keywordtype">int</span> length);
+<a name="l00016"></a>00016 
+<a name="l00017"></a>00017 <span class="preprocessor">#endif</span>
+</pre></div></div>
 </div>
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
@@ -78,7 +92,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Tue Mar 5 2013 07:36:52 for PSAS Flight Control Framework by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Tue Mar 5 2013 07:35:00 for PSAS Flight Control Framework by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.4 </small></address>
 </body>
