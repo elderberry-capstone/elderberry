@@ -14,6 +14,7 @@
 #include "module_mouse_clark2.h"
 #include "module_mouse_jm.h"
 #include "module_mouse_jm2.h"
+#include "module_fakemouse.h"
 #include "module_testLoggerScreen.h"
 #include "module_profile.h"
 #include "module_testLoggerDisk.h"
@@ -29,9 +30,9 @@ void fcf_init() {
 	// User module inits
 	//init_diskLogger();	// This should be listed first.
 	//init_temp();
-	init_mouse_clark();
-	init_mouse_jm();
-	init_mouse_jm2();
+	//init_mouse_clark();
+	//init_mouse_jm();
+	//init_mouse_jm2();
 	//init_diskLogger();
 	//init_test();
 	//init_gps();
@@ -39,6 +40,7 @@ void fcf_init() {
 	//init_virtgyr();
 	//init_virtacc();
 	//init_profiling();
+	init_virtFAKEMOUSE();
 }
 
 

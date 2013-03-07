@@ -5,7 +5,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 using namespace std;
+namespace ba = boost::asio;
+namespace bru = boost::random;
 
 #define ERROR cerr << "\033[31;1mERROR:\t"
 #define WARN cerr << "\033[33mWARNING:\t"
@@ -14,63 +21,45 @@ using namespace std;
 #define DEBUG cout << "\033[37mDEBUG:\t"
 #define ENDL "\033[0m" << endl
 
-const unsigned int MY_TIMEOUT = 10000;
+const unsigned int MY_TIMEOUT = 10000;  // Default timeout.
+const unsigned int _ARGC = 3;    // Needed number of arguments.
 
+const short PORT_I = 2; // Port index for argv.
+const short ADDR_I = 1; // Address index for argv.
+const int MIN_CHARS = 0;
+const int MAX_CHARS = 30;
+const int MIN_CHAR_RANGE = 32;
+const int MAX_CHAR_RANGE = 126;
+
+const char *gen_buf(){
+	boost::random::mt19937 gen;
+	bru::uniform_int_distribution<> dist1(MIN_CHARS, MAX_CHARS);
+	bru::uniform_int_distribution<> dist2(MIN_CHAR_RANGE, MAX_CHAR_RANGE);
+
+	int numChars = dist1(gen);
+	string str = NULL;
+	for (int i = 0; i < numChars; ++i){
+		str = str + (char) dist2(gen);
+	}
+
+	INFO << "Generated \"" << str << "\"" << ENDL;
+	return str.c_str();
+}
 
 int main(int argc, char **argv){
-    if (!(argc == 3 || argc == 2)){
-        ERROR << argv[0] << " requires 2 or 3 arguments. " << (argc-1) <<
-            " given." << ENDL;
+    if (argc != _ARGC){
+        ERROR << "You provided " << argc << " arguments. Expected " <<
+            _ARGC << "." << ENDL;
         exit(EXIT_FAILURE);
-        return 0;
-    }
-    struct libusb_context *ctx;
-    struct libusb_device **list;
-    struct libusb_device_handle *handle;
-    libusb_init(&ctx);
-
-    int base = 16;
-    uint16_t vid = stoll (argv[1], NULL, base);
-    uint16_t pid = stoll (argv[2], NULL, base);
-
-    handle = libusb_open_device_with_vid_pid(ctx, vid, pid);
-    if (handle == NULL){
-        ERROR << "Handle not found for device " << vid << ":" << pid << ENDL;
-        exit(EXIT_FAILURE);
-    }
-
-    libusb_device *endpoint = libusb_get_device(handle);
-    int err = libusb_claim_interface(handle, 0);
-    if (err != 0){
-        ERROR << libusb_error_name(err) << ENDL;
-    }else{
-        DEBUG << "Claimed interface." << ENDL;
-    }
-
-    unsigned char data[8] = "";
-
-    uint8_t addr1 = libusb_get_device_address(endpoint);
-    // Convert addr1 to a character array (yuck!)
-    stringstream out;
-    out << addr1;
-    const char *addr = out.str().c_str();
-
-    int length = sizeof(data);
-    int *transferred;
-    unsigned int timeout = MY_TIMEOUT;
-    while (1){
-        libusb_interrupt_transfer(handle, 0x1, data, length, transferred,
-            timeout);
     }
     
-    err = libusb_release_interface(handle, 0);
-    if (err != 0){
-        ERROR << libusb_error_name(err) << ENDL;
-    }else{
-        DEBUG << "Released interface." << ENDL;
-    }
+    auto portNumber = atoi(argv[PORT_I]);
+    auto addr = ba::ip::address::from_string(argv[ADDR_I]);
+    
 
-    libusb_close(handle);
-    libusb_exit(ctx);
-    return 1;
+    auto endpoint = ba::ip::basic_endpoint<const ba::ip::address *>(
+    		&addr, portNumber );
+    ba::io_service ioserv;
+    auto sock = ba::basic_socket<int, int>(endpoint, ioserv);
+    ba::write(sock, ba::buffer(gen_buf(), BUFSIZ));
 }
