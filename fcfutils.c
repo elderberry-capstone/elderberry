@@ -55,11 +55,13 @@ static int run_fc;		//< Main loop is running true/false
 
 
 static void debug_fd (const char *msg, int i, struct pollfd *pfd);
+extern void fcf_initialize(void);
+extern void fcf_finalize (void);
 
 /*
  * Initialization for fcf data structures
  */
-int init_fcf(){
+static int init_fcf(){
   fd_array_size = FDS_INIT_SIZE;
   //initializing both file descriptor arrays
   fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
@@ -339,8 +341,9 @@ int main(int argc, char *argv[]){
   signal (SIGINT, signalhandler);
 
   init_fcf();			//< FCF init that sets up fd structures
-  fcf_init();			//< fcfmain init function for user modules
+  fcf_initialize();			//< fcfmain init function for user modules
   int rc = fcf_run_poll_loop();
+  fcf_finalize();			//< fcfmain finalize function for user modules
 
   if(rc == 0) {
     return EXIT_SUCCESS;

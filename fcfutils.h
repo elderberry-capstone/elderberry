@@ -24,13 +24,6 @@ Below are the variables for this file:
 
 #include <poll.h>
 
-/**
- * @brief initialization for fcf data structures
- * @details Takes the global array size into a variable (this array size can be doubled when the array is full) Malloc commands create two arrays; fds and fdx.  The fds array is an array of pollfd pointers(required by the poll function). The fdx array has fcffd pointers(containing other information including callback actions).  The index of these two arrays are matched so the information is accurate and related.
- * @return 0
- */
-extern int init_fcf();
-
 typedef void (*pollfd_callback)(struct pollfd *);
 /**
  * @brief adds file descriptor on tot he end of the array

@@ -25,7 +25,7 @@
 
 /***************	CODE GENERATED SPACE	**************/
 
-void fcf_init() {
+void fcf_initialize() {
 	// User module inits
 	//init_diskLogger();	// This should be listed first.
 	//init_temp();
@@ -41,6 +41,8 @@ void fcf_init() {
 	//init_profiling();
 }
 
+void fcf_finalize() {
+}
 
 void fcf_callback_virtdev(const char * src, unsigned char *buff, int length) {
 	screenLogger_getMessage(src, buff, length);
