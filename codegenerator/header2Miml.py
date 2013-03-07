@@ -28,7 +28,11 @@ f.close()
 outputCodeHeader = "%YAML 1.2\n---\ninclude: " + inputfile + "\nobject: " + basefile + ".o"
 outputCodeInit = "init: "
 outputCodeFinal = "final: "
-outputCode = ""
+outputCodeSenders = "senders:\n"
+outputCodeReceivers = "receivers:\n"
+outputCodeUnknown = "[unknown:]\n"
+unknownFound = False
+
 
 def xstr(s):
     if s is None:
@@ -47,11 +51,13 @@ for item in codeLines:
 		if(strpos >=0):
 			outputCodeFinal += str(match.group(2)) + "()"
 			continue
-
-		outputCode += "  " + match.group(2) + ":\n"
+		
+		#outputCode += "  " + match.group(2) + ":\n"
 
 		content = match.group(3).split(',')
 		counter = 0
+
+		argVals = ""
 		for item2 in content:
 			counter += 1
 			match2 = re.match( r'[\s]*((const|unsigned)[\s]+)?(int|char)[\s]*(\*)?([\s]*([\w_-]+)[\s]*)?', item2, re.M|re.I)
@@ -60,12 +66,26 @@ for item in codeLines:
 				argName = match2.group(6)
 				if argName is None:
 					argName = "ARG" + str(counter)
-				outputCode += "  - [" +argName + ", " + argType.strip() + "]\n"
+				
+				argVals += "  - [" +argName + ", " + argType.strip() + "]\n"
+		
+		funcName = str(match.group(2))
+		if (funcName[:3]=="get"):
+			outputCodeReceivers += funcName  + ":\n" + argVals
+		elif (funcName[:4]=="send"):
+			outputCodeSenders += funcName  + ":\n" + argVals
+		else:
+			outputCodeUnknown += funcName  + ":\n" + argVals
+			unkownFound = True
+
 
 
 fout = open(outputfile, 'w')
 fout.write(outputCodeHeader + "\n")
 fout.write(outputCodeInit + "\n")
 fout.write(outputCodeFinal + "\n\n")
-fout.write(outputCode + "\n")
+fout.write(outputCodeSenders + "\n")
+fout.write(outputCodeReceivers + "\n")
+if unknownFound:
+	fout.write(outputCodeUnknown + "\n")
 fout.close()
