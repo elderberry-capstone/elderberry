@@ -51,8 +51,6 @@ for item in codeLines:
 		if(strpos >=0):
 			outputCodeFinal += str(match.group(2)) + "()"
 			continue
-		
-		#outputCode += "  " + match.group(2) + ":\n"
 
 		content = match.group(3).split(',')
 		counter = 0
@@ -77,8 +75,6 @@ for item in codeLines:
 		else:
 			outputCodeUnknown += funcName  + ":\n" + argVals
 			unkownFound = True
-
-
 
 fout = open(outputfile, 'w')
 fout.write(outputCodeHeader + "\n")
