@@ -1,7 +1,7 @@
 CC:=g++
 IN:=fakemouse.cpp
 OUT:=fakemouse
-LINK:=`pkg-config --libs libusb-1.0`
+LINK:= -lboost_system -lboost_regex -pthread
 CC11:=-std=c++11
 all:
 	$(CC) -o $(OUT) $(IN) $(LINK) $(CC11)

@@ -37,6 +37,7 @@ static void common_cb(const char * src, int fd){
 	int rc = readsocket(fd, buffer, sizeof(buffer));
 	if (rc > 0) {
 		fcf_callback_virtdev(src, buffer, rc);
+		printf("RC > 0");
 	}
 }
 
@@ -56,7 +57,7 @@ static int initvirtdev (const char* devname, int port, pollfd_callback cb) {
 //have one and pass through parameters?
 
 void init_virtFAKEMOUSE() {
-	initvirtdev ("virt_FAKEMOUSE", 8081, virtFAKEMOUSE_cb);
+	initvirtdev ("virt_FAKEMOUSE", 36524, virtFAKEMOUSE_cb);
 }
 
 
