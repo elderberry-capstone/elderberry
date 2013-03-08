@@ -8,29 +8,22 @@
 
 
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 
-FILE *fp = NULL;
-char * file;
-char * filename = "logfile.log";
+static FILE *fp = NULL;
+static const char *filename = "logfile.log";
 
 /**
  *  @brief Initializes the disk logging function
  *  @details Initializes function by copying filename into private data and opening the file. Error produced if file can't be opened.  
  *  @param filename Character pointer to name of file to be written to.
  */
-// Initializes function by copying filename into private data and 
-// opening file. Error produced if file can't be opened. (NOTE!) Not
-// sure about passing only be reference.
 int init_diskLogger (void) {
-	// Need to check filename!!!
 
-	if(!filename){
-		printf("Could not open file for writing.\n");
-		return -2;
-	}
-	file = filename;
-	fp = fopen(file, "w+");
+	fp = fopen(filename, "w+");
 	if(!fp){
+		fprintf (stderr, "disk logger: could not open file %s for writing: %s\n", filename, strerror(errno));
 		return -1;
 	}
 	setbuf(fp, NULL);
@@ -57,7 +50,12 @@ void diskLogger_getMessage(const char *src, char *buffer, int len) {
  *  @brief Closes the file stream.
  */
 // Closes file stream.
-int finalize_disklogger(){
-	fclose(fp);
-	return 0;
+void finalize_diskLogger(){
+	if (fp != NULL) {
+		int rc = fclose(fp);
+		if (rc == -1) {
+			fprintf (stderr, "disk logger: error closing file %s: %s\n", filename, strerror(errno));
+		}
+		fp = NULL;
+	}
 }

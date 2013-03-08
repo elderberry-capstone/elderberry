@@ -43,6 +43,7 @@ void fcf_initialize() {
 
 void fcf_finalize() {
 	//finalize_gps();
+	//finalize_diskLogger();
 }
 
 void fcf_callback_virtdev(const char * src, unsigned char *buff, int length) {
