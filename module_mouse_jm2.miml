@@ -7,7 +7,7 @@ final: finalize_mouse_jm2();
 
 # Functions that handle outgoing data
 senders:
-  sendMessage_mouse_clark:
+  sendMessage_mouse_jm2:
   - [src, const char*]
   - [buffer, unsigned char*]
   - [length, int]
