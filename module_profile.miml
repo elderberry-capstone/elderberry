@@ -8,9 +8,8 @@ final: finalize_profiling();
 # Functions that handle outgoing data
 senders:
   sendMessage_profile:
-  - [buf, unsigned char*]
-  - [len, int]
-
+  - [buff, unsigned char*]
+  - [length, int]
   sendMessage_profile3:
   - [a, int]
   - [b, int]
@@ -38,13 +37,6 @@ senders:
   - [x, int]
   - [y, int]
   - [z, int]
-  
-# Functions that handle incoming data
-receivers:
-  getMessage_profile:
-  - [buf, unsigned char*]
-  - [len, int]
-
   getMessage_profile3:
   - [a, int]
   - [b, int]
@@ -72,4 +64,10 @@ receivers:
   - [x, int]
   - [y, int]
   - [z, int]
+
+# Functions that handle incoming data
+receivers:
+  getMessage_profile:
+  - [buf, unsigned char*]
+  - [len, int]
 
