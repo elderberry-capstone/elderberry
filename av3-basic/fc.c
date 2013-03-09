@@ -26,15 +26,16 @@ static void signalhandler(int signum) {
 
     act.sa_handler = stop_main_loop;
     sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
+    act.sa_flags = SA_RESTART|SA_RESETHAND;
 
     sigaction(SIGINT, &act, 0);
 
+    /**
     if (signum == SIGINT)  {
     	printf("Received a SIGINT");
     	//(void) signal(SIGINT, SIG_DFL);	// Unblock the signal.
         stop_main_loop ();
-    }
+    }**/
 }
 
 void handleErrorPoll(void) {

@@ -90,9 +90,12 @@ int main(int argc, char **argv){
 		if (send(sockfd, cstr, sizeof(cstr), MSG_NOSIGNAL) == -1){
 			WARN << strerror(errno) << ENDL;
 			// If we've recieved a "BROKEN PIPE" error, try to reconnect.
-			if (EPIPE == errno){
+			if (EPIPE == errno || EBADF == errno){
+				close(sockfd);
+				sockfd = socket(AF_INET, SOCK_STREAM, 0);
 				if (connect(sockfd, (sockaddr *) &addr_in,
 						sizeof(addr_in)) < 0){
+					ERROR << strerror(errno) << ENDL;
 					ERROR << "Reconnect failed...trying again in " << TIMEOUT <<
 							" seconds..." << ENDL;
 				}
