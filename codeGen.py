@@ -205,6 +205,8 @@ class Parser:
                 self.errors.new_error("Unhandled MIML content at end of Expand state! " + str(self.unhandled))
             self.unhandled = copy.copy(self.master)
             self.state = ParserStates.Validate
+            print ("Validate This!")
+            print (yaml.dump(self.master))
         elif self.state == ParserStates.Validate:
             if not self.unhandled == {}:
                 self.errors.new_error("Unhandled MIML content at end of Validate state! " + str(self.unhandled))
@@ -319,7 +321,7 @@ class ParseHandlers:
             # Pull in external file data, place in buffer
             del(p.unhandled['sources'])
             p.buffer['modules'] = {}
-            p.buffer['sources'] = data
+            p.buffer['source_order'] = data
             for source in data:             
                 if (e.check_file(source[1])):
                     try:
@@ -327,10 +329,7 @@ class ParseHandlers:
                     except Exception as e:
                         e.new_error("YAML parsing error: " + str(e))
             return True
-        if p.state == ParserStates.Validate:
-            del(p.unhandled['sources'])
-            p.buffer['sources'] = data
-        if p.state == ParserStates.Parse:
+        elif p.state == ParserStates.Parse:
             module_miml = []
             for source in data:
                 module_miml.append(source[1])
@@ -347,7 +346,7 @@ class ParseHandlers:
             del(p.unhandled['messages'])
             p.buffer['messages'] = data
             return True
-        if p.state == ParserStates.Validate:
+        elif p.state == ParserStates.Validate:
             for message in data.keys():
                 sender = message.split('.')
                 if not len(sender) == 2:
@@ -379,7 +378,7 @@ class ParseHandlers:
             del(p.unhandled['messages'])
             p.buffer['messages'] = data
             return True
-        if p.state == ParserStates.Parse:
+        elif p.state == ParserStates.Parse:
             for message in data.keys(): # for each message
                 (src, func) = message.split('.')
                 args = []
@@ -410,24 +409,7 @@ class ParseHandlers:
                     if not key in ('include', 'object', 'init', 'final', 'senders', 'receivers'):
                         e.new_error("Module: " + source + " contains illegal component: " + key)
             del(p.unhandled['modules'])
-            p.buffer['modules'] = data
-        elif p.state == ParserStates.Parse:
-            # Initialize/Finalize Functions
-            finals = []
-            o.append("code", 10, "void fcf_initialize() {")
-            for source in data.keys():
-                if "init" in data[source]:
-                    o.append("code", 10, "    " + data[source]['init'])
-                if "final" in data[source]:
-                    finals.append(data[source]['final'])
-            o.append("code", 10, "}")
-            o.append("code", 15, "void fcf_finalize() {")
-            finals.reverse()
-            for final in finals:
-                o.append("code", 15, "    " + final)  
-            o.append("code", 15, "}")
-        else:
-            p.buffer['modules'] = data
+        p.buffer['modules'] = data
         return False
 
     def parse_includes(self, data):
@@ -450,7 +432,7 @@ class ParseHandlers:
         if p.state == ParserStates.Validate:
             if not re.match(r"\w+\.o", data):
                 e.new_error("Illegal object file format: " + data + " in " + '/'.join(p.path))
-        if p.state == ParserStates.Parse:
+        elif p.state == ParserStates.Parse:
             self.objects.append(data)
         return True
 
@@ -461,6 +443,29 @@ class ParseHandlers:
         if p.state == ParserStates.Validate:
             if not re.match(r"\w+\([^)]*\);", data):
                 e.new_error("Illegal initialize function: " + data + " in " + '/'.join(p.path))
+        return True
+
+    def parse_init_final(self, data):
+        p = self.parser
+        o = p.output
+        e = p.errors
+        if p.state == ParserStates.Validate:
+            del(p.unhandled['source_order'])
+            p.buffer['source_order'] = data
+        elif p.state == ParserStates.Parse:
+            finals = []
+            o.append("code", 10, "void fcf_initialize() {")
+            for source in data:
+                token = source[0]
+                if 'init' in p.master['modules'][token]:
+                    o.append("code", 10, "    " + p.master['modules'][token]['init'])
+                if "final" in p.master['modules'][token]:
+                    finals.append(p.master['modules'][token]['final'])
+            o.append("code", 10, "}")
+            o.append("code", 15, "void fcf_finalize() {")
+            while len(finals) > 0:
+                o.append("code", 15, "    " + finals.pop())  
+            o.append("code", 15, "}")                 
         return True
     
     def validate_finals(self, data):
