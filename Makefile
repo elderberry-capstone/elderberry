@@ -28,6 +28,7 @@ prof: fc
 
 
 fc: $(OBJECTS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LOADLIBES) $(LDLIBS)
 
 miml: $(MIMLMK)
 
