@@ -87,19 +87,17 @@ static int expand_arrays(){
   printf("%d\n", fd_array_size);
 	
 
-  //increase size of fds array
+  // Increase size of fds array
   fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
   if(fds_temp == NULL){
-    // TODO: Add necessary logging/abort codes
     return -1;  //if failed
   }
   fds = fds_temp;
 	
-  //increase size of fdx array
+  // Increase size of fdx array
   fdx_temp = realloc(fdx, fd_array_size * sizeof(struct fcffd));
   if(fdx_temp == NULL){
-    // TODO: Add necessary logging/abort codes
-    return -1;  //if failed
+    return -1;  // if failed
   }
   fdx = fdx_temp;
 
@@ -115,24 +113,23 @@ int fcf_add_fd(int fd, short events, pollfd_callback cb){
     expand_arrays();
   }
   
-  //Filling file descriptor array with information bassed through function parameters.
+  // Filling file descriptor arrays with fd and callback data
   fds[nfds].fd = fd;
   fds[nfds].events = events;
-  //fdx[nfds].token = token;
   fdx[nfds].callback = cb;
   fdx[nfds].cb_cat = STANDARD;
   nfds++;
   printf("Added fd: %d\tevents: %d\tFD count: %d\n", fd, events, nfds);
-  //printf("Added %s\tfd: %d\tevents: %d\tFD count: %d\n", token, fd, events, nfds);
-  return nfds - 1; //return value is the index of the newest file descriptor
+
+  return nfds - 1; // return value is the index of the newest file descriptor
 }
 
 
 /*
  *    Per poll loop file descriptor add
  */
-int fcf_add_fd_ppc(/*const char *token,*/ int fd, short events, pollfd_callback cb){
-  int i = fcf_add_fd (/*token,*/ fd, events, cb);
+int fcf_add_fd_ppc(int fd, short events, pollfd_callback cb){
+  int i = fcf_add_fd (fd, events, cb);
   if(i >= 0){
     fdx[i].cb_cat = PPC;
   }
@@ -144,7 +141,7 @@ int fcf_add_fd_ppc(/*const char *token,*/ int fd, short events, pollfd_callback 
  */
 void fcf_remove_fd(int fd){
  
-  // If there are no fds, return 0 -- or error code.
+  // If there are no fds, return
   if(nfds <= 0)
     return;
 
@@ -152,11 +149,9 @@ void fcf_remove_fd(int fd){
 	
   for(i = 0; i < nfds; i++){
     if(fds[i].fd == fd && i == (nfds - 1)){
-      //printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds - 1);
       nfds--;
     }
     else if(fds[i].fd == fd){
-      //printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
       memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
       memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
       nfds--;
@@ -196,30 +191,20 @@ static int fcf_run_poll_loop(){
 
   fcf_start_main_loop();
   while(run_fc){
-
-    /*for (int i = 0; i < nfds; i++) {
-      debug_fd("\nbefore poll<<< ", i, &fds[i]);
-      }*/
-    //printf("\nwaiting");
     fflush(stdout);
 
     errno = 0;
     int rc = poll(fds, nfds, -1);
 
-    //printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
-    /*for (int i = 0; i < nfds; i++) {
-      debug_fd("\n   after poll>>> ", i, &fds[i]);
-      }*/
-
     switch (rc){
-    case -1: //error
+    case -1: // error
       if(errno != EINTR){
 	perror ("run_main_loop: poll returned with error");
 	ret = -1;
 	fcf_stop_main_loop();
       }
       break;
-    case 0: //timeout
+    case 0: // timeout
       printf("poll timed out");
       break;
     default:
@@ -229,17 +214,17 @@ static int fcf_run_poll_loop(){
 	  debug_fd("\n active fd ", i, &fds[i]);
 	  rc--;
 	  if(fdx[i].cb_cat == STANDARD){
-	    //callback for this active fd is a standard callback
+	    // callback for this active fd is a standard callback
 	    fdx[i].callback(&fds[i]);
 	  } 
 	  else{
-	    //callback for this active fd is a "per poll cycle" callback
+	    // callback for this active fd is a "per poll cycle" callback
 	    int j;
 	    for(j = 0; j < nppc && ppc[j] != fdx[i].callback; j++)
 	      { /*empty*/ }
 	    if(j == nppc){
-	      //a new ppc callback
-	      //add to ppc so that callback will be called at end of poll cycle
+	      // a new ppc callback
+	      // add to ppc so that callback will be called at end of poll cycle
 	      ppc[nppc++] = fdx[i].callback;
 	    } 
 	    else{
@@ -250,11 +235,11 @@ static int fcf_run_poll_loop(){
 	} // (revents set)
       } // (for i)
 
-      //handle ppc callbacks
+      // handle ppc callbacks
       for(int j = 0; j < nppc; j++){
-	//if callback wants to access the fds, callback
-	//is expected to know the indices into the fds array
-	//i.e., module must store return values it gets from fcf_addfdPpc
+	// if callback wants to access the fds, callback
+	// is expected to know the indices into the fds array
+	// i.e., module must store return values it gets from fcf_addfdPpc
 	printf("\n calling ppc callback [%d]", j);
 	ppc[j](fds);
       }
@@ -272,7 +257,6 @@ static int fcf_run_poll_loop(){
  *    Prints out polling information
  */
 static void debug_fd (const char *msg, int i, struct pollfd *pfd){
-  //printf("%s fd[%d]: fd=%d events=%X revents=%X [%s]", msg, i, pfd->fd, pfd->events, pfd->revents, fdx[i].token);
   int re = pfd->revents;
   if(re & POLLERR) printf("\nPOLLERR - Error condition");
   if(re & POLLHUP) printf("\nPOLLHUP - Hang up");
@@ -328,8 +312,8 @@ int main(int argc, char *argv[]){
 		"             ./+sss+/.                                                          \n"
 		"");*/
   
-  printf("\n FLIGHT CONTROL FRAMEWORK V0.1  Copyright (C) 2013\n"
-	 "Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
+  printf("\n FLIGHT CONTROL FRAMEWORK V0.1 -- Copyright (C) 2013\n"
+	 " Ron Astin, Clark Wachsmuth, Chris Glasser\n Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
 	 "----------------------------------------------------------------\n"
 	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
 	 " visit http://www.gnu.org/licenses/gpl.html.\n\n"
