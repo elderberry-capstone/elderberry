@@ -21,18 +21,26 @@ else:
 # Should check to see if a .Miml -- if not, add extension or error
 outputfile = sys.argv[2]
 
-f = open(inputfile, 'r')
+try:
+	f = open(inputfile, 'r')
+except IOError as e:
+	print "I/O error({0}): Input header file --> {1}".format(e.errno, e.strerror)
+	sys.exit(-1)
+
 codeLines = f.readlines()
 f.close()
 
 outputCodeHeader = "%YAML 1.2\n---\ninclude: " + inputfile + "\nobject: " + basefile + ".o"
 outputCodeInit = "init: "
 outputCodeFinal = "final: "
-outputCodeSenders = "senders:\n"
-outputCodeReceivers = "receivers:\n"
+outputCodeSenders = "# Functions that handle outgoing data\nsenders:\n"
+outputCodeReceivers = "# Functions that handle incoming data\nreceivers:\n"
 outputCodeUnknown = "[unknown:]\n"
-unknownFound = False
-
+foundInit = 0
+foundFinal = 0
+foundUnknown = 0
+foundSenders = 0
+foundReceivers = 0
 
 def xstr(s):
     if s is None:
@@ -45,11 +53,13 @@ for item in codeLines:
 		strpos = match.group(2).find("initialize")
 		if(strpos >=0):
 			outputCodeInit += str(match.group(2)) + "()"
+			foundInit += 1
 			continue
 
 		strpos = match.group(2).find("finalize")
 		if(strpos >=0):
 			outputCodeFinal += str(match.group(2)) + "()"
+			foundFinal += 1
 			continue
 
 		content = match.group(3).split(',')
@@ -70,18 +80,35 @@ for item in codeLines:
 		funcName = str(match.group(2))
 		if (funcName[:3]=="get"):
 			outputCodeReceivers += funcName  + ":\n" + argVals
+			foundReceivers += 1
 		elif (funcName[:4]=="send"):
 			outputCodeSenders += funcName  + ":\n" + argVals
+			foundSenders += 1
 		else:
 			outputCodeUnknown += funcName  + ":\n" + argVals
-			unkownFound = True
+			foundUnknown += 1
 
-fout = open(outputfile, 'w')
+try:
+	fout = open(outputfile, 'w')
+except IOError as e:
+	print "I/O error({0}): Output Miml file --> {1}".format(e.errno, e.strerror)
+	sys.exit(-1)
 fout.write(outputCodeHeader + "\n")
 fout.write(outputCodeInit + "\n")
 fout.write(outputCodeFinal + "\n\n")
 fout.write(outputCodeSenders + "\n")
 fout.write(outputCodeReceivers + "\n")
-if unknownFound:
+if foundUnknown:
+	fout.write("# Functions that have not been designated as\n")
+	fout.write("# senders or receivers. Sort them accordingly\n")
+	fout.write("# and delete the [unknown:] header.\n")
 	fout.write(outputCodeUnknown + "\n")
 fout.close()
+
+print "\n " + inputfile
+print "======================================================"
+print " Init\tFinal\tSenders\t  Receivers   Unknown			 "
+print "------------------------------------------------------"
+print " " + str(foundInit) + "\t" + str(foundFinal) + "\t" + str(foundSenders) + "\t  " + str(foundReceivers) + "\t      " + str(foundUnknown)
+print ""
+print "Miml file '" + outputfile + "' successfully written.\n"
