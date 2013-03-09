@@ -16,3 +16,8 @@ logs
 *.swo
 *.swp
 *.project
+miml.mk
+Miml.mk
+fcfmain.c
+fcfmain.h
+
