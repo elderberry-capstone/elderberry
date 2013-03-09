@@ -3,6 +3,7 @@
 include: module_profile.h
 object: module_profile.o
 init: init_profiling();
+final: finalize_profiling();
 
 # Functions that handle outgoing data
 senders:

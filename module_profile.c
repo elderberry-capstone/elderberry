@@ -54,6 +54,35 @@ static void profiling3_cb (struct pollfd * pfd) {
 	sendMessage_profile3 (x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x);	//send messages
 }
 
+
+/**
+ * Receive the message. If we've received MAX_COUNT, stop the loop.
+ * @fm getMessage_profile
+ * @param dummy params
+ * @return
+ */
+void getMessage_profile(unsigned char *buf, int len) {
+	count++;
+	//printf("\nReceived %d out of %d messages.", count, MAX_COUNT);
+	if (count == MAX_COUNT) {
+		gettimeofday(&end, NULL);
+		fcf_stop_main_loop();
+	}
+}
+
+/**
+ * Receive the message. If we've received MAX_COUNT, stop the loop.
+ * Check asm code to see what really happens.
+ * @fm getMessage_profile
+ * @param a lot of dummy params
+ * @return
+ */
+void getMessage_profile3(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l, int m, int n, int o, int p, int q, int r, int s, int t, int u, int v, int w, int x, int y, int z) {
+	int value = a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z;
+	getMessage_profile(NULL, value);	//increase count
+}
+
+
 /**
  * Initialize the profiling system.
  * @fn init_profiling
@@ -94,30 +123,10 @@ void init_profiling() {
 }
 
 
-/**
- * Receive the message. If we've received MAX_COUNT, stop the loop.
- * @fm getMessage_profile
- * @param dummy params
- * @return
- */
-void getMessage_profile(unsigned char *buf, int len) {
-	count++;
-	//printf("\nReceived %d out of %d messages.", count, MAX_COUNT);
-	if (count == MAX_COUNT) {
+void finalize_profiling() {
+	if (count < MAX_COUNT) {
+		//we are ending main loop prematurely
 		gettimeofday(&end, NULL);
-		printf("\n\nFinsished with count: %d in %d.%d03 sec\n\n", count, (int)(end.tv_sec - start.tv_sec), (int)(end.tv_usec - start.tv_usec));
-		fcf_stop_main_loop();
 	}
-}
-
-/**
- * Receive the message. If we've received MAX_COUNT, stop the loop.
- * Check asm code to see what really happens.
- * @fm getMessage_profile
- * @param a lot of dummy params
- * @return
- */
-void getMessage_profile3(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l, int m, int n, int o, int p, int q, int r, int s, int t, int u, int v, int w, int x, int y, int z) {
-	int value = a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z;
-	getMessage_profile(NULL, value);	//increase count
+	printf("\n\nFinsished with count: %d in %d.%d03 sec\n\n", count, (int)(end.tv_sec - start.tv_sec), (int)(end.tv_usec - start.tv_usec));
 }
