@@ -10,8 +10,8 @@
 #include <poll.h>
 #include <errno.h>
 
+#include "module_gps.h"
 #include "fcfutils.h"
-#include "fcfmain.h"
 
 static const char *device = NULL;
 static unsigned char buf[4096], *cur = buf;
@@ -54,7 +54,7 @@ static void find_frames(void){
 		/* Looks valid. Strip the framing and consume it. */
 		//JM write_tagged_message(FOURCC('G', 'P', 'S', pos[4]), pos + 8, data_length + 2);
 		//FCF_Log (FOURCC('G', 'P', 'S', pos[4]), pos + 8, data_length + 2);
-		fcf_callback_gps(pos[4], pos+8, data_length + 2);
+		sendMessage_gps(pos[4], pos+8, data_length + 2);
 
 		pos += data_length + 12;
 	}

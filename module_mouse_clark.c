@@ -4,9 +4,9 @@
 #include <libusb-1.0/libusb.h>
 #include <unistd.h>
 
+#include "module_mouse_clark.h"
 #include "utils_libusb-1.0.h"
 
-extern void fcf_callback_mouse_clark(unsigned char *, int);
 
 /**	START DATA */
 // Microsoft Corp. Optical Mouse
@@ -36,7 +36,7 @@ static void data_callback(struct libusb_transfer *transfer){
         }
 
 		// Call to CGS mouse handler.
-		fcf_callback_mouse_clark(buf, act_len);
+		sendMessage_mouse_clark(buf, act_len);
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:

@@ -1,5 +1,5 @@
 /**
- *  @file testLoggerDisk.c
+ *  @file module_logger_disk.c
  *  @brief Logs all info to a file on disk
  *  @details Has functions to initialize the disk logger, get messages to log to disk, and to "finalize" the disk logging by closing the file being written to.
  *  @author Clark Wachsmuth
@@ -11,6 +11,8 @@
 #include <errno.h>
 #include <string.h>
 
+#include "module_logger_disk.h"
+
 static FILE *fp = NULL;
 static const char *filename = "logfile.log";
 
@@ -19,7 +21,7 @@ static const char *filename = "logfile.log";
  *  @details Initializes function by copying filename into private data and opening the file. Error produced if file can't be opened.  
  *  @param filename Character pointer to name of file to be written to.
  */
-int init_diskLogger (void) {
+int init_logger_disk(void) {
 
 	fp = fopen(filename, "w+");
 	if(!fp){
@@ -37,7 +39,7 @@ int init_diskLogger (void) {
  *  @param len Length of data in buffer
  */
 // Writes data to file.
-void diskLogger_getMessage(const char *src, char *buffer, int len) {
+void getMessage_logger_disk(const char *src, char *buffer, int len) {
 	//fprintf(fp, "%s: %s\n", src, buffer);
 	fwrite(src, 1, sizeof(src)-1, fp);
 	fwrite(": ", 1, 2, fp);
@@ -50,7 +52,7 @@ void diskLogger_getMessage(const char *src, char *buffer, int len) {
  *  @brief Closes the file stream.
  */
 // Closes file stream.
-void finalize_diskLogger(){
+void finalize_logger_disk(){
 	if (fp != NULL) {
 		int rc = fclose(fp);
 		if (rc == -1) {

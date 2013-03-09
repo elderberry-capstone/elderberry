@@ -7,5 +7,7 @@
 #define MODULE_PROFILE_H_
 
 extern void init_profiling(void);
-extern void profile_getMessage (unsigned char *buf, int len);
+extern void getMessage_profile (unsigned char *buf, int len);
+extern void sendMessage_profile(unsigned char *buff, int length);
+
 #endif /* MODULE_PROFILE_H_ */

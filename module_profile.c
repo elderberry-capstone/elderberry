@@ -9,9 +9,6 @@
 #include <poll.h>
 #include "module_profile.h"
 #include "fcfutils.h"
-#include "fcfmain.h"
-
-extern void fcf_callback_profile(unsigned char *buff, int length);
 
 #define MAX_COUNT 10000000
 static const int PROFILEMODE = 1;
@@ -32,7 +29,7 @@ static struct timeval end;
  * @return None
  */
 static void profiling1_cb (struct pollfd * pfd) {
-	fcf_callback_profile (NULL, 0);	//send messages
+	sendMessage_profile (NULL, 0);	//send messages
 }
 
 /**
@@ -44,7 +41,7 @@ static void profiling1_cb (struct pollfd * pfd) {
  */
 static void profiling2_cb (struct pollfd * pfd) {
 	int act_len = read (pfd->fd, buf, sizeof(buf));
-	fcf_callback_profile (buf, act_len);	//send messages
+	sendMessage_profile (buf, act_len);	//send messages
 	timerfd_settime(fd, 0, &t, NULL);	//set up next timer
 }
 /**
@@ -81,11 +78,11 @@ void init_profiling() {
 
 /**
  * Receive the message. if we've received MAX_COUNT, stop the loop.
- * @fm profile_getMessage
+ * @fm getMessage_profile
  * @param int count
  * @return
  */
-void profile_getMessage (unsigned char *buf, int len) {
+void getMessage_profile(unsigned char *buf, int len) {
 	count++;
 	//printf("\nReceived %d out of %d messages.", count, MAX_COUNT);
 	if (count == MAX_COUNT) {

@@ -4,7 +4,9 @@
 #include <libusb-1.0/libusb.h>
 #include <unistd.h>
 
+#include "module_mouse_clark2.h"
 #include "utils_libusb-1.0.h"
+
 
 /**	START DATA */
 // Razer USA, Ltd Mamba
@@ -14,8 +16,6 @@ static const int EPT = 0x81;
 
 static libusb_device_handle *handle = NULL;
 static struct libusb_transfer *transfer = NULL;
-
-extern void fcf_callback_mouse_clark2(unsigned char *, int);
 
 
 /**	START FUNCTIONS */
@@ -39,7 +39,7 @@ static void data_callback(struct libusb_transfer *transfer){
 		*	Data handler:
 		*	Place call into code generated space here.
 		*/
-		fcf_callback_mouse_clark2(buf, act_len);
+		sendMessage_mouse_clark2(buf, act_len);
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:

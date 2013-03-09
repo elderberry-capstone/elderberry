@@ -9,8 +9,10 @@
 #include <stdio.h>
 #include <limits.h>
 
+#include "module_logger_screen.h"
 
-void init_screenLogger () {
+
+void init_logger_screen() {
 	
 }
 
@@ -18,7 +20,7 @@ void init_screenLogger () {
 // buffer... message
 // len... length of data in buffer
 
-void screenLogger_getMessage(const char *src, unsigned char *buffer, int len) {
+void getMessage_logger_screen(const char *src, unsigned char *buffer, int len) {
 	// some data has been passed into this function for consumption.
 	
 	printf("%s sends: \n", src);
@@ -29,7 +31,7 @@ void screenLogger_getMessage(const char *src, unsigned char *buffer, int len) {
 	printf("\n");
 }
 
-void screenLogger_getTemp(const char *src, char *buffer, int len) {
+void getTemp_logger_screen(const char *src, char *buffer, int len) {
 	// some data has been passed into this function for consumption.
 	unsigned char msb = buffer[3];
 	unsigned char lsb = buffer[2];
@@ -44,7 +46,7 @@ void screenLogger_getTemp(const char *src, char *buffer, int len) {
 	printf("\n");
 }
 
-void screenLogger_getMouseMessage(const char *src, unsigned char *buffer, int len){
+void getMouseMessage_logger_screen(const char *src, unsigned char *buffer, int len){
 	char but = buffer[0];
 	
 	switch((int)but){
@@ -74,6 +76,9 @@ void screenLogger_getMouseMessage(const char *src, unsigned char *buffer, int le
 			break;
 		
 	}
+}
+
+void finalize_logger_screen(){
 }
 
 

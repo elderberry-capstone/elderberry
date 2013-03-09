@@ -7,9 +7,8 @@
 #ifndef VIRTDEVSRV_H_
 #define VIRTDEVSRV_H_
 
-void init_virtgyr(void);
-void init_virtacc(void);
-void finalize_virtgyr(void);
-void finalize_virtacc(void);
+void init_virtdev(void);
+void finalize_virtdev(void);
+extern void sendMessage_virtdev(const char * src, unsigned char *buffer, int length);
 
 #endif /* VIRTDEVSRV_H_ */
