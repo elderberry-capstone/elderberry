@@ -50,13 +50,13 @@ def xstr(s):
 for item in codeLines:
 	match = re.match( r'extern[\s]+([\w]+[\s]+)([\w_-]+)[\s]*\((.*)\).*', item.strip('\n'), re.M|re.I)
 	if match:
-		strpos = match.group(2).find("initialize")
+		strpos = match.group(2).find("init_")
 		if(strpos >=0):
 			outputCodeInit += str(match.group(2)) + "()"
 			foundInit += 1
 			continue
 
-		strpos = match.group(2).find("finalize")
+		strpos = match.group(2).find("finalize_")
 		if(strpos >=0):
 			outputCodeFinal += str(match.group(2)) + "()"
 			foundFinal += 1
