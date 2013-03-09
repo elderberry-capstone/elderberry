@@ -26,20 +26,24 @@ http://www.gnu.org/licenses/gpl.html.\n
 
 #include <poll.h>
 
+/**
+ * @brief pollfd callback function pointer 
+ * @details takes in a pollfd pointer and acts on individual callback functions.
+ */
 typedef void (*pollfd_callback)(struct pollfd *);
 /**
  * @brief adds file descriptor on tot he end of the array
  * @details Checks to see if the file descriptor arrays are full.  If the arrays are full it calls the expand_arrays() fucntion (this will double the size of the arrays). It adds information to two arrays, the fds and fdx arrays.  The fds array has pollfd pointers (required by the poll system call) and the fdx array has fcffd pointers (required by our framework [containing callback functions and other information])
- * @param fd -   
- * @param events - 
- * @param cb - 
+ * @param fd - integer correlating to the file descriptor from the process's file descriptor table
+ * @param events - flags for which revents should change
+ * @param cb - poll callback function for the file descriptor
  * @return index value of newest file descriptor
  */
 extern int fcf_add_fd(int fd, short events, pollfd_callback cb);
 /**
  * @brief simply removes a specified file descriptor from the arrays
  * @details If there are no fds in the array, the function errors out. If there are fd's in the arrays they are removed from both the fds and fdx arrays.
- * @param fd -   
+ * @param fd - integer correlating to the file descriptor from the process's file descriptor table
  */
 extern void fcf_remove_fd(int fd);
 

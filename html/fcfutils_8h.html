@@ -77,11 +77,11 @@ Defines</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>FALSE</b>&#160;&#160;&#160;0</td></tr>
 <tr><td colspan="2"><h2><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8600d8708fbb962daf063bdc0eb1f30a"></a><!-- doxytag: member="fcfutils.h::pollfd_callback" ref="a8600d8708fbb962daf063bdc0eb1f30a" args=")(struct pollfd *)" -->
-typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><b>pollfd_callback</b> )(struct pollfd *)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfutils_8h.html#a8600d8708fbb962daf063bdc0eb1f30a">pollfd_callback</a> )(struct pollfd *)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">pollfd callback function pointer  <a href="#a8600d8708fbb962daf063bdc0eb1f30a"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfutils_8h.html#a71356f27dcf2394f64c9c392645a86fa">fcf_add_fd</a> (int fd, short events, pollfd_callback cb)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfutils_8h.html#a71356f27dcf2394f64c9c392645a86fa">fcf_add_fd</a> (int fd, short events, <a class="el" href="fcfutils_8h.html#a8600d8708fbb962daf063bdc0eb1f30a">pollfd_callback</a> cb)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">adds file descriptor on tot he end of the array  <a href="#a71356f27dcf2394f64c9c392645a86fa"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfutils_8h.html#ac918f8465970089bf1cd677969a07dde">fcf_remove_fd</a> (int fd)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">simply removes a specified file descriptor from the arrays  <a href="#ac918f8465970089bf1cd677969a07dde"></a><br/></td></tr>
@@ -113,7 +113,24 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfu
 </p>
 <dl class="author"><dt><b>Author:</b></dt><dd>Team Elderberry </dd></dl>
 <dl class="date"><dt><b>Date:</b></dt><dd>March 2nd, 2013 </dd></dl>
-</div><hr/><h2>Function Documentation</h2>
+</div><hr/><h2>Typedef Documentation</h2>
+<a class="anchor" id="a8600d8708fbb962daf063bdc0eb1f30a"></a><!-- doxytag: member="fcfutils.h::pollfd_callback" ref="a8600d8708fbb962daf063bdc0eb1f30a" args=")(struct pollfd *)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* <a class="el" href="fcfutils_8h.html#a8600d8708fbb962daf063bdc0eb1f30a">pollfd_callback</a>)(struct pollfd *)</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>pollfd callback function pointer </p>
+<p>takes in a pollfd pointer and acts on individual callback functions. </p>
+
+</div>
+</div>
+<hr/><h2>Function Documentation</h2>
 <a class="anchor" id="a71356f27dcf2394f64c9c392645a86fa"></a><!-- doxytag: member="fcfutils.h::fcf_add_fd" ref="a71356f27dcf2394f64c9c392645a86fa" args="(int fd, short events, pollfd_callback cb)" -->
 <div class="memitem">
 <div class="memproto">
@@ -133,7 +150,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfu
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">pollfd_callback&#160;</td>
+          <td class="paramtype"><a class="el" href="fcfutils_8h.html#a8600d8708fbb962daf063bdc0eb1f30a">pollfd_callback</a>&#160;</td>
           <td class="paramname"><em>cb</em>&#160;</td>
         </tr>
         <tr>
@@ -149,9 +166,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfu
 <p>Checks to see if the file descriptor arrays are full. If the arrays are full it calls the expand_arrays() fucntion (this will double the size of the arrays). It adds information to two arrays, the fds and fdx arrays. The fds array has pollfd pointers (required by the poll system call) and the fdx array has fcffd pointers (required by our framework [containing callback functions and other information]) </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">fd</td><td>- </td></tr>
-    <tr><td class="paramname">events</td><td>- </td></tr>
-    <tr><td class="paramname">cb</td><td>- </td></tr>
+    <tr><td class="paramname">fd</td><td>- integer correlating to the file descriptor from the process's file descriptor table </td></tr>
+    <tr><td class="paramname">events</td><td>- flags for which revents should change </td></tr>
+    <tr><td class="paramname">cb</td><td>- poll callback function for the file descriptor </td></tr>
   </table>
   </dd>
 </dl>
@@ -205,7 +222,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfu
 <p>If there are no fds in the array, the function errors out. If there are fd's in the arrays they are removed from both the fds and fdx arrays. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">fd</td><td>- </td></tr>
+    <tr><td class="paramname">fd</td><td>- integer correlating to the file descriptor from the process's file descriptor table </td></tr>
   </table>
   </dd>
 </dl>
@@ -251,7 +268,7 @@ EXIT_FAILURE </dd></dl>
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -260,7 +277,7 @@ EXIT_FAILURE </dd></dl>
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Fri Mar 8 2013 18:13:59 for PSAS Flight Control Framework by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Sat Mar 9 2013 11:23:41 for PSAS Flight Control Framework by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.4 </small></address>
 </body>
