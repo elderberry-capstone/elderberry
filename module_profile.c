@@ -44,6 +44,16 @@ static void profiling2_cb (struct pollfd * pfd) {
 	sendMessage_profile (buf, act_len);	//send messages
 	timerfd_settime(fd, 0, &t, NULL);	//set up next timer
 }
+
+/**
+ * Like profiling1_cb but sends more data.
+ * Check asm code to see what really happens!
+ */
+static void profiling3_cb (struct pollfd * pfd) {
+	int x = pfd->revents;
+	sendMessage_profile3 (x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x);	//send messages
+}
+
 /**
  * Initialize the profiling system.
  * @fn init_profiling
@@ -67,6 +77,14 @@ void init_profiling() {
 	case 2:
 		cb = profiling2_cb;
 		break;
+	case 3:
+		cb = profiling3_cb;
+		for (int i = 0; i < 100; i++) {
+			//add dummy fds that will be looped over in main loop
+			//poll(2) ignores fds < 0
+			fcf_add_fd (-1, POLLIN, cb);
+		}
+		break;
 	default:
 		printf ("\nno profiling\n");
 		return;
@@ -77,9 +95,9 @@ void init_profiling() {
 
 
 /**
- * Receive the message. if we've received MAX_COUNT, stop the loop.
+ * Receive the message. If we've received MAX_COUNT, stop the loop.
  * @fm getMessage_profile
- * @param int count
+ * @param dummy params
  * @return
  */
 void getMessage_profile(unsigned char *buf, int len) {
@@ -90,4 +108,16 @@ void getMessage_profile(unsigned char *buf, int len) {
 		printf("\n\nFinsished with count: %d in %d.%d03 sec\n\n", count, (int)(end.tv_sec - start.tv_sec), (int)(end.tv_usec - start.tv_usec));
 		fcf_stop_main_loop();
 	}
+}
+
+/**
+ * Receive the message. If we've received MAX_COUNT, stop the loop.
+ * Check asm code to see what really happens.
+ * @fm getMessage_profile
+ * @param a lot of dummy params
+ * @return
+ */
+void getMessage_profile3(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l, int m, int n, int o, int p, int q, int r, int s, int t, int u, int v, int w, int x, int y, int z) {
+	int value = a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z;
+	getMessage_profile(NULL, value);	//increase count
 }
