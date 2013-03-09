@@ -1,7 +1,7 @@
-OPTSLIVE := -O3 
+OPTSLIVE := -flto -O3 
 OPTSDEV  := -g
-OPTSPROF := -O3 -pg
-OPTS     := -ffast-math $(call cc-option,-flto -fwhole-program)
+OPTSPROF := -flto -O3 -pg
+OPTS     := -ffast-math
 #WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings -Wno-missing-field-initializers -Wno-unused-parameter
 WARNINGS := -Wall
 CFLAGS   := -MD -std=gnu99 $(OPTS) $(WARNINGS) -fno-strict-aliasing $(shell pkg-config --cflags libusb-1.0)

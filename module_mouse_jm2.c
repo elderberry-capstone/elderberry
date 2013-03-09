@@ -18,6 +18,9 @@ static const int VID = 0x045e;
 static const int PID = 0x00e1;
 static const int EPT = 0x81;
 
+static libusb_device_handle *handle = NULL;
+static struct libusb_transfer *transfer = NULL;
+
 static void data_callback(struct libusb_transfer *transfer){
 	unsigned char *buf = NULL;
 	int act_len;
@@ -41,7 +44,6 @@ static void data_callback(struct libusb_transfer *transfer){
 
 		break;
 	case LIBUSB_TRANSFER_CANCELLED:
-		printf("transfer cancelled\n");
 		//do nothing.
 		break;
 	default:
@@ -52,6 +54,21 @@ static void data_callback(struct libusb_transfer *transfer){
 }
 
 
-void init_mouse_jm2(){
-	init_device("mouse_jm2", VID, PID, EPT, data_callback);
+void init_mouse_jm2() {
+	libusb_context *context = init_libusb ("mouse_jm2");
+	if (context == NULL) {
+		return;
+	}
+	libusb_set_debug(context, 3);
+	handle = open_device("mouse_jm2", VID, PID);
+	if (handle != NULL) {
+		transfer = start_usb_interrupt_transfer(handle, EPT, data_callback, NULL, -1, 0);
+	}
+}
+
+void finalize_mouse_jm2() {
+	cancel_transfer(transfer);
+	close_device(handle);
+	handle = NULL;
+	transfer = NULL;
 }

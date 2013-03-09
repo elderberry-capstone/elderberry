@@ -1,3 +1,12 @@
+/*
+ * module_mouse_clark2.h
+ *
+ */
 
-extern int init_mouse_clark2();
+#ifndef MODULE_MOUSE_CLARK2_H_
+#define MODULE_MOUSE_CLARK2_H_
 
+void init_mouse_clark2 (void);
+void finalize_mouse_clark2 (void);
+
+#endif /* MODULE_MOUSE_CLARK2_H_ */

@@ -9,5 +9,5 @@
 
 void set_gps_devicepath (const char *dev);
 extern void init_gps();
-
+void finalize_gps(void);
 #endif /* GPS_H_ */

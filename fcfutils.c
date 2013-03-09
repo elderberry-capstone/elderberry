@@ -1,5 +1,5 @@
 /*
-  <one line to give the program's name and a brief idea of what it does.>
+  PSAS Flight Control Framework
   Copyright (C) 2013  
   Team Elderberry [Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]
 
@@ -328,9 +328,8 @@ int main(int argc, char *argv[]){
 		"             ./+sss+/.                                                          \n"
 		"");*/
   
-  printf("\n FLIGHT CONTROL FRAMEWORK V0.1 \n\n Copyright (C) 2013\n"
-     " Team Elderberry\n Portland State University\n\n"
-	 //"Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]\n"
+  printf("\n FLIGHT CONTROL FRAMEWORK V0.1  Copyright (C) 2013\n"
+	 "Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
 	 "----------------------------------------------------------------\n"
 	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
 	 " visit http://www.gnu.org/licenses/gpl.html.\n\n"

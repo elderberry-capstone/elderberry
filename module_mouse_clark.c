@@ -1,6 +1,4 @@
 
-#include <sys/time.h>
-#include <sys/poll.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <libusb-1.0/libusb.h>
@@ -15,6 +13,9 @@ extern void fcf_callback_mouse_clark(unsigned char *, int);
 static const int VID = 0x045e;
 static const int PID = 0x0053;
 static const int EPT = 0x81;
+
+static libusb_device_handle *handle = NULL;
+static struct libusb_transfer *transfer = NULL;
 
 static void data_callback(struct libusb_transfer *transfer){
 	unsigned char *buf = NULL;
@@ -39,7 +40,6 @@ static void data_callback(struct libusb_transfer *transfer){
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:
-		printf("transfer cancelled\n");
         //do nothing.
         break;
     default:
@@ -50,11 +50,17 @@ static void data_callback(struct libusb_transfer *transfer){
 }
 
 
+void init_mouse_clark() {
+	handle = open_device("mouse_clark", VID, PID);
 
-int init_mouse_clark(){
-	init_device("mouse_clark", VID, PID, EPT, data_callback);
-	return 0;
+	if (handle != NULL) {
+		transfer = start_usb_interrupt_transfer(handle, EPT, data_callback, NULL, -1, 0);
+	}
 }
 
-
-
+void finalize_mouse_clark() {
+	cancel_transfer(transfer);
+	close_device(handle);
+	handle = NULL;
+	transfer = NULL;
+}

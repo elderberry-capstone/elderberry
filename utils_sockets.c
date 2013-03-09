@@ -13,7 +13,6 @@
 #include <errno.h>
 #include <unistd.h>
 #include "utils_sockets.h"
-#include "fcfutils.h"
 
 int readsocket(int fd, unsigned char *buffer, int bufsize) {
 	/**
@@ -26,8 +25,8 @@ int readsocket(int fd, unsigned char *buffer, int bufsize) {
 	if (rc < 0){
 		if (errno != EWOULDBLOCK)
 		{
-			perror("  recv() failed");
-			return -1;
+			perror("readsocket: recv() failed");
+			return -2;
 		}
 		return 0;
 	}
@@ -37,14 +36,11 @@ int readsocket(int fd, unsigned char *buffer, int bufsize) {
 	* closed by the client 
 	*/
 	if (rc == 0){
-		printf("  Connection closed\n");
-		fcf_remove_fd(fd);
 		return -1;
 	}
-
 	
 	// Data was received 
-	printf("  %d bytes received\n", rc);
+	//printf("  %d bytes received\n", rc);
 
 	return rc;
 }
@@ -52,7 +48,6 @@ int readsocket(int fd, unsigned char *buffer, int bufsize) {
 int getsocket(int serverport) {
 	int listen_sd;
 	int rc;
-	//int on = 1;
 	struct sockaddr_in addr;
 
 	/**
@@ -62,8 +57,8 @@ int getsocket(int serverport) {
 	listen_sd = socket(AF_INET, SOCK_STREAM, 0);
 	if (listen_sd < 0)
 	{
-		perror("socket() failed");
-		exit(EXIT_FAILURE);
+		perror("getsocket: socket() failed");
+		return -1;
 	}
 
 
@@ -77,9 +72,9 @@ int getsocket(int serverport) {
 	rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0)
 	{
-		perror("bind() failed");
+		perror("getsocket: bind() failed");
 		close(listen_sd);
-		exit(EXIT_FAILURE);
+		return -2;
 	}
 
 	/**
@@ -88,9 +83,9 @@ int getsocket(int serverport) {
 	rc = listen(listen_sd, 1);
 	if (rc < 0)
 	{
-		perror("listen() failed");
+		perror("getsocket: listen() failed");
 		close(listen_sd);
-		exit(EXIT_FAILURE);
+		return -3;
 	}
 
 	/**
@@ -105,8 +100,9 @@ int getsocket(int serverport) {
 	{
 		if (errno != EWOULDBLOCK)
 		{
-			perror("  accept() failed");
-			exit (EXIT_FAILURE);
+			perror("getsocket: accept() failed");
+			close(listen_sd);
+			return -4;
 		}
 	}
 

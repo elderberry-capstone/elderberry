@@ -15,7 +15,7 @@
 
 static const char *device = NULL;
 static unsigned char buf[4096], *cur = buf;
-
+static int fd = -1;
 
 void set_gps_devicepath (const char *dev) {
 	device = dev;
@@ -104,11 +104,22 @@ void init_gps(){
 	if(!device)
 		device = "/dev/usbserial";
 
-	int fd = open (device, O_RDONLY | O_NONBLOCK);
+	fd = open (device, O_RDONLY | O_NONBLOCK);
 	if (fd == -1) {
 		fprintf (stderr, "Can't connect to GPS on %s: %s\n", device, strerror(errno));
 		return;
 	}
 
 	fcf_add_fd(fd, POLLIN, read_gps_cb);
+}
+
+void finalize_gps(){
+	if (fd >= 0) {
+		fcf_remove_fd(fd);
+		int rc = close(fd);
+		if (rc == -1) {
+			fprintf (stderr, "GPS: error closing file %s: %s\n", device, strerror(errno));
+		}
+	}
+	fd = -1;
 }
