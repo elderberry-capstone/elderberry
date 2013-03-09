@@ -21,7 +21,18 @@
 static void signalhandler(int signum) {
     printf ("\n **signal handler: signum = %d", signum);
 
+
+    struct sigaction act;
+
+    act.sa_handler = stop_main_loop;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+
+    sigaction(SIGINT, &act, 0);
+
     if (signum == SIGINT)  {
+    	printf("Received a SIGINT");
+    	//(void) signal(SIGINT, SIG_DFL);	// Unblock the signal.
         stop_main_loop ();
     }
 }

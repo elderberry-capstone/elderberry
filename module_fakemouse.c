@@ -57,7 +57,7 @@ static int initvirtdev (const char* devname, int port, pollfd_callback cb) {
 //have one and pass through parameters?
 
 void init_virtFAKEMOUSE() {
-	initvirtdev ("virt_FAKEMOUSE", 36524, virtFAKEMOUSE_cb);
+	initvirtdev ("virt_FAKEMOUSE", 9876, virtFAKEMOUSE_cb);
 }
 
 

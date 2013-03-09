@@ -4,7 +4,6 @@
 #define TRUE             1
 #define FALSE            0
 
-extern void fcf_init();
 extern void fcf_callback_mouse_clark(unsigned char *buff, int length);
 extern void fcf_callback_mouse_clark2(unsigned char *buff, int length);
 extern void fcf_callback_mouse_jm(unsigned char *buff, int length);

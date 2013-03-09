@@ -1,5 +1,5 @@
 /*
-  <one line to give the program's name and a brief idea of what it does.>
+  PSAS Flight Control Framework
   Copyright (C) 2013  
   Team Elderberry [Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]
 
@@ -56,11 +56,13 @@ static int run_fc;		//< Main loop is running true/false
 
 
 static void debug_fd (const char *msg, int i, struct pollfd *pfd);
+extern void fcf_initialize(void);
+extern void fcf_finalize (void);
 
 /*
  * Initialization for fcf data structures
  */
-int init_fcf(){
+static int init_fcf(){
   fd_array_size = FDS_INIT_SIZE;
   //initializing both file descriptor arrays
   fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
@@ -330,9 +332,8 @@ int main(int argc, char *argv[]){
 		"             ./+sss+/.                                                          \n"
 		"");*/
   
-  printf("\n FLIGHT CONTROL FRAMEWORK V0.1 \n\n Copyright (C) 2013\n"
-     " Team Elderberry\n Portland State University\n\n"
-	 //"Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]\n"
+  printf("\n FLIGHT CONTROL FRAMEWORK V0.1  Copyright (C) 2013\n"
+	 "Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
 	 "----------------------------------------------------------------\n"
 	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
 	 " visit http://www.gnu.org/licenses/gpl.html.\n\n"
@@ -344,8 +345,9 @@ int main(int argc, char *argv[]){
     signal (SIGQUIT, signalhandler);
 
   init_fcf();			//< FCF init that sets up fd structures
-  fcf_init();			//< fcfmain init function for user modules
+  fcf_initialize();			//< fcfmain init function for user modules
   int rc = fcf_run_poll_loop();
+  fcf_finalize();			//< fcfmain finalize function for user modules
 
   if(rc == 0) {
     return EXIT_SUCCESS;

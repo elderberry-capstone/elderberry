@@ -1,7 +1,7 @@
 CC:=g++
 IN:=fakemouse.cpp
 OUT:=fakemouse
-LINK:= -lboost_system -lboost_regex -pthread
+LINK:= -lboost_system -lboost_regex -pthread -lboost_random
 CC11:=-std=c++11
 all:
 	$(CC) -o $(OUT) $(IN) $(LINK) $(CC11)
