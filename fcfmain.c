@@ -30,6 +30,7 @@ void fcf_initialize() {
 	//init_diskLogger();	// This should be listed first.
 	//init_temp();
 	//init_mouse_clark();
+	//init_mouse_clark2();
 	//init_mouse_jm();
 	//init_mouse_jm2();
 	//init_diskLogger();
@@ -43,9 +44,14 @@ void fcf_initialize() {
 
 void fcf_finalize() {
 	//finalize_gps();
-	//finalize_diskLogger();
 	finalize_virtgyr();
 	finalize_virtacc();
+	//finalize_mouse_jm2();
+	//finalize_mouse_jm();
+	//finalize_mouse_clark2();
+	//finalize_mouse_clark();
+	//finalize_theo_imu();
+	//finalize_diskLogger();
 }
 
 void fcf_callback_virtdev(const char * src, unsigned char *buff, int length) {

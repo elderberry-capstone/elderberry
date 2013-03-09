@@ -1,4 +1,12 @@
+/*
+ * module_mouse_clark.h
+ *
+ */
 
-extern void mouse_handler_clark(int);
-extern int init_mouse_clark();
+#ifndef MODULE_MOUSE_CLARK_H_
+#define MODULE_MOUSE_CLARK_H_
 
+void init_mouse_clark (void);
+void finalize_mouse_clark (void);
+
+#endif /* MODULE_MOUSE_CLARK_H_ */
