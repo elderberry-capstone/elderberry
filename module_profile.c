@@ -10,10 +10,10 @@
 #include "module_profile.h"
 #include "fcfutils.h"
 
-#define MAX_COUNT 10000000
+#define MAX_COUNT 10000000	//!< negative value indicates indefinite MAX_COUNT
 static const int PROFILEMODE = 1;
 
-static int count = 0; //!< The number of times the loop has run.
+static unsigned long int count = 0; //!< The number of times the loop has run.
 static unsigned char buf[1024];
 static int fd;	//!< timer fd
 static struct itimerspec t;
@@ -64,11 +64,12 @@ static void profiling3_cb (struct pollfd * pfd) {
 void getMessage_profile(unsigned char *buf, int len) {
 	count++;
 	//printf("\nReceived %d out of %d messages.", count, MAX_COUNT);
-	if (count == MAX_COUNT) {
+	if (MAX_COUNT >= 0 && count == MAX_COUNT) {
 		gettimeofday(&end, NULL);
 		fcf_stop_main_loop();
 	}
 }
+
 
 /**
  * Receive the message. If we've received MAX_COUNT, stop the loop.
@@ -91,6 +92,7 @@ void getMessage_profile3(int a, int b, int c, int d, int e, int f, int g, int h,
  */
 void init_profiling() {
 	gettimeofday(&start,NULL);
+	end = start;
 
 	pollfd_callback cb = NULL;
 	t.it_interval.tv_sec = 0;
@@ -124,9 +126,12 @@ void init_profiling() {
 
 
 void finalize_profiling() {
-	if (count < MAX_COUNT) {
-		//we are ending main loop prematurely
+	if (timercmp (&start, &end, ==)) {
+		//end not yet set; we are ending main loop prematurely
 		gettimeofday(&end, NULL);
 	}
-	printf("\n\nFinsished with count: %d in %d.%d03 sec\n\n", count, (int)(end.tv_sec - start.tv_sec), (int)(end.tv_usec - start.tv_usec));
+	struct timeval diff;
+	timersub(&end, &start, &diff);
+
+	printf("\n\nFinished with count: %lu in %ld.%ld sec\n\n", count, diff.tv_sec, diff.tv_usec);
 }
