@@ -10,17 +10,15 @@
 #include <string.h>
 
 
-void init_screenLogger () {
+void init_gamelogger_screen(){
 	
 }
 
-// src... name of source
-// buffer... message
-// len... length of data in buffer
+void finalize_gamelogger_screen(){
+}
 
-void screenLogger_getMessage(const char *src, char *buffer, int len) {
+void getMessage_gamelogger_screen(const char *src, char *buffer, int len) {
 	printf("%s", (const char *)buffer);
 }
 
 
-// Other private functions to do stuff.
