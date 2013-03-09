@@ -39,7 +39,7 @@ static void data_callback(struct libusb_transfer *transfer){
 		}
 
 		// Call to CGS mouse handler.
-		sendMessage_mouse_clark(buf, act_len);
+		sendMessage_mouse_clark("mouse_jm", buf, act_len);
 
 		break;
 	case LIBUSB_TRANSFER_CANCELLED:

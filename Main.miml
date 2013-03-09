@@ -1,0 +1,8 @@
+sources:
+- [LOG, module_logger_screen.miml]
+- [MOUSE, module_mouse_clark.miml]
+
+messages:
+  MOUSE.sendMessage_mouse_clark:
+    - LOG.getMouseMessage_logger_screen
+

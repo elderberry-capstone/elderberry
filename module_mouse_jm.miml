@@ -8,6 +8,7 @@ final: finalize_mouse_jm();
 # Functions that handle outgoing data
 senders:
   sendMessage_mouse_clark:
+  - [src, const char*]
   - [buffer, unsigned char*]
   - [length, int]
 

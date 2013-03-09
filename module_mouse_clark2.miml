@@ -2,12 +2,13 @@
 ---
 include: module_mouse_clark2.h
 object: module_mouse_clark2.o
-init: init_mouse_clark2()
-final: finalize_mouse_clark2()
+init: init_mouse_clark2();
+final: finalize_mouse_clark2();
 
 # Functions that handle outgoing data
 senders:
-send_mouse_clark2:
+  sendMessage_mouse_clark2:
+  - [src, const char*]
   - [buffer, unsigned char*]
   - [length, int]
 

@@ -367,7 +367,7 @@ class ParseHandlers:
                         elif not receiver[1] in p.master['modules'][receiver[0]]['receivers']:
                             e.new_error("Receiving message " + receiver[1] + " not defined as receiver for " + receiver[0])
                         elif not len(sender_params) == len(p.master['modules'][receiver[0]]['receivers'][receiver[1]]):
-                            e.new_error("Message " + sender + " cannot send to receiver " + rec +
+                            e.new_error("Message " + str(sender) + " cannot send to receiver " + str(rec) +
                             ". Number of arguments must be the same in both functions.")
                         else:
                             pos = 0

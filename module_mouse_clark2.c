@@ -39,7 +39,7 @@ static void data_callback(struct libusb_transfer *transfer){
 		*	Data handler:
 		*	Place call into code generated space here.
 		*/
-		sendMessage_mouse_clark2(buf, act_len);
+		sendMessage_mouse_clark2("mouse_clark2", buf, act_len);
 
         break;
     case LIBUSB_TRANSFER_CANCELLED:
