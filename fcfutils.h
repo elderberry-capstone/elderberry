@@ -30,15 +30,25 @@ typedef void (*pollfd_callback)(struct pollfd *);
 /**
  * @brief adds file descriptor on tot he end of the array
  * @details Checks to see if the file descriptor arrays are full.  If the arrays are full it calls the expand_arrays() fucntion (this will double the size of the arrays). It adds information to two arrays, the fds and fdx arrays.  The fds array has pollfd pointers (required by the poll system call) and the fdx array has fcffd pointers (required by our framework [containing callback functions and other information])
- * @return index of the last fd
+ * @param fd -   
+ * @param events - 
+ * @param cb - 
+ * @return index value of newest file descriptor
  */
 extern int fcf_add_fd(int fd, short events, pollfd_callback cb);
 /**
  * @brief simply removes a specified file descriptor from the arrays
- * @details If there are no fds in the array, the function errors out. If there are fd's in the arrays they are removed from both the fds and fdx arrays.  
+ * @details If there are no fds in the array, the function errors out. If there are fd's in the arrays they are removed from both the fds and fdx arrays.
+ * @param fd -   
  */
 extern void fcf_remove_fd(int fd);
 
+/**
+ * @brief returns the fds array info
+ * @details Specifically this function returns the pollfd* information from the fds array for the specified index value
+ * @param idx - index value
+ * @return pollfd* info for specified index value
+ */
 extern struct pollfd * fcf_get_fd(int idx);
 /**
  * @brief stops main loop by setting run_fc to 0
@@ -52,13 +62,5 @@ extern void fcf_stop_main_loop(void);
  * @return EXIT_FAILURE
  */
 int main(int argc, char *argv[]);
-
-/** NOT A USER FUNCTION
- * @brief polls file descriptors for changes.
- * @details While run_fc is 1 (controlled by fcf_stop_main_loop and fcf_start_main_loop).  The poll function is a system call [poll(array_of_fds, number_of_fds, negative_int) the negative integer indicates no timeout, if timeout is desired we recommend using timerfds].  The loop performs error checking, cycles through the array of fds whos r-events have changed.  We only loop through the arrays after a change has been detected.  After a change is detected and identified, the fd's callback function is called.
- * @return -1 ERROR
- * @return 0 upon success
- 
-static int fcf_run_poll_loop();*/
 
 #endif

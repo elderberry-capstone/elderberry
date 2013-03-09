@@ -85,8 +85,8 @@ Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">adds file descriptor on tot he end of the array  <a href="#a71356f27dcf2394f64c9c392645a86fa"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfutils_8h.html#ac918f8465970089bf1cd677969a07dde">fcf_remove_fd</a> (int fd)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">simply removes a specified file descriptor from the arrays  <a href="#ac918f8465970089bf1cd677969a07dde"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7a732fb6841432447ddf7a228dd83b4c"></a><!-- doxytag: member="fcfutils.h::fcf_get_fd" ref="a7a732fb6841432447ddf7a228dd83b4c" args="(int idx)" -->
-struct pollfd *&#160;</td><td class="memItemRight" valign="bottom"><b>fcf_get_fd</b> (int idx)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">struct pollfd *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfutils_8h.html#a7a732fb6841432447ddf7a228dd83b4c">fcf_get_fd</a> (int idx)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the fds array info  <a href="#a7a732fb6841432447ddf7a228dd83b4c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a306ae811903f12763eaa665b26a3520f"></a><!-- doxytag: member="fcfutils.h::fcf_stop_main_loop" ref="a306ae811903f12763eaa665b26a3520f" args="(void)" -->
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfutils_8h.html#a306ae811903f12763eaa665b26a3520f">fcf_stop_main_loop</a> (void)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">stops main loop by setting run_fc to 0 <br/></td></tr>
@@ -147,7 +147,42 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfu
 
 <p>adds file descriptor on tot he end of the array </p>
 <p>Checks to see if the file descriptor arrays are full. If the arrays are full it calls the expand_arrays() fucntion (this will double the size of the arrays). It adds information to two arrays, the fds and fdx arrays. The fds array has pollfd pointers (required by the poll system call) and the fdx array has fcffd pointers (required by our framework [containing callback functions and other information]) </p>
-<dl class="return"><dt><b>Returns:</b></dt><dd>index of the last fd </dd></dl>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fd</td><td>- </td></tr>
+    <tr><td class="paramname">events</td><td>- </td></tr>
+    <tr><td class="paramname">cb</td><td>- </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>index value of newest file descriptor </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a7a732fb6841432447ddf7a228dd83b4c"></a><!-- doxytag: member="fcfutils.h::fcf_get_fd" ref="a7a732fb6841432447ddf7a228dd83b4c" args="(int idx)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct pollfd* fcf_get_fd </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>idx</em></td><td>)</td>
+          <td><code> [read]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>returns the fds array info </p>
+<p>Specifically this function returns the pollfd* information from the fds array for the specified index value </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">idx</td><td>- index value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>pollfd* info for specified index value </dd></dl>
 
 </div>
 </div>
@@ -168,6 +203,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fcfu
 
 <p>simply removes a specified file descriptor from the arrays </p>
 <p>If there are no fds in the array, the function errors out. If there are fd's in the arrays they are removed from both the fds and fdx arrays. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fd</td><td>- </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -219,7 +260,7 @@ EXIT_FAILURE </dd></dl>
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Fri Mar 8 2013 18:01:22 for PSAS Flight Control Framework by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Fri Mar 8 2013 18:13:59 for PSAS Flight Control Framework by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.4 </small></address>
 </body>
