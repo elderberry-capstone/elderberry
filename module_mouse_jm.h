@@ -8,6 +8,6 @@
 
 void init_mouse_jm (void);
 void finalize_mouse_jm (void);
-extern void sendMessage_mouse_clark(const char *src, unsigned char *buffer, int length);
+extern void sendMessage_mouse_jm(const char *src, unsigned char *buffer, int length);
 
 #endif /* MODULE_MOUSE_JM_H_ */
