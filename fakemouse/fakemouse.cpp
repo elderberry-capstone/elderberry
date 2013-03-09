@@ -22,7 +22,7 @@ namespace bsl = boost::asio::local;
 #define DEBUG cout << "\033[37mDEBUG:\t"
 #define ENDL "\033[0m" << endl
 
-const unsigned int TIMEOUT = 3;  // Default timeout.
+const unsigned int TIMEOUT = 0;  // Default timeout.
 const unsigned int _ARGC = 3;    // Needed number of arguments.
 
 const short PORT_I = 2; // Port index for argv.
