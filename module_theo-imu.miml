@@ -2,12 +2,12 @@
 ---
 include: module_theo-imu.h
 object: module_theo-imu.o
-init: init_theo_imu()
-final: finalize_theo_imu()
+init: init_theo_imu();
+final: finalize_theo_imu();
 
 # Functions that handle outgoing data
 senders:
-sendMessage_theo_imu:
+  sendMessage_theo_imu:
   - [src, const char*]
   - [buff, unsigned char*]
   - [length, int]
