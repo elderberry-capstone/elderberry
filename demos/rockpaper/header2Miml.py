@@ -9,17 +9,35 @@
 
 import sys, re
 
+if (len(sys.argv) < 2):
+	print "Error: Too few arguments."
+	sys.exit(-1)
+elif len(sys.argv) > 3:
+	print "Error: Too many arguments."
+	sys.exit(-1)
+
 inputfile = sys.argv[1]
+rpos = inputfile.rfind(".")
 
-# Could check if .h and error if it isn't
-rpos = inputfile.rfind(".");
-if(rpos <=0):
-	basefile = inputfile
-else:
-	basefile = inputfile[:rpos]
+if len(sys.argv) == 2:
+	outputfile = inputfile
+	outputfile += ".miml"
 
-# Should check to see if a .Miml -- if not, add extension or error
-outputfile = sys.argv[2]
+if str(inputfile[rpos:]) != ".h" and (rpos > 0):
+	print "Error: Input file not a .h file."
+	sys.exit(-1)
+elif rpos < 0:
+	inputfile += ".h"
+basefile = inputfile[:rpos]
+
+if len(sys.argv) == 3:
+	outputfile = sys.argv[2]
+	rpos = outputfile.rfind(".");
+	if (str(outputfile[rpos:]) != ".miml") and (rpos > 0):
+		print "Error: Output file not a .miml file."
+		sys.exit(-1)
+	elif rpos < 0:
+		outputfile += ".miml"
 
 try:
 	f = open(inputfile, 'r')
@@ -48,16 +66,16 @@ def xstr(s):
     return str(s)
 
 for item in codeLines:
-	match = re.match( r'[\s]*(extern[\s]+)?([\w]+[\s]+)([\w_-]+)[\s]*\((.*)\).*', item.strip('\n'), re.M|re.I)
+	#match = re.match( r'[\s]*(extern[\s]+)?([\w]+[\s]+)([\w_-]+)[\s]*\((.*)\).*', item.strip('\n'), re.M|re.I)
+	match = re.match( r'[\s]*(extern[\s]+)?([\w]+[\s]+)([\w_-]+)[\s]*\((.*)\)[\s]*;[\s]*(\/\/[\s]*\[[\s]*miml[\s]*:[\s]*(init|final|sender|receiver)[\s]*\])?.*', item.strip('\n'), re.M|re.I)
 	if match:
-		strpos = match.group(3).find("init_")
-		if(strpos >=0):
+		mimlType = match.group(6)
+		if(mimlType=="init"):
 			outputCodeInit += str(match.group(3)) + "();"
 			foundInit += 1
 			continue
 
-		strpos = match.group(3).find("finalize_")
-		if(strpos >=0):
+		if(mimlType=="final"):
 			outputCodeFinal += str(match.group(3)) + "();"
 			foundFinal += 1
 			continue
@@ -78,10 +96,10 @@ for item in codeLines:
 				argVals += "  - [" +argName + ", " + argType.strip() + "]\n"
 		
 		funcName = str(match.group(3))
-		if (funcName[:3]=="get"):
+		if (mimlType=="receiver"):
 			outputCodeReceivers += "  " + funcName  + ":\n" + argVals
 			foundReceivers += 1
-		elif (funcName[:4]=="send"):
+		elif (mimlType=="sender"):
 			outputCodeSenders += "  " + funcName  + ":\n" + argVals
 			foundSenders += 1
 		else:
@@ -98,17 +116,18 @@ fout.write(outputCodeInit + "\n")
 fout.write(outputCodeFinal + "\n\n")
 fout.write(outputCodeSenders + "\n")
 fout.write(outputCodeReceivers + "\n")
-if foundUnknown:
-	fout.write("# Functions that have not been designated as\n")
-	fout.write("# senders or receivers. Sort them accordingly\n")
-	fout.write("# and delete the [unknown:] header.\n")
-	fout.write(outputCodeUnknown + "\n")
+#if foundUnknown:
+#	fout.write("# Functions that have not been designated as\n")
+#	fout.write("# senders or receivers. Sort them accordingly\n")
+#	fout.write("# and delete the [unknown:] header.\n")
+#	fout.write(outputCodeUnknown + "\n")
 fout.close()
 
-print "\n " + inputfile
+print "\n " + inputfile + "  ->  " + outputfile
 print "======================================================"
-print " Init\tFinal\tSenders\t  Receivers   Unknown			 "
+#print " Init\tFinal\tSenders\t  Receivers   Unknown			 "
+print " Init\tFinal\tSenders\t  Receivers					 "
 print "------------------------------------------------------"
-print " " + str(foundInit) + "\t" + str(foundFinal) + "\t" + str(foundSenders) + "\t  " + str(foundReceivers) + "\t      " + str(foundUnknown)
+#print " " + str(foundInit) + "\t" + str(foundFinal) + "\t" + str(foundSenders) + "\t  " + str(foundReceivers) + "\t      " + str(foundUnknown)
+print " " + str(foundInit) + "\t" + str(foundFinal) + "\t" + str(foundSenders) + "\t  " + str(foundReceivers)
 print ""
-print "Miml file '" + outputfile + "' successfully written.\n"

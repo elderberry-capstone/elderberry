@@ -9,23 +9,35 @@
 
 import sys, re
 
-inputfile = sys.argv[1]
-
-# Could check if .h and error if it isn't
-rpos = inputfile.rfind(".");
-if(rpos <=0):
-	basefile = inputfile
-else:
-	basefile = inputfile[:rpos]
-
-ext = str(inputfile[rpos:])
-
-if ext != ".h":
-	print "Error: Input file not a .h file."
+if (len(sys.argv) < 2):
+	print "Error: Too few arguments."
+	sys.exit(-1)
+elif len(sys.argv) > 3:
+	print "Error: Too many arguments."
 	sys.exit(-1)
 
-# Should check to see if a .Miml -- if not, add extension or error
-outputfile = sys.argv[2]
+inputfile = sys.argv[1]
+rpos = inputfile.rfind(".")
+
+if len(sys.argv) == 2:
+	outputfile = inputfile
+	outputfile += ".miml"
+
+if str(inputfile[rpos:]) != ".h" and (rpos > 0):
+	print "Error: Input file not a .h file."
+	sys.exit(-1)
+elif rpos < 0:
+	inputfile += ".h"
+basefile = inputfile[:rpos]
+
+if len(sys.argv) == 3:
+	outputfile = sys.argv[2]
+	rpos = outputfile.rfind(".");
+	if (str(outputfile[rpos:]) != ".miml") and (rpos > 0):
+		print "Error: Output file not a .miml file."
+		sys.exit(-1)
+	elif rpos < 0:
+		outputfile += ".miml"
 
 try:
 	f = open(inputfile, 'r')
