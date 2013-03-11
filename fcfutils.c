@@ -85,6 +85,16 @@ static int init_fcf(){
 
 
 /*
+ * Deallocate fcf data structures
+ */
+static void finalize_fcf(){
+	free(fds);
+	free(fdx);
+	nfds = -1;
+}
+
+
+/*
  *	Increases size of the file desciptor and file description arrays
  */
 static int expand_arrays(){
@@ -210,7 +220,6 @@ static int fcf_run_poll_loop(){
       }
       break;
     case 0: // timeout
-      printf("poll timed out");
       break;
     default:
       nppc = 0;
@@ -318,7 +327,7 @@ int main(int argc, char *argv[]){
 		"");*/
   
   printf("\n FLIGHT CONTROL FRAMEWORK V0.1 -- Copyright (C) 2013\n"
-	 " Ron Astin, Clark Wachsmuth, Chris Glasser\n Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
+	 " : Ron Astin, Clark Wachsmuth, Chris Glasser\n : Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
 	 "----------------------------------------------------------------\n"
 	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
 	 " visit http://www.gnu.org/licenses/gpl.html.\n\n"
@@ -326,14 +335,14 @@ int main(int argc, char *argv[]){
 	 " under certain conditions; For details, please visit\n"
 	 " http://www.gnu.org/licenses/gpl.html.\n"
 	 "----------------------------------------------------------------\n\n\n");
-  signal (SIGINT, signalhandler);
+  signal(SIGINT, signalhandler);
 
   int rc = init_fcf();			//< FCF init that sets up fd structures
   if(rc == 0){
 	  fcf_initialize();			//< fcfmain init function for user modules
 	  int rc = fcf_run_poll_loop();
 	  fcf_finalize();			//< fcfmain finalize function for user modules
-
+	  finalize_fcf();			//< FCF finalize that deallocates fd structures
 	  if(rc == 0) {
 		return EXIT_SUCCESS;
 	  }
