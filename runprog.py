@@ -1,48 +1,60 @@
 #!/usr/bin/env python
 #import logger
-import logging, sys, os, time, shutil, pexpect, subprocess, re
+import logging, sys, os, time, shutil, pexpect, subprocess, re, csv
+from bzrlib.plugins.qbzr.lib.logmodel import header_labels
 
-sys_reserved = ["sudo"]
+csv_target = "profiler-data/output.csv"
 SIG_PROF_KILL = 2929
 SIGQUIT = 3
 SIGINT = 2
 STDOUT = 1
 PIPE_FD = 3
 
+
+headerlabels = ["Time run", "Function name", "Percentage of time",
+                             "Cumulative seconds", "Self seconds",
+                             "Number of calls", "Seconds per call (self)",
+                             "Seconds per call (total)"]
+
 def print_usage():
     print(
         """
-Usage: ./runprog time program_name [program_arguments ...]
-        
+Usage: ./runprog time program_name [program_arguments ...] [[-c|--csv]="file"]
+
 time                The amount of time to run the program. Use the format
                     HH:MM:SS where "HH" is hours, "MM" is minutes, and "SS"
                     is seconds. For eample, five hours, six seconds will be
                     written as "05:00:06"
-        
+
 program-name        The name of the program to run
 
 program_arguments   Arguments to supply to the program program_name.
+
+-c|--csv="file"     The filename to use for CSV output.
 """
     )
-    
-    
-class GProfOut:
-    def __init__(self):
-        self.time_run = 0
-        self.functions = {}
-        
-    def tostring(self):
-        str = "\n"
-        for (name, f) in self.functions.iteritems():
-            str += f.tostring()
-        str += ">> Run time for %s: %s seconds" % (name, self.time_run) 
-        return str
-        
-        
+
+
+
 class CFunc:
+
+    def __init__(self, gprof_list=None):
+        if (gprof_list != None):
+            try:
+                self.set_func(str(gprof_list[0]),
+                              str(gprof_list[1]),
+                              str(gprof_list[2]),
+                              str(gprof_list[3]),
+                              str(gprof_list[4]),
+                              str(gprof_list[5]),
+                              str(gprof_list[6]))
+            except:
+                logging.warn("List %s does not have enough elements."
+                % (str(gprof_list)))
+
     def set_func(self, perc_time, cumu_sec, self_sec, calls, self_sec_per_call,
                  tot_sec_per_call, name):
-        
+
         self.perc_time = perc_time
         self.cumu_sec = cumu_sec
         self.self_sec = self_sec
@@ -50,33 +62,68 @@ class CFunc:
         self.self_sec_per_call = self_sec_per_call
         self.tot_sec_per_call = tot_sec_per_call
         self.name = name
-       
-    def __init__(self, gprof_list=None):
-        if (gprof_list != None):
-            self.set_func(float(gprof_list[0]),
-                          float(gprof_list[1]),
-                          float(gprof_list[2]),
-                          float(gprof_list[3]),
-                          gprof_list[4],
-                          gprof_list[5],
-                          gprof_list[6])
-        
-    def tostring(self):
+
+    def __str__(self):
         return"""
 ===== Function: %s ======
-Percentage of time:         %d
-Cumulative seconds:         %d
-Self seconds:               %d
-Number of calls:            %d
+Percentage of time:         %s
+Cumulative seconds:         %s
+Self seconds:               %s
+Number of calls:            %s
 Seconds per call (self):    %s
 Seconds per call (total):   %s
-        """ % (self.name,
-               self.perc_time,
-               self.cumu_sec,
-               self.self_sec,
-               self.calls,
-               self.self_sec_per_call,
-               self.tot_sec_per_call)
+        """ % (str(self.name),
+               str(self.perc_time),
+               str(self.cumu_sec),
+               str(self.self_sec),
+               str(self.calls),
+               str(self.self_sec_per_call),
+               str(self.tot_sec_per_call))
+
+    def tocsv(self):
+        return ",".join([
+                  self.name,
+                  str(self.perc_time),
+                  str(self.cumu_sec),
+                  str(self.self_sec),
+                  str(self.calls),
+                  str(self.self_sec_per_call),
+                  str(self.tot_sec_per_call)])
+
+    def as_list(self):
+        return [
+                  self.name,
+                  str(self.perc_time),
+                  str(self.cumu_sec),
+                  str(self.self_sec),
+                  str(self.calls),
+                  str(self.self_sec_per_call),
+                  str(self.tot_sec_per_call)]
+
+class GProfOut:
+    def __init__(self):
+        self.time_run = 0
+        self.functions = {}
+
+    def __str__(self):
+        s = "\n"
+        for (name, f) in self.functions.iteritems():
+            s += "%s" % f
+            s += ">> Run time for %s: %s seconds" % (name, self.time_run)
+        return s
+
+    def tocsv(self):
+        mycsvs = []
+        for (name,func) in self.functions.iteritems():
+            mycsvs.append("%s,%s" % (self.time_run, func.tocsv()))
+        return '\n'.join(mycsvs)
+
+    def as_list(self):
+        lst = []
+        for func in self.functions.itervalues():
+            lst.append([str(self.time_run)] + func.as_list())
+        return lst
+
 ##
 # Run the program for the specified number of times.
 # @param t: how long to run the program.
@@ -93,12 +140,12 @@ def run_for_time(t, args):
         os.execvp(args[0], args)
     else:           # We're the parent.
         time.sleep(sleep_time)
-        
+
         # Send the SIGINT signal
         os.kill(pid, SIGINT)
-        
+
         os.dup2(STDOUT, outfd)
-        
+
 #
 # Human-readable utility function for declaring which test
 # is running
@@ -110,11 +157,11 @@ def print_test_header(arg_time, iter):
     init_header = "## TEST (%d) - Time %s h, %s m, %s s ##" % (iter,
         t[0], t[1], t[2])
     border = "#" * len(init_header)
-    
+
     logging.info(border)
-    logging.info(init_header)    
+    logging.info(init_header)
     logging.info(border)
-    
+
 def choose_new_gmon(i = 0):
     """
     if (not os.path.exists("gmon.out")):
@@ -128,8 +175,8 @@ def choose_new_gmon(i = 0):
         return choose_new_gmon(i+1)
     else:
         return "gmon." + str(i) + ".out"
-    
-    
+
+
 ##
 # Given a filename in gprof format, parse its information
 # for analysis.
@@ -139,11 +186,11 @@ def parse_output_file(filename):
     line_regex = '((\d)?\s*\d+\.?\d+)+\s+\w*'
     split_regex = '(\s){1,7}'
     ws_regex = '(\s)+'
-    
+
     re_line = re.compile(line_regex)
     re_split = re.compile(split_regex)
     re_space = re.compile(ws_regex)
-    
+
     p = subprocess.Popen("gprof -b --flat-profile ./fc %s" % (filename), shell=True,
                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = []
@@ -156,7 +203,7 @@ def parse_output_file(filename):
             lines.append(line)
         if line == "" and p.poll() != None:
             break
-            
+
     print("\n")
     funclist= []
     for l in lines:
@@ -166,13 +213,31 @@ def parse_output_file(filename):
             if ll1 not in ['', ' ', '  ', '\n', '\t']:
                 lines_list2.append(ll1)
         funclist.append(lines_list2)
-                
+
     gpo = GProfOut()
-    for fl in funclist:
-        #print fl
-        gpo.functions[fl[6]] = CFunc(fl)
-    
+    for func in funclist:
+        if len(func) != 7:
+            func = fill_func(func)
+        print func
+        gpo.functions[func[6]] = CFunc(func)
+
     return gpo
+
+##
+# Do an educated guess as to which elements are missing
+# And fill them in with null strings.
+# @param func_def: The function definiton (in list format) to fill out.
+# @return A new function definition in list format.
+def fill_func(func_def):
+    logging.debug("Fixing list: %s" % (func_def))
+    real_last_i = 7
+    last_i = len(func_def) - 1
+    diff = real_last_i - last_i
+    logging.debug("Moving element %d to %d" % last_i, real_last_i)
+    func_def.extend([""]*(diff-2) + [func_def[last_i]])
+    logging.debug("Fixed list: %s" % (func_def))
+    return def_list
+
 
 def arr_to_secs(time):
     return (int(time[0]) * 3600) + (int(time[1]) * 60) + int(time[2])
@@ -184,30 +249,48 @@ def secs_to_arr(time):
         (time % 60) % 60
     ]
 
-def main():
-    # First check for the gmon.out file.
-    """
+##
+# Dump the resulting gprof output to a csv file.
+# @param results: The results parsed from gprof output -- as a list.
+# @param header: The header for the CSV file.
+def dump_to_csv_file(results, header):
+    #  Try to open the file. Create it if it doesn't exist.
+    write_header = False
     try:
-        gmon_file = open('gmon.out', 'r')
-    except IOError:
-        logging.error("Could not find gmon.out. Did you compile your" +
-            " program with the '-pg' option?")
-        sys.exit()
-    """
-        
-    # Next, check that the user has valid arguments.
+        csv_file = open(csv_target, "rb")
+    except:
+        os.close(os.open(csv_target, os.O_CREAT))
+        csv_file = open(csv_target, "rb")
+        write_header = True
+
+    # Check for a header. write_header will be true if ...write_header(... is
+    # false.
+    if (write_header == False):
+        write_header = not csv.Sniffer().has_header(csv_file.read())
+
+    with open(csv_target, "ab") as csv_file:
+        target = csv.writer(csv_file)
+        if (write_header):
+            target.writerow(header)
+        for res in results:
+            target.writerow(res)
+
+def main():
+
+    # Check that the user has valid arguments.
     if (len(sys.argv) < 3):
         logging.error("Invalid usage.")
         print_usage()
         sys.exit()
-        
-    # Store the arguments in variables.
+
+    # Store the arguments in variables (just for convenience)
     arg_time = sys.argv[1]
     arg_args = sys.argv[2:]
-    
+
+
     # Generate a new gmon.out file, bumping up the last file index.
-    
-    # Start a loop in case we have a time list
+
+    # Set up variables and time array for testing.
     loop = 0
     times = []
     gmon_times = {}
@@ -216,8 +299,9 @@ def main():
         tim = arr_to_secs(t.split(":"))
         times.append(tim)
     print (times)
-    
-        
+
+
+    # Assign a dictionary where gmon file name => time
     for ta in times:
         new_gmon = choose_new_gmon()
         gmon_times[new_gmon] = times
@@ -227,14 +311,17 @@ def main():
         run_for_time(ta, arg_args)
         if (new_gmon != None):
             logging.debug("Copying 'gmon.out' to '" + new_gmon + "'")
-            shutil.copy("gmon.out", new_gmon)
-            
+            try:
+                shutil.copy("gmon.out", new_gmon)
+            except:
+                logging.warn("gmon.out does not exist...that's okay.")
+
     # Analyze the program.
     # The order of the files is gmon.0.out, gmon.1.out, ..., gmon.n.out
-    # 
+    #
     logging.info("\n\n###### Analysis stage #######")
     logging.debug("Files: %s" % (gmon_files))
-    
+
     testno = -1
     gresults = []
     for gfile in gmon_files:
@@ -244,14 +331,17 @@ def main():
             gout.time_run = gmon_times[gfile][testno]
         except:
             pass
-        
-        print('='*10 + " TEST " + str(testno+1) + " " + '='*10)
-        print(gout.tostring())
-        gresults.append(gout)
-            
+
+        #print('='*10 + " TEST " + str(testno+1) + " " + '='*10)
+        logging.debug("gout = %s" % (gout.as_list()))
+        dump_to_csv_file(gout.as_list(), headerlabels)
+
+    #logging.debug("gresults = %s" % (gresults))
+
+
     logging.debug("%d tests run." % (len(gresults)))
     sys.exit()
-    
+
 if __name__=="__main__":
     logging.basicConfig(
         format="%(levelname)s\t[%(asctime)s]\t%(msg)s",
