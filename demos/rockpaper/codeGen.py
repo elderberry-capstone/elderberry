@@ -140,6 +140,11 @@ class Parser:
         del(self.config['code_filename'])
         del(self.config['header_filename'])
         del(self.config['make_filename'])
+        # get allowed types configuration data
+        allowed_types = self.config['allowed_types']
+        del(self.config['allowed_types'])
+        # Setup a ParserHandlers obj
+        self.handler_functions = ParseHandlers(self, allowed_types)
 
         # Make paths lists for easier parsing
         for handler in self.config.keys():
@@ -156,14 +161,12 @@ class Parser:
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
             self.errors.check()
-        # Setup a ParserHandlers obj
-        self.handler_functions = ParseHandlers(self)
         # Do Expand, Validate, Parse
         while self.transition() == True:
             self.crawl(self.master)
         # Output
         # not needed, but let's you see stuff, probably remove before totally done.
-        self.output.display() 
+        # self.output.display() 
         # Make files!!!
         self.output.write_out() 
 
@@ -213,8 +216,6 @@ class Parser:
             self.master = self.buffer
             self.state = ParserStates.Parse
             # Remove before final checkin, probably comment, this is useful when adding handlers.
-            print ("Parse This!")
-            print(yaml.dump(self.master))
         else:
             # purge staged data. Our 4th state, kinda...
             self.handler_functions.purge()
@@ -291,10 +292,10 @@ class Parser:
 
 class ParseHandlers:
 
-    def __init__(self, parser):
+    def __init__(self, parser, allowed_types):
         self.parser = parser
         # to support validate_params
-        self.allowed_types = ['int', 'char*', 'const char*', 'unsigned char*', 'int32_t']
+        self.allowed_types = allowed_types
         # objects for single line make file
         self.objects = []
 
@@ -319,7 +320,7 @@ class ParseHandlers:
             # Pull in external file data, place in buffer
             del(p.unhandled['sources'])
             p.buffer['modules'] = {}
-            p.buffer['sources'] = data
+            p.buffer['source_order'] = data
             for source in data:             
                 if (e.check_file(source[1])):
                     try:
@@ -327,10 +328,7 @@ class ParseHandlers:
                     except Exception as e:
                         e.new_error("YAML parsing error: " + str(e))
             return True
-        if p.state == ParserStates.Validate:
-            del(p.unhandled['sources'])
-            p.buffer['sources'] = data
-        if p.state == ParserStates.Parse:
+        elif p.state == ParserStates.Parse:
             module_miml = []
             for source in data:
                 module_miml.append(source[1])
@@ -347,7 +345,7 @@ class ParseHandlers:
             del(p.unhandled['messages'])
             p.buffer['messages'] = data
             return True
-        if p.state == ParserStates.Validate:
+        elif p.state == ParserStates.Validate:
             for message in data.keys():
                 sender = message.split('.')
                 if not len(sender) == 2:
@@ -365,7 +363,7 @@ class ParseHandlers:
                         elif not receiver[0] in p.master['modules']:
                             e.new_error("Receiver: " + receiver[0] + " not loaded as module.")
                         elif not receiver[1] in p.master['modules'][receiver[0]]['receivers']:
-                            e.new_error("Receiving message " + receiver[1] + " not defined as receiver for " + receiver[0])
+                            e.new_error("Receiver function " + receiver[1] + " not defined as receiver for " + receiver[0])
                         elif not len(sender_params) == len(p.master['modules'][receiver[0]]['receivers'][receiver[1]]):
                             e.new_error("Message " + str(sender) + " cannot send to receiver " + str(rec) +
                             ". Number of arguments must be the same in both functions.")
@@ -379,7 +377,7 @@ class ParseHandlers:
             del(p.unhandled['messages'])
             p.buffer['messages'] = data
             return True
-        if p.state == ParserStates.Parse:
+        elif p.state == ParserStates.Parse:
             for message in data.keys(): # for each message
                 (src, func) = message.split('.')
                 args = []
@@ -410,24 +408,7 @@ class ParseHandlers:
                     if not key in ('include', 'object', 'init', 'final', 'senders', 'receivers'):
                         e.new_error("Module: " + source + " contains illegal component: " + key)
             del(p.unhandled['modules'])
-            p.buffer['modules'] = data
-        elif p.state == ParserStates.Parse:
-            # Initialize/Finalize Functions
-            finals = []
-            o.append("code", 10, "void fcf_initialize() {")
-            for source in data.keys():
-                if "init" in data[source]:
-                    o.append("code", 10, "    " + data[source]['init'])
-                if "final" in data[source]:
-                    finals.append(data[source]['final'])
-            o.append("code", 10, "}")
-            o.append("code", 15, "void fcf_finalize() {")
-            finals.reverse()
-            for final in finals:
-                o.append("code", 15, "    " + final)  
-            o.append("code", 15, "}")
-        else:
-            p.buffer['modules'] = data
+        p.buffer['modules'] = data
         return False
 
     def parse_includes(self, data):
@@ -450,7 +431,7 @@ class ParseHandlers:
         if p.state == ParserStates.Validate:
             if not re.match(r"\w+\.o", data):
                 e.new_error("Illegal object file format: " + data + " in " + '/'.join(p.path))
-        if p.state == ParserStates.Parse:
+        elif p.state == ParserStates.Parse:
             self.objects.append(data)
         return True
 
@@ -461,6 +442,29 @@ class ParseHandlers:
         if p.state == ParserStates.Validate:
             if not re.match(r"\w+\([^)]*\);", data):
                 e.new_error("Illegal initialize function: " + data + " in " + '/'.join(p.path))
+        return True
+
+    def parse_init_final(self, data):
+        p = self.parser
+        o = p.output
+        e = p.errors
+        if p.state == ParserStates.Validate:
+            del(p.unhandled['source_order'])
+            p.buffer['source_order'] = data
+        elif p.state == ParserStates.Parse:
+            finals = []
+            o.append("code", 10, "void fcf_initialize() {")
+            for source in data:
+                token = source[0]
+                if 'init' in p.master['modules'][token]:
+                    o.append("code", 10, "    " + p.master['modules'][token]['init'])
+                if "final" in p.master['modules'][token]:
+                    finals.append(p.master['modules'][token]['final'])
+            o.append("code", 10, "}")
+            o.append("code", 15, "void fcf_finalize() {")
+            while len(finals) > 0:
+                o.append("code", 15, "    " + finals.pop())  
+            o.append("code", 15, "}")                 
         return True
     
     def validate_finals(self, data):
@@ -489,12 +493,10 @@ class ParseHandlers:
             for param in data:
                 if not len(param) == 2:
                     e.new_error("Illegal parameter definition: " + str(param) + " in " + '/'.join(p.path))
-                if not param[1] in self.allowed_types:
+                datatype = re.match(r"(?:const\s)?((?:unsigned\s)?\w+)(?:\s?[*&])?", param[1]).group(1)
+                if not datatype in self.allowed_types:
                     e.new_error("Illegal parameter type: " + str(param[1]) + " in " + '/'.join(p.path))
         return True
             
-
 parser = Parser('./cg.conf')
 parser.parse()
-# print ("Output:")
-# parser.debug()
