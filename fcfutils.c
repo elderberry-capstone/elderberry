@@ -53,8 +53,6 @@ static int nfds;		//< Number of file descriptors in arrays
 static int fd_array_size;	//< Allocated size of file descriptor array, fds
 static int run_fc;		//< Main loop is running true/false
 
-
-static void debug_fd (const char *msg, int i, struct pollfd *pfd);
 extern void fcf_initialize(void);
 extern void fcf_finalize (void);
 
@@ -214,7 +212,7 @@ static int fcf_run_poll_loop(){
     switch (rc){
     case -1: // error
       if(errno != EINTR){
-	perror ("run_main_loop: poll returned with error");
+	perror("run_main_loop: poll returned with error");
 	ret = -1;
 	fcf_stop_main_loop();
       }
@@ -225,7 +223,6 @@ static int fcf_run_poll_loop(){
       nppc = 0;
       for(int i = 0; i < nfds && rc > 0; i++){
 	if(fds[i].revents != 0){
-	  debug_fd("\n active fd ", i, &fds[i]);
 	  rc--;
 	  if(fdx[i].cb_cat == STANDARD){
 	    // callback for this active fd is a standard callback
@@ -267,21 +264,8 @@ static int fcf_run_poll_loop(){
   return ret;
 }
 
-/*
- *    Prints out polling information
- */
-static void debug_fd (const char *msg, int i, struct pollfd *pfd){
-  int re = pfd->revents;
-  if(re & POLLERR) printf("\nPOLLERR - Error condition");
-  if(re & POLLHUP) printf("\nPOLLHUP - Hang up");
-  if(re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
-  fflush(stdout);
-}
-
 
 static void signalhandler(int signum){
-  printf ("\n **signal handler: signum = %d", signum);
-
   if(signum == SIGINT){
     fcf_stop_main_loop ();
   }
