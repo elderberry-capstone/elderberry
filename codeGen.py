@@ -140,6 +140,11 @@ class Parser:
         del(self.config['code_filename'])
         del(self.config['header_filename'])
         del(self.config['make_filename'])
+        # get allowed types configuration data
+        allowed_types = self.config['allowed_types']
+        del(self.config['allowed_types'])
+        # Setup a ParserHandlers obj
+        self.handler_functions = ParseHandlers(self, allowed_types)
 
         # Make paths lists for easier parsing
         for handler in self.config.keys():
@@ -156,14 +161,12 @@ class Parser:
         except Exception as e:
             self.errors.new_error("YAML parsing error: " + str(e))
             self.errors.check()
-        # Setup a ParserHandlers obj
-        self.handler_functions = ParseHandlers(self)
         # Do Expand, Validate, Parse
         while self.transition() == True:
             self.crawl(self.master)
         # Output
         # not needed, but let's you see stuff, probably remove before totally done.
-        self.output.display() 
+        # self.output.display() 
         # Make files!!!
         self.output.write_out() 
 
@@ -205,8 +208,6 @@ class Parser:
                 self.errors.new_error("Unhandled MIML content at end of Expand state! " + str(self.unhandled))
             self.unhandled = copy.copy(self.master)
             self.state = ParserStates.Validate
-            print ("Validate This!")
-            print (yaml.dump(self.master))
         elif self.state == ParserStates.Validate:
             if not self.unhandled == {}:
                 self.errors.new_error("Unhandled MIML content at end of Validate state! " + str(self.unhandled))
@@ -215,8 +216,6 @@ class Parser:
             self.master = self.buffer
             self.state = ParserStates.Parse
             # Remove before final checkin, probably comment, this is useful when adding handlers.
-            print ("Parse This!")
-            print(yaml.dump(self.master))
         else:
             # purge staged data. Our 4th state, kinda...
             self.handler_functions.purge()
@@ -293,10 +292,10 @@ class Parser:
 
 class ParseHandlers:
 
-    def __init__(self, parser):
+    def __init__(self, parser, allowed_types):
         self.parser = parser
         # to support validate_params
-        self.allowed_types = ['int', 'char*', 'const char*', 'unsigned char*', 'int32_t']
+        self.allowed_types = allowed_types
         # objects for single line make file
         self.objects = []
 
@@ -494,12 +493,10 @@ class ParseHandlers:
             for param in data:
                 if not len(param) == 2:
                     e.new_error("Illegal parameter definition: " + str(param) + " in " + '/'.join(p.path))
-                if not param[1] in self.allowed_types:
+                datatype = re.match(r"(?:const\s)?((?:unsigned\s)?\w+)(?:\s?\*)?", param[1]).group(1)
+                if not datatype in self.allowed_types:
                     e.new_error("Illegal parameter type: " + str(param[1]) + " in " + '/'.join(p.path))
         return True
             
-
 parser = Parser('./cg.conf')
 parser.parse()
-# print ("Output:")
-# parser.debug()
