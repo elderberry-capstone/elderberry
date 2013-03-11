@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
 include: module_profile.h
-object: module_profile.o
+object: module_profile..o
 init: init_profiling();
 final: finalize_profiling();
 

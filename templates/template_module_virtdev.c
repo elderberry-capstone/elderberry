@@ -36,16 +36,16 @@ static unsigned char buffer[1000];
 static void common_cb(const char * src, int fd){
 	int rc = readsocket(fd, buffer, sizeof(buffer));
 	if (rc > 0) {
-		fcf_callback_virtdev(src, buffer, rc);
+		sendMessage_virt###DEVNAME###(src, buffer, rc);
 	}
 }
 
 //active fd
-static void virt###DEVNAME###_cb (struct pollfd *pfd) {
+static void virt###DEVNAME###_cb(struct pollfd *pfd){
 	common_cb("virt_###DEVNAME###", pfd->fd);
 }
 
-static int initvirtdev (const char* devname, int port, pollfd_callback cb) {
+static int initvirtdev(const char* devname, int port, pollfd_callback cb) {
 	printf ("probing %s: (waiting for connection localhost:%d)\n", devname, port);
 	int fd = getsocket(port);
 	int rc = fcf_add_fd(fd, POLLIN, cb);
@@ -55,8 +55,11 @@ static int initvirtdev (const char* devname, int port, pollfd_callback cb) {
 //instead of having multiple callback functions,
 //have one and pass through parameters?
 
-void init_virt###DEVNAME###() {
-	initvirtdev ("virt_###DEVNAME###", 8081, virt###DEVNAME###_cb);
+void init_virt###DEVNAME###(){
+	initvirtdev("virt_###DEVNAME###", 8081, virt###DEVNAME###_cb);
+}
+
+void finalize_virt###DEVNAME###(){
 }
 
 

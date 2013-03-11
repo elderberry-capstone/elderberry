@@ -33,7 +33,6 @@
 #include <unistd.h>
 
 #include "utils_libusb-1.0.h"
-#include "fcfmain.h"
 
 /**	START DATA */
 
@@ -63,7 +62,7 @@ static void data_callback(struct libusb_transfer *transfer){
 			*	Data handler:
 			*	Place call into code generated space here.
 			*/
-			fcf_callback_###DEVTAG###(buf, act_len);
+			sendMessage_###DEVTAG###("###DEV_TAG###", buf, act_len);
 
 			break;
 		
