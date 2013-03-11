@@ -27,8 +27,10 @@ if str(inputfile[rpos:]) != ".h" and (rpos > 0):
 	print "Error: Input file not a .h file."
 	sys.exit(-1)
 elif rpos < 0:
+	objfile = inputfile + ".o"
 	inputfile += ".h"
-basefile = inputfile[:rpos]
+else:
+	objfile = inputfile[:rpos] + ".o"
 
 if len(sys.argv) == 3:
 	outputfile = sys.argv[2]
@@ -48,7 +50,7 @@ except IOError as e:
 codeLines = f.readlines()
 f.close()
 
-outputCodeHeader = "%YAML 1.2\n---\ninclude: " + inputfile + "\nobject: " + basefile + ".o"
+outputCodeHeader = "%YAML 1.2\n---\ninclude: " + inputfile + "\nobject: " + objfile
 outputCodeInit = "init: "
 outputCodeFinal = "final: "
 outputCodeSenders = "# Functions that handle outgoing data\nsenders:\n"
