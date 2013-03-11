@@ -363,7 +363,7 @@ class ParseHandlers:
                         elif not receiver[0] in p.master['modules']:
                             e.new_error("Receiver: " + receiver[0] + " not loaded as module.")
                         elif not receiver[1] in p.master['modules'][receiver[0]]['receivers']:
-                            e.new_error("Receiving message " + receiver[1] + " not defined as receiver for " + receiver[0])
+                            e.new_error("Receiver function " + receiver[1] + " not defined as receiver for " + receiver[0])
                         elif not len(sender_params) == len(p.master['modules'][receiver[0]]['receivers'][receiver[1]]):
                             e.new_error("Message " + str(sender) + " cannot send to receiver " + str(rec) +
                             ". Number of arguments must be the same in both functions.")
@@ -493,7 +493,7 @@ class ParseHandlers:
             for param in data:
                 if not len(param) == 2:
                     e.new_error("Illegal parameter definition: " + str(param) + " in " + '/'.join(p.path))
-                datatype = re.match(r"(?:const\s)?((?:unsigned\s)?\w+)(?:\s?\*)?", param[1]).group(1)
+                datatype = re.match(r"(?:const\s)?((?:unsigned\s)?\w+)(?:\s?[*&])?", param[1]).group(1)
                 if not datatype in self.allowed_types:
                     e.new_error("Illegal parameter type: " + str(param[1]) + " in " + '/'.join(p.path))
         return True
