@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
 include: module_mouse_clark.h
-object: module_mouse_clark..o
+object: module_mouse_clark.o
 init: init_mouse_clark();
 final: finalize_mouse_clark();
 

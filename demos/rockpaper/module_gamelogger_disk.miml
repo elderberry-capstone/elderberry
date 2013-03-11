@@ -10,6 +10,10 @@ senders:
 
 # Functions that handle incoming data
 receivers:
+  getGameMessage_gamelogger_disk:
+  - [src, char*]
+  - [buffer, char*]
+  - [len, int]
   getMouseMessage_gamelogger_disk:
   - [src, const char*]
   - [buffer, unsigned char*]
