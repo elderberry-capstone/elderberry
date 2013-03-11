@@ -210,12 +210,11 @@ libusb_device_handle * open_device (char * dev_name, int vid, int pid) {
 }
 
 void close_device(libusb_device_handle *handle) {
-	if (handle == NULL) {
-		return;
+	if (handle != NULL) {
+		libusb_close (handle);
+		opencount--;
 	}
-	libusb_close (handle);
-	opencount--;
-	if (opencount <= 0) {
+	if (opencount <= 0 && context != NULL) {
 		libusb_exit (context);
 		context = NULL;
 	}
