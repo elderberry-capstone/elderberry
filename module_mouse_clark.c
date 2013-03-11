@@ -29,10 +29,9 @@ static void data_callback(struct libusb_transfer *transfer){
         act_len = transfer->actual_length;
 
         retErr = libusb_submit_transfer(transfer);
-		//printf("Data from mouse: %02x \n", (char)buf[0]);
 
 		if(retErr){
-            //print_libusb_transfer_error(transfer->status, "common_cb resub");
+            // Error statement
         }
 
 		// Call to CGS mouse handler.
