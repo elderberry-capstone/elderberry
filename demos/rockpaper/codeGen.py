@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import re
@@ -165,7 +165,8 @@ class Parser:
         while self.transition() == True:
             self.crawl(self.master)
         # Output
-        # not needed, but let's you see stuff, probably remove before totally done.
+        # Let's you see stuff, uncomment when writing MIML extensions and trying to
+	#     figure out where to insert content in OutputGenerator.
         # self.output.display() 
         # Make files!!!
         self.output.write_out() 
@@ -199,6 +200,9 @@ class Parser:
             self.buffer = {}
             self.unhandled = copy.copy(self.master)
             self.state = ParserStates.Expand
+	    # Uncomment when adding MIML handlers that deal with Expansion.
+	    # print ("Expand This:")
+	    # print (yaml.dump(self.master))
         elif self.state == ParserStates.Expand:
             # Make buffer contents master. 
             self.master = self.buffer
@@ -208,6 +212,9 @@ class Parser:
                 self.errors.new_error("Unhandled MIML content at end of Expand state! " + str(self.unhandled))
             self.unhandled = copy.copy(self.master)
             self.state = ParserStates.Validate
+	    # Uncomment when adding MIML handlers that deal with Validation.
+	    # print ("Validate This:")
+	    # print (yaml.dump(self.master))
         elif self.state == ParserStates.Validate:
             if not self.unhandled == {}:
                 self.errors.new_error("Unhandled MIML content at end of Validate state! " + str(self.unhandled))
@@ -215,7 +222,9 @@ class Parser:
             # Make buffer contents master. Should we allow buffering during Validate? Seems like a no.
             self.master = self.buffer
             self.state = ParserStates.Parse
-            # Remove before final checkin, probably comment, this is useful when adding handlers.
+            # Uncomment when adding MIML handlers that deal with Parsing.
+	    # print ("Parse This:")
+	    # print (yaml.dump(self.master))
         else:
             # purge staged data. Our 4th state, kinda...
             self.handler_functions.purge()
