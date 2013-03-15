@@ -39,7 +39,6 @@
  *	This struct holds the callback functions and souce tokens of the devices.
  */
 struct fcffd{
-  const char *token;	/**< The short name of the device. */
   pollfd_callback callback;
   char cb_cat;
 };
@@ -158,9 +157,7 @@ void fcf_remove_fd(int fd){
   if(nfds <= 0)
     return;
 
-  int i = 0;
-	
-  for(i = 0; i < nfds; i++){
+  for(int i = 0; i < nfds; i++){
     if(fds[i].fd == fd && i == (nfds - 1)){
       nfds--;
     }
