@@ -11,10 +11,10 @@ STDOUT = 1
 PIPE_FD = 3
 
 
-headerlabels = ["Time run", "Function name", "Percentage of time",
+headerlabels = ",".join(["Time run", "Function name", "Percentage of time",
                              "Cumulative seconds", "Self seconds",
                              "Number of calls", "Seconds per call (self)",
-                             "Seconds per call (total)"]
+                             "Seconds per call (total)"])
 
 def print_usage():
     print(
@@ -162,20 +162,6 @@ def print_test_header(arg_time, iter):
     logging.info(init_header)
     logging.info(border)
 
-def choose_new_gmon(i = 0):
-    """
-    if (not os.path.exists("gmon.out")):
-        pexpect.run('touch gmon.out')
-    elif (os.path.exists("gmon." + str(i) + ".out")):
-        return choose_new_gmon(i+1)
-    else:
-        return "gmon." + str(i) + ".out"
-    """
-    if (os.path.exists("gmon." + str(i) + ".out")):
-        return choose_new_gmon(i+1)
-    else:
-        return "gmon." + str(i) + ".out"
-
 
 ##
 # Given a filename in gprof format, parse its information
@@ -185,18 +171,15 @@ def choose_new_gmon(i = 0):
 def parse_output_file(filename):
     line_regex = '((\d)?\s*\d+\.?\d+)+\s+\w*'
     split_regex = '(\s){1,7}'
-    ws_regex = '(\s)+'
 
     re_line = re.compile(line_regex)
     re_split = re.compile(split_regex)
-    re_space = re.compile(ws_regex)
 
-    p = subprocess.Popen("gprof -b --flat-profile ./fc %s" % (filename), shell=True,
+    p = subprocess.Popen("gprof -b --flat-profile %s %s" %
+                    (' '.join(sys.argv[2:]),filename), shell=True,
                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = []
     line = ""
-    lineno = 0
-    cont = True
     while (True):
         line = p.stdout.readline()
         if re.match(re_line, line) != None:
@@ -236,7 +219,7 @@ def fill_func(func_def):
     logging.debug("Moving element %d to %d" % last_i, real_last_i)
     func_def.extend([""]*(diff-2) + [func_def[last_i]])
     logging.debug("Fixed list: %s" % (func_def))
-    return def_list
+    return func_def
 
 
 def arr_to_secs(time):
@@ -255,18 +238,31 @@ def secs_to_arr(time):
 # @param header: The header for the CSV file.
 def dump_to_csv_file(results, header):
     #  Try to open the file. Create it if it doesn't exist.
+    logging.debug("Printing results: %s" % (results))
     write_header = False
-    try:
-        csv_file = open(csv_target, "rb")
-    except:
-        os.close(os.open(csv_target, os.O_CREAT))
-        csv_file = open(csv_target, "rb")
+    target_dir = csv_target.split("/")[0]
+    logging.debug("Does %s exist?" % target_dir)
+    if not os.path.exists(target_dir):
+        logging.debug("Unfortunately, no.")
+        subprocess.call(["mkdir", target_dir])
+        #os.execl("/bin/mkdir", "mkdir", "profiler-data")
+
+    logging.debug("Does %s exist?" % csv_target)
+    if not os.path.exists(csv_target):
+        #os.execl("/bin/touch", "touch", csv_target)
+        subprocess.call(["touch", csv_target])
         write_header = True
 
-    # Check for a header. write_header will be true if ...write_header(... is
-    # false.
-    if (write_header == False):
-        write_header = not csv.Sniffer().has_header(csv_file.read())
+    csv_file = open(csv_target, "r+b")
+
+    lines = csv_file.readlines()
+    if len(lines) > 0:
+        if lines[0] != header:
+            csv_file.close()
+            csv_file = open(csv_target, "a+b")
+            csv_file.write(header)
+            csv_file.writelines(lines)
+            csv_file.close
 
     with open(csv_target, "ab") as csv_file:
         target = csv.writer(csv_file)
@@ -293,8 +289,6 @@ def main():
     # Set up variables and time array for testing.
     loop = 0
     times = []
-    gmon_times = {}
-    gmon_files = []
     for t in arg_time.split(","):
         tim = arr_to_secs(t.split(":"))
         times.append(tim)
@@ -303,43 +297,13 @@ def main():
 
     # Assign a dictionary where gmon file name => time
     for ta in times:
-        new_gmon = choose_new_gmon()
-        gmon_times[new_gmon] = times
-        gmon_files.append(new_gmon)
         loop += 1
         print_test_header(ta, loop)
         run_for_time(ta, arg_args)
-        if (new_gmon != None):
-            logging.debug("Copying 'gmon.out' to '" + new_gmon + "'")
-            try:
-                shutil.copy("gmon.out", new_gmon)
-            except:
-                logging.warn("gmon.out does not exist...that's okay.")
-
-    # Analyze the program.
-    # The order of the files is gmon.0.out, gmon.1.out, ..., gmon.n.out
-    #
-    logging.info("\n\n###### Analysis stage #######")
-    logging.debug("Files: %s" % (gmon_files))
-
-    testno = -1
-    gresults = []
-    for gfile in gmon_files:
-        testno = testno+1
-        gout = parse_output_file(gfile)
-        try:
-            gout.time_run = gmon_times[gfile][testno]
-        except:
-            pass
-
-        #print('='*10 + " TEST " + str(testno+1) + " " + '='*10)
-        logging.debug("gout = %s" % (gout.as_list()))
+        gout = parse_output_file("gmon.out")
+        gout.time_run = ta
         dump_to_csv_file(gout.as_list(), headerlabels)
 
-    #logging.debug("gresults = %s" % (gresults))
-
-
-    logging.debug("%d tests run." % (len(gresults)))
     sys.exit()
 
 if __name__=="__main__":
