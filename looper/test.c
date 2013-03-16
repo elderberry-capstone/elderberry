@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include "looper.h"
 
+int wrap_hello()
+	hello();
+}
+
 int hello(){
     printf("Hello, World!\n");
     return 1;

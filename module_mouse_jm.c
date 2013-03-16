@@ -13,8 +13,8 @@
 
 /**	START DATA */
 // Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
-static const int VID = 0x046d;
-static const int PID = 0xc03e;
+static const int VID = 0x062a;
+static const int PID = 0x0252;
 static const int EPT = 0x81;
 
 static libusb_device_handle *handle = NULL;

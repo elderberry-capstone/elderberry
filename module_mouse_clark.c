@@ -10,8 +10,8 @@
 
 /**	START DATA */
 // Microsoft Corp. Optical Mouse
-static const int VID = 0x045e;
-static const int PID = 0x0053;
+static const int VID = 0x062a;
+static const int PID = 0x0252;
 static const int EPT = 0x81;
 
 static libusb_device_handle *handle = NULL;
