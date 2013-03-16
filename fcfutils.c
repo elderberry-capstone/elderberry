@@ -1,10 +1,21 @@
-/**
- *  @file fcfutils.c
- *  @brief Utility functions for the flight control framework
- *  @author Ron Astin
- *  @date February 8th, 2013
- */
+/*
+  PSAS Flight Control Framework
+  Copyright (C) 2013  
+  Team Elderberry [Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper]
 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <poll.h>
@@ -16,190 +27,330 @@
 #include <string.h>
 #include <errno.h>
 #include <libusb-1.0/libusb.h>
+#include <signal.h>
 #include "fcfutils.h"
+#include "fcfmain.h"
+
+#define FDS_INIT_SIZE 1
+#define FDS_EXPANSION_FACTOR 2
+#define SIG_PROF_KILL 2929
 
 
-/**
-*	\struct fcffd
-*	
-*	This struct holds the callback functions and souce tokens of the devices.
-*/
-struct fcffd {
-	const char *token;	/**< The short name of the device. */
-	pollfd_callback callback;
+/*	
+ *	This struct holds the callback functions and souce tokens of the devices.
+ */
+struct fcffd{
+  const char *token;	/**< The short name of the device. */
+  pollfd_callback callback;
+  char cb_cat;
 };
 
-static const char standard = 0;	///< standard callback
-static const char ppc = 1;		///< per poll cycle callback
+static const char STANDARD = 0;	//< Standard callback
+static const char PPC = 1;	//< Per poll cycle callback
 
-//static int MAXFD = 100;
-static struct pollfd fds[100];
-static struct fcffd fdx[100];
-static char cbCat[100];			///< the type (i.e. category) of the callback (standard, ppc)
-static int nfds = 0;
-static int run_fc = 0;	//< main loop is running true/false
+static struct pollfd * fds;	//< File descriptor array
+static struct fcffd  * fdx;	//< File description array
+static int nfds;		//< Number of file descriptors in arrays
+static int fd_array_size;	//< Allocated size of file descriptor array, fds
+static int run_fc;		//< Main loop is running true/false
 
 
 static void debug_fd (const char *msg, int i, struct pollfd *pfd);
+extern void fcf_initialize(void);
+extern void fcf_finalize (void);
 
-
-int fcf_add_fd(const char *token, int fd, short events, pollfd_callback cb){
-	fds[nfds].fd = fd;
-	fds[nfds].events = events;
-	fdx[nfds].token = token;
-	fdx[nfds].callback = cb;
-	cbCat[nfds] = standard;
-	nfds++;
-	printf("Added %s fd: %d. FD count: %d\n", token, fd, nfds);
-	return nfds-1;
-}
-
-
-//add per poll cycle file descriptor
-int fcf_addfd_ppc (const char *token, int fd, short events, pollfd_callback cb)
-{
-	int i = fcf_add_fd (token, fd, events, cb);
-	if (i >= 0) {
-		cbCat[i] = ppc;
-	}
-	return i;
-}
-
-
-int fcf_remove_all_fd(const char *fd_src) {
-  // Remove all file descriptors that were added under given source token.
-
-	// If there are no fds, return 0 -- or error code.
-	if(nfds <= 0)
-		return 0;
-
-	int i = 0, removed = 0;
+/*
+ * Initialization for fcf data structures
+ */
+static int init_fcf(){
+  fd_array_size = FDS_INIT_SIZE;
+  //initializing both file descriptor arrays
+  fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
+  fdx = (struct fcffd *) malloc(fd_array_size * sizeof(struct fcffd));
+  // TODO: Need error checking code here for malloc calls
 	
-	for(i=0; i<nfds; i++){
-		// NOTE: if non-null-terminated strings, use strncmp with length
-		if(strcmp(fdx[i].token, fd_src) == 0){
+  nfds = 0;  //< Number of file descriptors in array
+  run_fc = 0;  //< Main loop is running True/False
 
-			// If matching fd is last in array.
-			if(nfds - 1 == i){
-				nfds--;
-				removed++;
-				return removed;
-			}
-			
-			// Replace fd at index i with last fd in array.
-			memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
-
-			// Replace fcffd at index i with last fcffd in array.
-			memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
-			
-			// Decrement number of fds and increment amount removed.
-			nfds--;
-			removed++;
-			printf("FD removed at index %d. Total: %d\n", i, nfds);
-		}
-	}
-
-	return removed;
+  return 0;
 }
 
+
+/*
+ *	Increases size of the file desciptor and file description arrays
+ */
+static int expand_arrays(){
+  struct pollfd * fds_temp;
+  struct fcffd * fdx_temp;
+
+  printf("** Expanding arrays from %d to ", fd_array_size);
+  fd_array_size *= FDS_EXPANSION_FACTOR; // Expand array by pre-defined factor
+  printf("%d\n", fd_array_size);
+	
+
+  //increase size of fds array
+  fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
+  if(fds_temp == NULL){
+    // TODO: Add necessary logging/abort codes
+    return -1;  //if failed
+  }
+  fds = fds_temp;
+	
+  //increase size of fdx array
+  fdx_temp = realloc(fdx, fd_array_size * sizeof(struct fcffd));
+  if(fdx_temp == NULL){
+    // TODO: Add necessary logging/abort codes
+    return -1;  //if failed
+  }
+  fdx = fdx_temp;
+
+  return 0;
+}
+
+/*
+ *    Add file descriptor into both fdx and fds arrays
+ */ 
+int fcf_add_fd(int fd, short events, pollfd_callback cb){
+  // Checks to see if fd arrays are full, if they are expand arrays.
+  if(fd_array_size == nfds){
+    expand_arrays();
+  }
+  
+  //Filling file descriptor array with information bassed through function parameters.
+  fds[nfds].fd = fd;
+  fds[nfds].events = events;
+  //fdx[nfds].token = token;
+  fdx[nfds].callback = cb;
+  fdx[nfds].cb_cat = STANDARD;
+  nfds++;
+  printf("Added fd: %d\tevents: %d\tFD count: %d\n", fd, events, nfds);
+  //printf("Added %s\tfd: %d\tevents: %d\tFD count: %d\n", token, fd, events, nfds);
+  return nfds - 1; //return value is the index of the newest file descriptor
+}
+
+
+/*
+ *    Per poll loop file descriptor add
+ */
+int fcf_add_fd_ppc(/*const char *token,*/ int fd, short events, pollfd_callback cb){
+  int i = fcf_add_fd (/*token,*/ fd, events, cb);
+  if(i >= 0){
+    fdx[i].cb_cat = PPC;
+  }
+  return i;
+}
+
+/*
+ *    Removes the indicated file descriptor from the arrays.
+ */
+void fcf_remove_fd(int fd){
+ 
+  // If there are no fds, return 0 -- or error code.
+  if(nfds <= 0)
+    return;
+
+  int i = 0;
+	
+  for(i = 0; i < nfds; i++){
+    if(fds[i].fd == fd && i == (nfds - 1)){
+      //printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds - 1);
+      nfds--;
+    }
+    else if(fds[i].fd == fd){
+      //printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
+      memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
+      memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
+      nfds--;
+    }
+  }
+}
+
+/*
+ *    Function returns file descriptor information for specified array index
+ */
 struct pollfd *fcf_get_fd(int idx){
-	return &fds[idx];
+  return &fds[idx];
+}
+
+/*
+ *    Stops main poll loop from running
+ */
+void fcf_stop_main_loop(){
+  run_fc = 0;
+}
+
+/*
+ *    Starts main poll loop running
+ */
+static void fcf_start_main_loop(){
+  run_fc = 1;
+}
+
+/*
+ *    Detects change in file descriptors and polls fd arrays
+ */
+static int fcf_run_poll_loop(){
+  //currently returns -1 on error; 0 on success.
+  pollfd_callback ppc[nfds];
+  int nppc = 0, ret = 0;
+  //int count = 0;
+
+  fcf_start_main_loop();
+  while(run_fc){
+
+    /*for (int i = 0; i < nfds; i++) {
+      debug_fd("\nbefore poll<<< ", i, &fds[i]);
+      }*/
+    //printf("\nwaiting");
+    fflush(stdout);
+
+    errno = 0;
+    int rc = poll(fds, nfds, -1);
+
+    //printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
+    /*for (int i = 0; i < nfds; i++) {
+      debug_fd("\n   after poll>>> ", i, &fds[i]);
+      }*/
+
+    switch (rc){
+    case -1: //error
+      if(errno != EINTR){
+	perror ("run_main_loop: poll returned with error");
+	ret = -1;
+	fcf_stop_main_loop();
+      }
+      break;
+    case 0: //timeout
+      printf("poll timed out");
+      break;
+    default:
+      nppc = 0;
+      for(int i = 0; i < nfds && rc > 0; i++){
+	if(fds[i].revents != 0){
+	  debug_fd("\n active fd ", i, &fds[i]);
+	  rc--;
+	  if(fdx[i].cb_cat == STANDARD){
+	    //callback for this active fd is a standard callback
+	    fdx[i].callback(&fds[i]);
+	  } 
+	  else{
+	    //callback for this active fd is a "per poll cycle" callback
+	    int j;
+	    for(j = 0; j < nppc && ppc[j] != fdx[i].callback; j++)
+	      { /*empty*/ }
+	    if(j == nppc){
+	      //a new ppc callback
+	      //add to ppc so that callback will be called at end of poll cycle
+	      ppc[nppc++] = fdx[i].callback;
+	    } 
+	    else{
+	      //we have seen this callback before
+	      printf("\n multiple active ppc, ignoring callback for fd[%d]: fd=%d", i, fds[i].fd);
+	    }
+	  }
+	} // (revents set)
+      } // (for i)
+
+      //handle ppc callbacks
+      for(int j = 0; j < nppc; j++){
+	//if callback wants to access the fds, callback
+	//is expected to know the indices into the fds array
+	//i.e., module must store return values it gets from fcf_addfdPpc
+	printf("\n calling ppc callback [%d]", j);
+	ppc[j](fds);
+      }
+
+      break;
+    }
+
+  }
+
+  printf("\n exiting main loop");
+  return ret;
+}
+
+/*
+ *    Prints out polling information
+ */
+static void debug_fd (const char *msg, int i, struct pollfd *pfd){
+  //printf("%s fd[%d]: fd=%d events=%X revents=%X [%s]", msg, i, pfd->fd, pfd->events, pfd->revents, fdx[i].token);
+  int re = pfd->revents;
+  if(re & POLLERR) printf("\nPOLLERR - Error condition");
+  if(re & POLLHUP) printf("\nPOLLHUP - Hang up");
+  if(re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
+  fflush(stdout);
 }
 
 
-void fcf_stop_main_loop() {
-	run_fc = 0;
+static void signalhandler(int signum){
+  printf ("\n **signal handler: signum = %d", signum);
+
+  if(signum == SIGINT){
+    fcf_stop_main_loop ();
+    }else if (signum == SIGQUIT){
+        fcf_stop_main_loop();
+        _exit(EXIT_SUCCESS);
+  }
 }
 
 
-static void fcf_start_main_loop() {
-	run_fc = 1;
-}
+int main(int argc, char *argv[]){
 
+ /*printf("" 
+		"                                                                                \n"
+		"                               `.:/++oooooo+//-.`                               \n"
+		"                           -/oyhhhhhhhhhhhyhhhhhhyo/.                       `   \n"
+		"                       `:ohhhhhhhhhhhhhhhhhhhhyshhhhhyo:                  -+    \n"
+		"                     -ohhhhhhhhhhhhhhhhhsyhyhhoohhhhhhhhh+.             -o+     \n"
+		"                   -shhhhhhhhhhhhhhhhyhhhyhhhhhhhhhhhhhhhhho.         -sy:      \n"
+		"                 .shhhhhhhho/+ooossyhhsyhhhhshhhhohhhhhhhhhhho`    `/yyo.       \n"
+		"                /hhhhhhhhh-+hhhhhhhyssohhhhhhhhhhhhhhhhhhhhhhhy-.:syys:         \n"
+		"               ohhhhhhhhh+/hhhhyh++hhhhysyhhhhhhhhhhhhhhhhhhhhhhyyyy:           \n"
+		"              ohhhhhhhhhh/shhhhhyhhhhhhhhhsshhhhhhhhhhhhhhhhyyyyyy:             \n"
+		"             /hhhhhhhhhhho+hhhhhhhhhhhhhhhhhsshhhhhhhhhhyyyyhhhhhh-             \n"
+		"            .hhhhhhhhhhhhh:hhhhhhhhhhhhhhhhhhhsyhhhhyyyyhhhhhhhhhhy`            \n"
+		"            ohhhhhhhhhhhhhoohhhhhhhhhhhhhhhhhhhyoyyyhhhhhhhhhhhhhhh/            \n"
+		"            hhsossyssyhyooo:ssossysoooyhsoooyoooo+oosyhhoooshyssyyss            \n"
+		"           .hh/`hyy:`hhh`/y``/ shoo s:`h+ o o+ hys/-h+/h:`h.:h/ soyh            \n"
+		"           -hh/ s/h:.hhh`:h-./ /+so +`:ho +`o+ o+ho.: oh/`+ ohh-`shh`           \n"
+		"           .hh- soo-`o+o`-+-so :s++ ++`+/ +`osooo+:`o``o-`s:`sh:`yhh            \n"
+		"      `.....hhhhhhhhhhhhhhhhyhhy/shhhhhhhhhhhhhhhhhhhsshhhhhhhhhhhhs            \n"
+		"   `-:::::::/+yhhhhhhhhhhhhhhhhhho+yhhhhhhhhhhhhhhhhhh+hhhyhho/yhhh/            \n"
+		"  -///:://////+shhhhhhhhhhhhhhhhhhh++hhhhhhhhhhhhhhhhhoshhhyhhyyhhy             \n"
+		" .+++++++++++oooyhhhhhhhyhhohhhyyhhhy++hhhhhhhhhhhhhhys+hhhhhyhhhh-             \n"
+		" -oooooooooossssyhhhhhhhhhyyshyhhhhhhhy -hhhhhhhhhhhhhy+hhhhhhhhh:              \n"
+		" `osssssssyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh+hhhyshhhh:               \n"
+		"  `oyyyyyhhhhhy::hhhhhhhhhhhhhhhyhhhhhshhhhhyhhyyyyysshhhhy+syy-                \n"
+		"    -+yhhhhho:`  .ohhhhhhhhhhhshhshhhhhhhhhhhhhhhhhhhhhhhhhhh+`                 \n"
+		"        ``   `.----+syhhhhhhhho/yhhhhhhhhhhhhhhhhhhhhhhhhhho.                   \n"
+		"           .:::::::://+yhhhhhhyyhhhhhhhhhhhhhhhhhhhhhhhhy+.                     \n"
+		"          -//////////+++oohhhhhhhhhhhhhhhhhhhhhhhhhhhy+-                        \n"
+		"          ++++++++++ooooo  ./oyhhhhhhhhhhhhhhhhhhyo:.                           \n"
+		"          ooooooossssssss       .-:/++oooo++/:-.                                \n"
+		"          :sssyyyyyyyyyy-                                                       \n"
+		"           -syhhhhhhhhs.                                                        \n"
+		"             ./+sss+/.                                                          \n"
+		"");*/
+  
+  printf("\n FLIGHT CONTROL FRAMEWORK V0.1  Copyright (C) 2013\n"
+	 "Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
+	 "----------------------------------------------------------------\n"
+	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
+	 " visit http://www.gnu.org/licenses/gpl.html.\n\n"
+	 " This is free software, and you are welcome to redistribute it\n"
+	 " under certain conditions; For details, please visit\n"
+	 " http://www.gnu.org/licenses/gpl.html.\n"
+	 "----------------------------------------------------------------\n\n\n");
+  signal (SIGINT, signalhandler);
+    signal (SIGQUIT, signalhandler);
 
-//currently returns -1 on error; 0 on success
-int fcf_run_poll_loop() {
-	pollfd_callback ppc[nfds];
-	int nppc= 0;
-	int count = 0;
-	int ret = 0;
+  init_fcf();			//< FCF init that sets up fd structures
+  fcf_initialize();			//< fcfmain init function for user modules
+  int rc = fcf_run_poll_loop();
+  fcf_finalize();			//< fcfmain finalize function for user modules
 
-	fcf_start_main_loop();
-	while (run_fc) {
-
-		for (int i = 0; i < nfds; i++) {
-			debug_fd("\nbefore poll<<< ", i, &fds[i]);
-		}
-		printf("\nwaiting");
-		fflush (stdout);
-
-		errno = 0;
-		int rc = poll(fds, nfds, -1);
-		printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
-		for (int i = 0; i < nfds; i++) {
-			debug_fd("\n   after poll>>> ", i, &fds[i]);
-		}
-
-		switch (rc) {
-		case -1: //error
-			if (errno != EINTR) {
-				perror ("run_main_loop: poll returned with error");
-				ret = -1;
-				fcf_stop_main_loop();
-			}
-			break;
-		case 0: //timeout
-			printf("poll timed out");
-			break;
-		default:
-			nppc = 0;
-			for (int i = 0; i < nfds && rc > 0; i++) {
-				if(fds[i].revents != 0) {
-					debug_fd("\n active fd ", i, &fds[i]);
-					rc--;
-					if (cbCat[i] == standard) {
-						//callback for this active fd is a standard callback
-						fdx[i].callback(i);
-					} else {
-						//callback for this active fd is a "per poll cycle" callback
-						int j;
-						for (j = 0; j < nppc && ppc[j] != fdx[i].callback; j++)
-						{ /*empty*/ }
-						if (j == nppc) {
-							//a new ppc callback
-							//add to ppc so that callback will be called at end of poll cycle
-							ppc[nppc++] = fdx[i].callback;
-						} else {
-							//we have seen this callback before
-							printf ("\n multiple active ppc, ignoring callback for fd[%d]: fd=%d", i, fds[i].fd);
-						}
-					}
-				} // (revents set)
-			} // (for i)
-
-			//handle ppc callbacks
-			for (int j = 0; j < nppc; j++) {
-				//if callback wants to access the fds, callback
-				//is expected to know the indices into the fds array
-				//i.e., module must store return values it gets from fcf_addfdPpc
-				printf ("\n calling ppc callback [%d]", j);
-				ppc[j](-1);	//we cannot pass in one value here
-			}
-
-			break;
-		}
-
-	}
-
-	printf("\n exiting main loop");
-	return ret;
-}
-
-static void debug_fd (const char *msg, int i, struct pollfd *pfd) {
-	printf("%s fd[%d]: fd=%d events=%X revents=%X", msg, i, pfd->fd, pfd->events, pfd->revents);
-	int re = pfd->revents;
-	if (re & POLLERR) printf("\nPOLLERR - Error condition");
-	if (re & POLLHUP) printf("\nPOLLHUP - Hang up");
-	if (re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
-	fflush (stdout);
+  if(rc == 0) {
+    return EXIT_SUCCESS;
+  }
+  return EXIT_FAILURE;
 }

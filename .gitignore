@@ -12,3 +12,8 @@ logs
 .project.ori
 .cproject
 *.kdev4
+.geany
+*.swo
+*.swp
+*.project
+gmon.*
