@@ -15,7 +15,7 @@ static const int PROFILEMODE = 1;
 
 static unsigned long int count = 0; //!< The number of times the loop has run.
 static unsigned char buf[1024];
-static int fd;	//!< timer fd
+static int fd = -1;	//!< timer fd
 static struct itimerspec t;
 static struct timeval start;
 static struct timeval end;
@@ -134,4 +134,11 @@ void finalize_profiling() {
 	timersub(&end, &start, &diff);
 
 	printf("\n\nFinished with count: %lu in %ld.%ld sec\n\n", count, diff.tv_sec, diff.tv_usec);
+
+	if (fd >= 0) {
+		fcf_remove_fd(fd);
+		close(fd);
+		fd = -1;
+	}
+
 }
