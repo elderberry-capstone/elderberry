@@ -11,8 +11,6 @@
 #include "module_mouse_jm.h"
 #include "utils_libusb-1.0.h"
 
-extern void fcf_callback_mouse_clark(unsigned char *, int);
-
 /**	START DATA */
 // Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
 static const int VID = 0x062a;
@@ -41,7 +39,7 @@ static void data_callback(struct libusb_transfer *transfer){
 		}
 
 		// Call to CGS mouse handler.
-		fcf_callback_mouse_clark(buf, act_len);
+		sendMessage_mouse_jm("mouse_jm", buf, act_len);
 
 		break;
 	case LIBUSB_TRANSFER_CANCELLED:

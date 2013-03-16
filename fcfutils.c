@@ -33,14 +33,12 @@
 
 #define FDS_INIT_SIZE 1
 #define FDS_EXPANSION_FACTOR 2
-#define SIG_PROF_KILL 2929
 
 
 /*	
  *	This struct holds the callback functions and souce tokens of the devices.
  */
 struct fcffd{
-  const char *token;	/**< The short name of the device. */
   pollfd_callback callback;
   char cb_cat;
 };
@@ -48,14 +46,12 @@ struct fcffd{
 static const char STANDARD = 0;	//< Standard callback
 static const char PPC = 1;	//< Per poll cycle callback
 
-static struct pollfd * fds;	//< File descriptor array
-static struct fcffd  * fdx;	//< File description array
+static struct pollfd * fds = NULL;	//< File descriptor array
+static struct fcffd  * fdx = NULL;	//< File description array
 static int nfds;		//< Number of file descriptors in arrays
 static int fd_array_size;	//< Allocated size of file descriptor array, fds
 static int run_fc;		//< Main loop is running true/false
 
-
-static void debug_fd (const char *msg, int i, struct pollfd *pfd);
 extern void fcf_initialize(void);
 extern void fcf_finalize (void);
 
@@ -64,15 +60,34 @@ extern void fcf_finalize (void);
  */
 static int init_fcf(){
   fd_array_size = FDS_INIT_SIZE;
+
   //initializing both file descriptor arrays
   fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
   fdx = (struct fcffd *) malloc(fd_array_size * sizeof(struct fcffd));
-  // TODO: Need error checking code here for malloc calls
+  
+  if(!fds){
+	  fprintf(stderr, "Could not allocate memory for file descriptor array.");
+	  return -1;
+  }
+  else if(!fdx){
+	  fprintf(stderr, "Could not allocate memory for callback array.");
+	  return -1;
+  }
 	
   nfds = 0;  //< Number of file descriptors in array
   run_fc = 0;  //< Main loop is running True/False
 
   return 0;
+}
+
+
+/*
+ * Deallocate fcf data structures
+ */
+static void finalize_fcf(){
+	free(fds);
+	free(fdx);
+	nfds = -1;
 }
 
 
@@ -83,24 +98,19 @@ static int expand_arrays(){
   struct pollfd * fds_temp;
   struct fcffd * fdx_temp;
 
-  printf("** Expanding arrays from %d to ", fd_array_size);
   fd_array_size *= FDS_EXPANSION_FACTOR; // Expand array by pre-defined factor
-  printf("%d\n", fd_array_size);
-	
 
-  //increase size of fds array
+  // Increase size of fds array
   fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
   if(fds_temp == NULL){
-    // TODO: Add necessary logging/abort codes
     return -1;  //if failed
   }
   fds = fds_temp;
 	
-  //increase size of fdx array
+  // Increase size of fdx array
   fdx_temp = realloc(fdx, fd_array_size * sizeof(struct fcffd));
   if(fdx_temp == NULL){
-    // TODO: Add necessary logging/abort codes
-    return -1;  //if failed
+    return -1;  // if failed
   }
   fdx = fdx_temp;
 
@@ -116,24 +126,22 @@ int fcf_add_fd(int fd, short events, pollfd_callback cb){
     expand_arrays();
   }
   
-  //Filling file descriptor array with information bassed through function parameters.
+  // Filling file descriptor arrays with fd and callback data
   fds[nfds].fd = fd;
   fds[nfds].events = events;
-  //fdx[nfds].token = token;
   fdx[nfds].callback = cb;
   fdx[nfds].cb_cat = STANDARD;
   nfds++;
-  printf("Added fd: %d\tevents: %d\tFD count: %d\n", fd, events, nfds);
-  //printf("Added %s\tfd: %d\tevents: %d\tFD count: %d\n", token, fd, events, nfds);
-  return nfds - 1; //return value is the index of the newest file descriptor
+
+  return nfds - 1; // return value is the index of the newest file descriptor
 }
 
 
 /*
  *    Per poll loop file descriptor add
  */
-int fcf_add_fd_ppc(/*const char *token,*/ int fd, short events, pollfd_callback cb){
-  int i = fcf_add_fd (/*token,*/ fd, events, cb);
+int fcf_add_fd_ppc(int fd, short events, pollfd_callback cb){
+  int i = fcf_add_fd (fd, events, cb);
   if(i >= 0){
     fdx[i].cb_cat = PPC;
   }
@@ -287,9 +295,6 @@ static void signalhandler(int signum){
 
   if(signum == SIGINT){
     fcf_stop_main_loop ();
-    }else if (signum == SIGQUIT){
-        fcf_stop_main_loop();
-        _exit(EXIT_SUCCESS);
   }
 }
 
@@ -342,7 +347,6 @@ int main(int argc, char *argv[]){
 	 " http://www.gnu.org/licenses/gpl.html.\n"
 	 "----------------------------------------------------------------\n\n\n");
   signal (SIGINT, signalhandler);
-    signal (SIGQUIT, signalhandler);
 
   init_fcf();			//< FCF init that sets up fd structures
   fcf_initialize();			//< fcfmain init function for user modules

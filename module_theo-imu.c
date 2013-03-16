@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <libusb-1.0/libusb.h>
 #include "fcfutils.h"
-#include "fcfmain.h"
+#include "module_theo-imu.h"
 #include "utils_libusb-1.0.h"
 
 
@@ -58,12 +58,12 @@ static void data_callback(struct libusb_transfer *transfer, const char * src){
         buf = transfer->buffer;
         act_len = transfer->actual_length;
         if(act_len != IMU_PACKET_SIZE){
-        	fcf_callback_theo_imu(src, buf, act_len);
+        	sendMessage_theo_imu(src, buf, act_len);
         }else{
             if(IMU_ADDR(buf[0]) == ADDR_GYR){
-            	fcf_callback_theo_imu(src, buf, act_len);
+            	sendMessage_theo_imu(src, buf, act_len);
             }else{
-            	fcf_callback_theo_imu(src, buf, act_len - 1);
+            	sendMessage_theo_imu(src, buf, act_len - 1);
             }
         }
         retErr = libusb_submit_transfer(transfer);
