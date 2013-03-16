@@ -77,11 +77,21 @@ static void data_callback(struct libusb_transfer *transfer){
 }
 
 
-int ###DEVTAG###_init(){
-	init_device("###DEVTAG###", VID, PID, EPT, data_callback);
-	return 0;
+void init_###DEVTAG###() {
+	libusb_context *context = init_libusb ("###DEVTAG###");
+	if (context == NULL) {
+		return;
+	}
+	libusb_set_debug(context, 3);
+	handle = open_device("###DEVTAG###", VID, PID);
+	if (handle != NULL) {
+		transfer = start_usb_interrupt_transfer(handle, EPT, data_callback, NULL, -1, 0);
+	}
 }
 
-void ###DEVTAG###_finalize(){
+void finalize_###DEVTAG###() {
+	cancel_transfer(transfer);
+	close_device(handle);
+	handle = NULL;
+	transfer = NULL;
 }
-
