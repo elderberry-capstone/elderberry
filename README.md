@@ -56,7 +56,7 @@ There are a few conventions that will make user modules work more seamlessly wit
 
 * Filenames: A recommended naming scheme for the user modules is module_<module token>.c and .h. An example might be “module_diskLogger.c” and .h.
 
-3.2 Helper Files
+3.2 Helper Files 
 
 To help speed up user module creation and reduce duplicated code clutter, helper files can be included to keep common code out of the user modules. Included in the framework are two helper files, utils_libusb-1.0.c and utils_sockets.c, and their respective headers that can greatly aid in making user modules that interface with libusb or use socket code for data transfers. Both of these helper files are also used in templates.
 
