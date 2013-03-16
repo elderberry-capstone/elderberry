@@ -4,7 +4,7 @@ Team Elderberry (2013)
 
 1. OVERVIEW
 
-The Flight Control Framework, or FCF, is a bit of a misnomer in and of itself. While it was originally developed to run on high-power rockets, the core framework itself is extendable to work with practically any two pieces of C code that exchange data. With minimal overhead, this lightweight framework was designed for fast and efficient data transfer between multiple, interrelated, but abstracted, pieces of code. This abstraction is created by allowing these different code fragments, called user modules, to pass data between each other without referencing one another explicitly. Instead, a relationship between any two or more user modules is set up in a language called MIML. 
+The Flight Control Framework, or FCF, is a bit of a misnomer in and of itself. While it was originally developed to run on high-power rockets, the core framework itself is extendable to work with practically any two or more pieces of C code that exchange data. With minimal overhead, this lightweight framework was designed for fast and efficient data transfer between multiple, interrelated, but abstracted, pieces of code. This abstraction is created by allowing these different code fragments, called user modules, to pass data between each other without referencing one another explicitly. Instead, a relationship between any two or more user modules is set up in a language called MIML. 
 
 
 2. THE FRAMEWORK
