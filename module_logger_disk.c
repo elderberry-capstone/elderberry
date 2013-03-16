@@ -1,12 +1,3 @@
-/**
- *  @file module_logger_disk.c
- *  @brief Logs all info to a file on disk
- *  @details Has functions to initialize the disk logger, get messages to log to disk, and to "finalize" the disk logging by closing the file being written to.
- *  @author Clark Wachsmuth
- *  @date February 8th, 2013
- */
-
-
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
