@@ -1,4 +1,16 @@
 #!/usr/bin/python3
+#
+# codeGen.py was written by Ron Astin (rastin71 - github) 
+# 03/16/13 PSU Senior Capstone project (Team Elderberry).
+# Sponsor client: Portland State Aerospace Society (PSAS) http://psas.pdx.edu/
+#
+# Team Elderberry:
+#	Ron Astin
+#	Chris Glasser
+#	Jordan Hewitt
+#	Mike Hooper
+#	Josef Mihalits
+#	Clark Wachsmuth
 
 import sys
 import re
@@ -21,7 +33,6 @@ class ParserStates:
     Expand, Validate, Parse = range(3)
 
 class ErrorLogger:
-    # Class Implementation complete and tested - RA
     # Log errors or warnings here, then check periodically.
     # Code Generator uses no warnings, but they can be fun for debugging.
     # The check method exits if errors exist, but just prints out warnings and keeps going.
@@ -77,8 +88,6 @@ class ErrorLogger:
 
 
 class OutputGenerator:
-    # Tested. Files working!
-
     # What we want here is:
     #    RootDictionary { ModeDictionary { LevelDictionary { OutputList [] }}}
     #
