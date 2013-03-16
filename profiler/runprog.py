@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #import logger
 import logging, sys, os, time, shutil, pexpect, subprocess, re, csv
-#from bzrlib.plugins.qbzr.lib.logmodel import header_labels
 
 csv_target = "profiler-data/output.csv"
 SIG_PROF_KILL = 2929

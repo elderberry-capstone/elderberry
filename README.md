@@ -2,12 +2,12 @@ FLIGHT CONTROL FRAMEWORK README
 Team Elderberry (2013)
 
 
-1. OVERVIEW
+1: OVERVIEW
 
 The Flight Control Framework, or FCF, is a bit of a misnomer in and of itself. While it was originally developed to run on high-power rockets, the core framework itself is extendable to work with practically any two or more pieces of C code that exchange data. With minimal overhead, this lightweight framework was designed for fast and efficient data transfer between multiple, interrelated, but abstracted, pieces of code. This abstraction is created by allowing these different code fragments, called user modules, to pass data between each other without referencing one another explicitly. Instead, a relationship between any two or more user modules is set up in a language called MIML. 
 
 
-2. THE FRAMEWORK
+2: THE FRAMEWORK
 
 The framework itself is simply a conduit for passing data between code modules. It’s principally made up of the framework file, fcfutils.c, that includes the main loop and API functions and a collection of sender/receiver relationships, or intermodular data handlers, in the fcfmain.c file. 
 
@@ -32,7 +32,7 @@ In a separate file called Main.miml, these user module MIML files are listed as 
 Once the relationships are set up, the code generator parses the MIML files to creates C files, fcfmain.c and fcfmain.h that contain the intermodular data handlers, as well as a Makefile include, Miml.mk.
 
 
-3. USER MODULES
+3: USER MODULES
 
 While user modules have been referenced many times in this document already, they haven’t been formally introduced. A user module is a piece of code created by the user that is utilized in conjunction with the framework that serves a specific and usually unique purpose of the application. Examples of user modules may include code that reads from a GPS device off of USB, code that takes in data and prints to disk, or code that holds the state of a game.
 
@@ -56,7 +56,7 @@ There are a few conventions that will make user modules work more seamlessly wit
 
 * Filenames: A recommended naming scheme for the user modules is module_<module token>.c and .h. An example might be “module_diskLogger.c” and .h.
 
-3.2 Helper Files
+3.2 Helper Files 
 
 To help speed up user module creation and reduce duplicated code clutter, helper files can be included to keep common code out of the user modules. Included in the framework are two helper files, utils_libusb-1.0.c and utils_sockets.c, and their respective headers that can greatly aid in making user modules that interface with libusb or use socket code for data transfers. Both of these helper files are also used in templates.
 
@@ -65,7 +65,7 @@ To help speed up user module creation and reduce duplicated code clutter, helper
 For purposes of quickly creating user modules based on libusb or sockets, there are two templates in the “templates” directory that can be modified to create unique instances of user modules. To use the templates, its best to open up the desired one read its directions in the code file itself. They are created so that the user can search-and-replace the ###DEVTAG### value with a unique token in both the .c and .h file and save it with a unique filename (see Section 3.1 for filename conventions).
 
 
-4. BUILDING THE APPLICATION
+4: BUILDING THE APPLICATION
 
 Due to the need for user module abstraction, the build process for the framework is a little more complicated than that of a typical C application. Here is the general build process:
 
@@ -101,7 +101,7 @@ As discussed in the introduction to this section, the easiest way to use the Mak
 Here are some other possible uses: “make miml” generates Miml.mk. “make” builds the project. Then, every repeated use of “make” rebuilds the project. If one of the “.miml” files changes, make automatically runs the code generator to rebuild fcfmain.c and fcfmain.h. If the miml files change so that modules are added or removed, one would have to rebuild the Miml.mk manually by rerunning “make miml”.
 
 
-5. PROFILING
+5: PROFILING
 
 A special profiler module can be added to the system to check latency of the framework on a particular machine setup. The directions for installing and using the profiler are as follows:
 
