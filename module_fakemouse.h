@@ -1,12 +1,13 @@
 /*
- * virtdevsrv.h
+ * module_fakemouse.h
  *
- *  Created on: Jan 26, 2013
  */
 
-#ifndef VIRTDEVSRV_H_
-#define VIRTDEVSRV_H_
+#ifndef FAKEMOUSE_H_
+#define FAKEMOUSE_H_
 
-extern int init_virtFAKEMOUSE(void);
+void init_fakemouse(void);
+void finalize_fakemouse(void);
+void getMessage_fakemouse(unsigned char *buf, int len);
 
-#endif /* VIRTDEVSRV_H_ */
+#endif /* FAKEMOUSE_H_ */

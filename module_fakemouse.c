@@ -25,39 +25,45 @@
 
 
 #include <stdio.h>
+#include <unistd.h>
 
 #include "utils_sockets.h"
 #include "fcfutils.h"
 #include "fcfmain.h"
 
 static unsigned char buffer[1000];
+static int fd = -1;
 
-
-static void common_cb(const char * src, int fd){
-	int rc = readsocket(fd, buffer, sizeof(buffer));
-	if (rc > 0) {
-		fcf_callback_virtdev(src, buffer, rc);
-		printf("RC > 0");
-	}
+void getMessage_fakemouse(unsigned char *buf, int len) {
+	//printf (".");
 }
+
 
 //active fd
 static void virtFAKEMOUSE_cb (struct pollfd *pfd) {
-	common_cb("virt_FAKEMOUSE", pfd->fd);
+	int rc = readsocket(pfd->fd, buffer, sizeof(buffer));
+	if (rc > 0) {
+		sendMessage_fakemouse(buffer, rc);
+	}
 }
 
 static int initvirtdev (const char* devname, int port, pollfd_callback cb) {
-	printf ("probing %s: (waiting for connection localhost:%d)\n", devname, port);
-	int fd = getsocket(port);
+	printf ("probing %s: (waiting for connection 127.0.0.1:%d)\n", devname, port);
+	fd = getsocket(port);
+	printf ("fd = %d\n", fd);
 	int rc = fcf_add_fd(fd, POLLIN, cb);
 	return rc;
 }
 
-//instead of having multiple callback functions,
-//have one and pass through parameters?
 
-void init_virtFAKEMOUSE() {
+void init_fakemouse() {
 	initvirtdev ("virt_FAKEMOUSE", 9876, virtFAKEMOUSE_cb);
 }
 
 
+void finalize_fakemouse() {
+	fcf_remove_fd (fd);
+	if (fd >= 0) {
+		close (fd);
+	}
+}

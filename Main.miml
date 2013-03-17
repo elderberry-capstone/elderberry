@@ -4,6 +4,7 @@ sources:
 - [MOUSEJM, module_mouse_jm.miml]
 - [MOUSEJM2, module_mouse_jm2.miml]
 #- [PROFILE, module_profile.miml]
+#- [PROFILE2, module_fakemouse.miml]
 
 messages:
   MOUSE.sendMessage_mouse_clark:
@@ -20,3 +21,6 @@ messages:
 #
 #  PROFILE.sendMessage_profile3:
 #    - PROFILE.getMessage_profile3
+
+#  PROFILE2.sendMessage_fakemouse:
+#    - PROFILE2.getMessage_fakemouse

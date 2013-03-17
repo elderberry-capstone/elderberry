@@ -1,6 +1,6 @@
 OPTSLIVE := -flto -O3 
 OPTSDEV  := -g
-OPTSPROF := -flto -O3 -pg
+OPTSPROF := -O3 -pg
 OPTS     := -ffast-math
 #WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings -Wno-missing-field-initializers -Wno-unused-parameter
 WARNINGS := -Wall
