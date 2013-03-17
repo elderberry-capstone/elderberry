@@ -1,5 +1,5 @@
 /*
- * module_mouse_jm.c
+ * module_mouse.c
  *
  */
 
@@ -8,13 +8,13 @@
 #include <unistd.h>
 #include <libusb-1.0/libusb.h>
 
-#include "module_mouse_jm.h"
+#include "module_mouse.h"
 #include "utils_libusb-1.0.h"
 
 /**	START DATA */
-// Logitech, Inc. Premium Optical Wheel Mouse (M-BT58)
-static const int VID = 0x046d;
-static const int PID = 0xc03e;
+// SET TO VID/PID of mouse. EPT = Endpoint
+static const int VID = 0x0000;
+static const int PID = 0x0000;
 static const int EPT = 0x81;
 
 static libusb_device_handle *handle = NULL;
@@ -39,7 +39,7 @@ static void data_callback(struct libusb_transfer *transfer){
 		}
 
 		// Call to CGS mouse handler.
-		sendMessage_mouse_jm("mouse_jm", buf, act_len);
+		sendMessage_mouse("mouse", buf, act_len);
 
 		break;
 	case LIBUSB_TRANSFER_CANCELLED:
@@ -53,20 +53,20 @@ static void data_callback(struct libusb_transfer *transfer){
 }
 
 
-void init_mouse_jm() {
+void init_mouse() {
 
-	libusb_context *context = init_libusb ("mouse_jm");
+	libusb_context *context = init_libusb ("mouse");
 	if (context == NULL) {
 		return;
 	}
 	libusb_set_debug(context, 3);
-	handle = open_device("mouse_jm", VID, PID);
+	handle = open_device("mouse", VID, PID);
 	if (handle != NULL) {
 		transfer = start_usb_interrupt_transfer(handle, EPT, data_callback, NULL, -1, 0);
 	}
 }
 
-void finalize_mouse_jm() {
+void finalize_mouse() {
 	cancel_transfer(transfer);
 	close_device(handle);
 	handle = NULL;
