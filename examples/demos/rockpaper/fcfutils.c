@@ -39,7 +39,6 @@
  *	This struct holds the callback functions and souce tokens of the devices.
  */
 struct fcffd{
-  const char *token;	/**< The short name of the device. */
   pollfd_callback callback;
   char cb_cat;
 };
@@ -47,14 +46,12 @@ struct fcffd{
 static const char STANDARD = 0;	//< Standard callback
 static const char PPC = 1;	//< Per poll cycle callback
 
-static struct pollfd * fds;	//< File descriptor array
-static struct fcffd  * fdx;	//< File description array
+static struct pollfd * fds = NULL;	//< File descriptor array
+static struct fcffd  * fdx = NULL;	//< File description array
 static int nfds;		//< Number of file descriptors in arrays
 static int fd_array_size;	//< Allocated size of file descriptor array, fds
 static int run_fc;		//< Main loop is running true/false
 
-
-static void debug_fd (const char *msg, int i, struct pollfd *pfd);
 extern void fcf_initialize(void);
 extern void fcf_finalize (void);
 
@@ -63,15 +60,34 @@ extern void fcf_finalize (void);
  */
 static int init_fcf(){
   fd_array_size = FDS_INIT_SIZE;
+
   //initializing both file descriptor arrays
   fds = (struct pollfd *) malloc(fd_array_size * sizeof(struct pollfd));
   fdx = (struct fcffd *) malloc(fd_array_size * sizeof(struct fcffd));
-  // TODO: Need error checking code here for malloc calls
+  
+  if(!fds){
+	  fprintf(stderr, "Could not allocate memory for file descriptor array.");
+	  return -1;
+  }
+  else if(!fdx){
+	  fprintf(stderr, "Could not allocate memory for callback array.");
+	  return -1;
+  }
 	
   nfds = 0;  //< Number of file descriptors in array
   run_fc = 0;  //< Main loop is running True/False
 
   return 0;
+}
+
+
+/*
+ * Deallocate fcf data structures
+ */
+static void finalize_fcf(){
+	free(fds);
+	free(fdx);
+	nfds = -1;
 }
 
 
@@ -82,24 +98,19 @@ static int expand_arrays(){
   struct pollfd * fds_temp;
   struct fcffd * fdx_temp;
 
-  printf("** Expanding arrays from %d to ", fd_array_size);
   fd_array_size *= FDS_EXPANSION_FACTOR; // Expand array by pre-defined factor
-  printf("%d\n", fd_array_size);
-	
 
-  //increase size of fds array
+  // Increase size of fds array
   fds_temp = realloc(fds, fd_array_size * sizeof(struct pollfd));
   if(fds_temp == NULL){
-    // TODO: Add necessary logging/abort codes
     return -1;  //if failed
   }
   fds = fds_temp;
 	
-  //increase size of fdx array
+  // Increase size of fdx array
   fdx_temp = realloc(fdx, fd_array_size * sizeof(struct fcffd));
   if(fdx_temp == NULL){
-    // TODO: Add necessary logging/abort codes
-    return -1;  //if failed
+    return -1;  // if failed
   }
   fdx = fdx_temp;
 
@@ -115,24 +126,22 @@ int fcf_add_fd(int fd, short events, pollfd_callback cb){
     expand_arrays();
   }
   
-  //Filling file descriptor array with information bassed through function parameters.
+  // Filling file descriptor arrays with fd and callback data
   fds[nfds].fd = fd;
   fds[nfds].events = events;
-  //fdx[nfds].token = token;
   fdx[nfds].callback = cb;
   fdx[nfds].cb_cat = STANDARD;
   nfds++;
-  printf("Added fd: %d\tevents: %d\tFD count: %d\n", fd, events, nfds);
-  //printf("Added %s\tfd: %d\tevents: %d\tFD count: %d\n", token, fd, events, nfds);
-  return nfds - 1; //return value is the index of the newest file descriptor
+
+  return nfds - 1; // return value is the index of the newest file descriptor
 }
 
 
 /*
  *    Per poll loop file descriptor add
  */
-int fcf_add_fd_ppc(/*const char *token,*/ int fd, short events, pollfd_callback cb){
-  int i = fcf_add_fd (/*token,*/ fd, events, cb);
+int fcf_add_fd_ppc(int fd, short events, pollfd_callback cb){
+  int i = fcf_add_fd (fd, events, cb);
   if(i >= 0){
     fdx[i].cb_cat = PPC;
   }
@@ -144,19 +153,15 @@ int fcf_add_fd_ppc(/*const char *token,*/ int fd, short events, pollfd_callback 
  */
 void fcf_remove_fd(int fd){
  
-  // If there are no fds, return 0 -- or error code.
+  // If there are no fds, return
   if(nfds <= 0)
     return;
 
-  int i = 0;
-	
-  for(i = 0; i < nfds; i++){
+  for(int i = 0; i < nfds; i++){
     if(fds[i].fd == fd && i == (nfds - 1)){
-      //printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds - 1);
       nfds--;
     }
     else if(fds[i].fd == fd){
-      //printf("Removed %s\tfd: %d\tevents: %d\tFD count: %d\n", fdx[i].token, fds[i].fd, fds[i].events, nfds-1);
       memmove(&fds[i], &fds[nfds - 1], sizeof(struct pollfd));
       memmove(&fdx[i], &fdx[nfds - 1], sizeof(struct fcffd));
       nfds--;
@@ -196,66 +201,54 @@ static int fcf_run_poll_loop(){
 
   fcf_start_main_loop();
   while(run_fc){
-
-    /*for (int i = 0; i < nfds; i++) {
-      debug_fd("\nbefore poll<<< ", i, &fds[i]);
-      }*/
-    //printf("\nwaiting");
     fflush(stdout);
 
     errno = 0;
     int rc = poll(fds, nfds, -1);
 
-    //printf ("\n%d. poll returned with rc=%d errno=%d", count++, rc, errno);
-    /*for (int i = 0; i < nfds; i++) {
-      debug_fd("\n   after poll>>> ", i, &fds[i]);
-      }*/
-
     switch (rc){
-    case -1: //error
+    case -1: // error
       if(errno != EINTR){
-	perror ("run_main_loop: poll returned with error");
+	perror("run_main_loop: poll returned with error");
 	ret = -1;
 	fcf_stop_main_loop();
       }
       break;
-    case 0: //timeout
-      printf("poll timed out");
+    case 0: // timeout
       break;
     default:
       nppc = 0;
       for(int i = 0; i < nfds && rc > 0; i++){
 	if(fds[i].revents != 0){
-	  debug_fd("\n active fd ", i, &fds[i]);
 	  rc--;
 	  if(fdx[i].cb_cat == STANDARD){
-	    //callback for this active fd is a standard callback
+	    // callback for this active fd is a standard callback
 	    fdx[i].callback(&fds[i]);
 	  } 
 	  else{
-	    //callback for this active fd is a "per poll cycle" callback
+	    // callback for this active fd is a "per poll cycle" callback
 	    int j;
 	    for(j = 0; j < nppc && ppc[j] != fdx[i].callback; j++)
 	      { /*empty*/ }
 	    if(j == nppc){
-	      //a new ppc callback
-	      //add to ppc so that callback will be called at end of poll cycle
+	      // a new ppc callback
+	      // add to ppc so that callback will be called at end of poll cycle
 	      ppc[nppc++] = fdx[i].callback;
 	    } 
 	    else{
 	      //we have seen this callback before
-	      printf("\n multiple active ppc, ignoring callback for fd[%d]: fd=%d", i, fds[i].fd);
+	      //printf("\n multiple active ppc, ignoring callback for fd[%d]: fd=%d", i, fds[i].fd);
 	    }
 	  }
 	} // (revents set)
       } // (for i)
 
-      //handle ppc callbacks
+      // handle ppc callbacks
       for(int j = 0; j < nppc; j++){
-	//if callback wants to access the fds, callback
-	//is expected to know the indices into the fds array
-	//i.e., module must store return values it gets from fcf_addfdPpc
-	printf("\n calling ppc callback [%d]", j);
+	// if callback wants to access the fds, callback
+	// is expected to know the indices into the fds array
+	// i.e., module must store return values it gets from fcf_addfdPpc
+	//printf("\n calling ppc callback [%d]", j);
 	ppc[j](fds);
       }
 
@@ -264,26 +257,12 @@ static int fcf_run_poll_loop(){
 
   }
 
-  printf("\n exiting main loop");
+  //printf("\n exiting main loop");
   return ret;
-}
-
-/*
- *    Prints out polling information
- */
-static void debug_fd (const char *msg, int i, struct pollfd *pfd){
-  //printf("%s fd[%d]: fd=%d events=%X revents=%X [%s]", msg, i, pfd->fd, pfd->events, pfd->revents, fdx[i].token);
-  int re = pfd->revents;
-  if(re & POLLERR) printf("\nPOLLERR - Error condition");
-  if(re & POLLHUP) printf("\nPOLLHUP - Hang up");
-  if(re & POLLNVAL) printf("\nPOLLNVAL - Invalid request: fd not open");
-  fflush(stdout);
 }
 
 
 static void signalhandler(int signum){
-  printf ("\n **signal handler: signum = %d", signum);
-
   if(signum == SIGINT){
     fcf_stop_main_loop ();
   }
@@ -291,45 +270,8 @@ static void signalhandler(int signum){
 
 
 int main(int argc, char *argv[]){
-
- /*printf("" 
-		"                                                                                \n"
-		"                               `.:/++oooooo+//-.`                               \n"
-		"                           -/oyhhhhhhhhhhhyhhhhhhyo/.                       `   \n"
-		"                       `:ohhhhhhhhhhhhhhhhhhhhyshhhhhyo:                  -+    \n"
-		"                     -ohhhhhhhhhhhhhhhhhsyhyhhoohhhhhhhhh+.             -o+     \n"
-		"                   -shhhhhhhhhhhhhhhhyhhhyhhhhhhhhhhhhhhhhho.         -sy:      \n"
-		"                 .shhhhhhhho/+ooossyhhsyhhhhshhhhohhhhhhhhhhho`    `/yyo.       \n"
-		"                /hhhhhhhhh-+hhhhhhhyssohhhhhhhhhhhhhhhhhhhhhhhy-.:syys:         \n"
-		"               ohhhhhhhhh+/hhhhyh++hhhhysyhhhhhhhhhhhhhhhhhhhhhhyyyy:           \n"
-		"              ohhhhhhhhhh/shhhhhyhhhhhhhhhsshhhhhhhhhhhhhhhhyyyyyy:             \n"
-		"             /hhhhhhhhhhho+hhhhhhhhhhhhhhhhhsshhhhhhhhhhyyyyhhhhhh-             \n"
-		"            .hhhhhhhhhhhhh:hhhhhhhhhhhhhhhhhhhsyhhhhyyyyhhhhhhhhhhy`            \n"
-		"            ohhhhhhhhhhhhhoohhhhhhhhhhhhhhhhhhhyoyyyhhhhhhhhhhhhhhh/            \n"
-		"            hhsossyssyhyooo:ssossysoooyhsoooyoooo+oosyhhoooshyssyyss            \n"
-		"           .hh/`hyy:`hhh`/y``/ shoo s:`h+ o o+ hys/-h+/h:`h.:h/ soyh            \n"
-		"           -hh/ s/h:.hhh`:h-./ /+so +`:ho +`o+ o+ho.: oh/`+ ohh-`shh`           \n"
-		"           .hh- soo-`o+o`-+-so :s++ ++`+/ +`osooo+:`o``o-`s:`sh:`yhh            \n"
-		"      `.....hhhhhhhhhhhhhhhhyhhy/shhhhhhhhhhhhhhhhhhhsshhhhhhhhhhhhs            \n"
-		"   `-:::::::/+yhhhhhhhhhhhhhhhhhho+yhhhhhhhhhhhhhhhhhh+hhhyhho/yhhh/            \n"
-		"  -///:://////+shhhhhhhhhhhhhhhhhhh++hhhhhhhhhhhhhhhhhoshhhyhhyyhhy             \n"
-		" .+++++++++++oooyhhhhhhhyhhohhhyyhhhy++hhhhhhhhhhhhhhys+hhhhhyhhhh-             \n"
-		" -oooooooooossssyhhhhhhhhhyyshyhhhhhhhy -hhhhhhhhhhhhhy+hhhhhhhhh:              \n"
-		" `osssssssyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh+hhhyshhhh:               \n"
-		"  `oyyyyyhhhhhy::hhhhhhhhhhhhhhhyhhhhhshhhhhyhhyyyyysshhhhy+syy-                \n"
-		"    -+yhhhhho:`  .ohhhhhhhhhhhshhshhhhhhhhhhhhhhhhhhhhhhhhhhh+`                 \n"
-		"        ``   `.----+syhhhhhhhho/yhhhhhhhhhhhhhhhhhhhhhhhhhho.                   \n"
-		"           .:::::::://+yhhhhhhyyhhhhhhhhhhhhhhhhhhhhhhhhy+.                     \n"
-		"          -//////////+++oohhhhhhhhhhhhhhhhhhhhhhhhhhhy+-                        \n"
-		"          ++++++++++ooooo  ./oyhhhhhhhhhhhhhhhhhhyo:.                           \n"
-		"          ooooooossssssss       .-:/++oooo++/:-.                                \n"
-		"          :sssyyyyyyyyyy-                                                       \n"
-		"           -syhhhhhhhhs.                                                        \n"
-		"             ./+sss+/.                                                          \n"
-		"");*/
-  
-  printf("\n FLIGHT CONTROL FRAMEWORK V0.1  Copyright (C) 2013\n"
-	 "Ron Astin, Clark Wachsmuth, Chris Glasser, Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
+  printf("\n FLIGHT CONTROL FRAMEWORK V0.1 -- Copyright (C) 2013\n"
+	 " : Ron Astin, Clark Wachsmuth, Chris Glasser\n : Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
 	 "----------------------------------------------------------------\n"
 	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
 	 " visit http://www.gnu.org/licenses/gpl.html.\n\n"
@@ -337,15 +279,17 @@ int main(int argc, char *argv[]){
 	 " under certain conditions; For details, please visit\n"
 	 " http://www.gnu.org/licenses/gpl.html.\n"
 	 "----------------------------------------------------------------\n\n\n");
-  signal (SIGINT, signalhandler);
+  signal(SIGINT, signalhandler);
 
-  init_fcf();			//< FCF init that sets up fd structures
-  fcf_initialize();			//< fcfmain init function for user modules
-  int rc = fcf_run_poll_loop();
-  fcf_finalize();			//< fcfmain finalize function for user modules
-
-  if(rc == 0) {
-    return EXIT_SUCCESS;
+  int rc = init_fcf();			//< FCF init that sets up fd structures
+  if(rc == 0){
+	  fcf_initialize();			//< fcfmain init function for user modules
+	  int rc = fcf_run_poll_loop();
+	  fcf_finalize();			//< fcfmain finalize function for user modules
+	  finalize_fcf();			//< FCF finalize that deallocates fd structures
+	  if(rc == 0) {
+		return EXIT_SUCCESS;
+	  }
   }
   return EXIT_FAILURE;
 }
