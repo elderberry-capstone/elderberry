@@ -152,8 +152,8 @@ static void resetAll(){
 
 
 void init_rpsgame(){
-	player_names[0] = "Jamey";
-	player_names[1] = "Theo";
+	player_names[0] = "Player 1";
+	player_names[1] = "Player 2";
 	system ( "clear" );
 	length = sprintf(game_buffer, "\n======================================================\n   WELCOME TO ROCK, PAPER, SCISSORS!!1!one!\n======================================================\n\n");
 	sendMessage_rpsgame("rpsgame", game_buffer, length);
