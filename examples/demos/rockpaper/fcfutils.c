@@ -270,7 +270,7 @@ static void signalhandler(int signum){
 
 
 int main(int argc, char *argv[]){
-  printf("\n FLIGHT CONTROL FRAMEWORK V0.1 -- Copyright (C) 2013\n"
+  printf("\n FLIGHT CONTROL FRAMEWORK V1.0 -- Copyright (C) 2013\n"
 	 " : Ron Astin, Clark Wachsmuth, Chris Glasser\n : Josef Mihalits, Jordan Hewitt, Michael Hooper\n\n"
 	 "----------------------------------------------------------------\n"
 	 " This program comes with ABSOLUTELY NO WARRANTY;\n for details please"
