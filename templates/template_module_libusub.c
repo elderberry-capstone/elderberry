@@ -19,9 +19,13 @@
 *				arguments to this callback are sufficient to the needs of
 *				the device.
 *
-*		STEP 4.	Rename both this file and the accompanying header file to
-*				a unique filename that includes the token. For the sake of
-*				convention, we recommend module_{token}.c/.h.
+*		STEP 3.	Rename both this file and the accompanying header file to
+*				a unique filename in the root framework directory that includes
+*				the token. For the sake of convention, we recommend 
+*				module_{token}.c/.h.
+*
+*		STEP 4. Create the MIML file for the device by using the header2Miml.py
+*				script. Example: ./header2Miml.py module_(token)
 *
 **/
 

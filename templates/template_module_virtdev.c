@@ -18,8 +18,12 @@
 *				the device.
 *
 *		STEP 3.	Rename both this file and the accompanying header file to
-*				a unique filename that includes the token. For the sake of
-*				convention, we recommend module_virtdev_{token}.c/.h.
+*				a unique filename in the root framework directory that includes
+*				the token. For the sake of convention, we recommend 
+*				module_virt{token}.c/.h.
+*
+*		STEP 4. Create the MIML file for the device by using the header2Miml.py
+*				script. Example: ./header2Miml.py module_virt(token)
 *
 **/
 
