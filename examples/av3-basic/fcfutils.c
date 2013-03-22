@@ -52,22 +52,19 @@ int fcf_addfd_ppc (int fd, short events, pollCallback cb)
 
 //remove file descriptor
 int fcf_removefd (int fd) {
-	int *p = &(nfds);
-
-	for (int i = 0; i < *p; i++) {
+	for (int i = 0; i < nfds; i++) {
 		if (fds[i].fd == fd) {
 			//we found fd we want to remove
-			//remove fd at index i by overwriting it with last fd
-			if (*p > 1) {
-				fds[i] = fds[*p - 1];
-				callbacks[i] = callbacks[*p - 1];
-				cbCat[i] = cbCat[*p - 1];
-				(*p)--;
-				return 0;
+			nfds--;
+			if (i < nfds) {
+				//remove fd at index i by overwriting it with last fd
+				fds[i] = fds[nfds];
+				callbacks[i] = callbacks[nfds];
+				cbCat[i] = cbCat[nfds];
 			}
+			return 0;
 		}
 	}
-
 	return -1; //fd was not in array
 }
 
