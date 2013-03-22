@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include <signal.h>
 #include "fcfutils.h"
 
 #define FCF_POLLSIZE 100
@@ -154,7 +153,7 @@ int run_main_loop() {
 
 	}
 
-	(void) signal(SIGINT, SIG_DFL);
+	printf("\n exiting main loop");
 	return ret;
 }
 
